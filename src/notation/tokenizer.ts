@@ -1,18 +1,19 @@
 import VError from "verror";
+import { Column, GameOutcome, Piece, Rank } from "./declarations";
 
-type NumberToken = {
-  kind: "number";
-  value: number;
+type RankToken = {
+  kind: "rank";
+  value: Rank;
 };
 
 type ColumnToken = {
   kind: "column";
-  value: "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h";
+  value: Column;
 };
 
 type PieceToken = {
   kind: "piece";
-  value: "K" | "Q" | "R" | "B" | "N";
+  value: Piece;
 };
 
 type EnPassantToken = {
@@ -55,16 +56,7 @@ type AllegianceToken = {
 
 type GameOverToken = {
   kind: "game-over";
-  outcome:
-    | "white"
-    | "black"
-    | "draw"
-    | "forfeit"
-    | "forfeit-white"
-    | "forfeit-black"
-    | "default"
-    | "default-white"
-    | "default-black";
+  outcome: GameOutcome;
 };
 
 type StepNumberToken = {
@@ -72,8 +64,12 @@ type StepNumberToken = {
   value: number;
 };
 
-export type Token =
-  | NumberToken
+type MoveSeparatorToken = {
+  kind: "move-separator";
+};
+
+export type Token = { source?: { column: number; row: number } } & (
+  | RankToken
   | ColumnToken
   | PieceToken
   | CaptureToken
@@ -86,11 +82,15 @@ export type Token =
   | DoubleCheckToken
   | GameOverToken
   | StepNumberToken
-  | AllegianceToken;
+  | AllegianceToken
+  | MoveSeparatorToken
+);
 
 export const tokenize = (rawInput: string): Token[] => {
-  const input = rawInput.replace("–", "-").replace("\r", "");
+  const input = rawInput.replace(/[–]/gu, "-");
+
   let row = 1;
+  let column = 1;
   let cursor = 0;
   const tokens: Token[] = [];
 
@@ -124,186 +124,183 @@ export const tokenize = (rawInput: string): Token[] => {
       return result;
     };
 
+    const token = (length: number, token: Token) => {
+      tokens.push({ ...token, source: { column, row } });
+      cursor += length;
+      column += length;
+    };
+
     if (current === "\n") {
       row++;
+      column = 1;
+      cursor++;
+      continue;
     }
 
-    if ([" ", "\n"].includes(current)) {
+    if (current === "\r") {
+      column = 1;
       cursor++;
+      continue;
+    }
+
+    if (current === " " || current === ";") {
+      token(1, {
+        kind: "move-separator",
+      });
       continue;
     }
 
     if (findWord("O-O") || findWord("0-0")) {
-      tokens.push({
+      token(3, {
         kind: "castle",
         side: "king",
       });
-      cursor += 3;
       continue;
     }
 
     if (findWord("O-O-O") || findWord("0-0-0")) {
-      tokens.push({
+      token(5, {
         kind: "castle",
         side: "queen",
       });
-      cursor += 5;
       continue;
     }
 
     if (current === "+" || current === "†") {
-      tokens.push({
+      token(1, {
         kind: "check",
       });
-      cursor++;
       continue;
     }
 
     if (findWord("ch")) {
-      tokens.push({
+      token(2, {
         kind: "check",
       });
-      cursor += 2;
       continue;
     }
 
     if (/[#‡≠X]/gu.test(current)) {
-      tokens.push({
+      token(1, {
         kind: "checkmate",
       });
-      cursor++;
       continue;
     }
 
     if (findWord("mate")) {
-      tokens.push({
+      token(4, {
         kind: "checkmate",
       });
-      cursor += 4;
       continue;
     }
 
     if (findWord("dbl ch")) {
-      tokens.push({
+      token(6, {
         kind: "double-check",
       });
-      cursor += 6;
       continue;
     }
 
     if (findWord("++")) {
-      tokens.push({
+      token(2, {
         kind: "double-check",
       });
-      cursor += 2;
       continue;
     }
 
     if (findWord("0-1")) {
-      tokens.push({
+      token(3, {
         kind: "game-over",
         outcome: "black",
       });
-      cursor += 3;
       continue;
     }
 
     if (findWord("1-0")) {
-      tokens.push({
+      token(3, {
         kind: "game-over",
         outcome: "white",
       });
-      cursor += 3;
       continue;
     }
 
     if (findWord("½-½")) {
-      tokens.push({
+      token(3, {
         kind: "game-over",
         outcome: "draw",
       });
-      cursor += 3;
       continue;
     }
 
     if (findWord("1/2-1/2")) {
-      tokens.push({
+      token(7, {
         kind: "game-over",
         outcome: "draw",
       });
-      cursor += 7;
       continue;
     }
 
     if (findWord("0-0")) {
-      tokens.push({
+      token(3, {
         kind: "game-over",
         outcome: "forfeit",
       });
-      cursor += 3;
       continue;
     }
 
     if (findWord("½-0")) {
-      tokens.push({
+      token(3, {
         kind: "game-over",
         outcome: "forfeit-white",
       });
-      cursor += 3;
       continue;
     }
 
     if (findWord("1/2-0")) {
-      tokens.push({
+      token(5, {
         kind: "game-over",
         outcome: "forfeit-white",
       });
-      cursor += 5;
       continue;
     }
 
     if (findWord("0-½")) {
-      tokens.push({
+      token(3, {
         kind: "game-over",
         outcome: "forfeit-black",
       });
-      cursor += 3;
       continue;
     }
 
     if (findWord("0-1/2")) {
-      tokens.push({
+      token(5, {
         kind: "game-over",
         outcome: "forfeit-black",
       });
-      cursor += 5;
       continue;
     }
 
     if (findWord("+/-")) {
-      tokens.push({
+      token(3, {
         kind: "game-over",
         outcome: "default-white",
       });
-      cursor += 3;
       continue;
     }
 
     if (findWord("-/+")) {
-      tokens.push({
+      token(3, {
         kind: "game-over",
         outcome: "default-black",
       });
-      cursor += 3;
       continue;
     }
 
     if (findWord("-/-")) {
-      tokens.push({
+      token(3, {
         kind: "game-over",
         outcome: "default",
       });
-      cursor += 3;
       continue;
     }
 
@@ -312,88 +309,78 @@ export const tokenize = (rawInput: string): Token[] => {
       const isStepNumber = input[cursor + fullNumber.length] === ".";
 
       if (isStepNumber) {
-        tokens.push({
+        token(fullNumber.length + 1, {
           kind: "step-number",
           value: Number.parseInt(fullNumber, 10),
         });
-        cursor += fullNumber.length + 1;
         continue;
       }
     }
 
     if (/[1-8]/gu.test(current)) {
-      tokens.push({
-        kind: "number",
-        value: Number.parseInt(current, 10),
+      token(1, {
+        kind: "rank",
+        value: Number.parseInt(current, 10) as Rank,
       });
-      cursor++;
       continue;
     }
 
     if (findWord("e.p.")) {
-      tokens.push({
+      token(4, {
         kind: "en-passant",
       });
-      cursor += 4;
       continue;
     }
 
     if (/[a-h]/gu.test(current)) {
-      tokens.push({
+      token(1, {
         kind: "column",
         value: current as ColumnToken["value"],
       });
-      cursor++;
       continue;
     }
 
     if (/[KQRBN]/gu.test(current)) {
-      tokens.push({
+      token(1, {
         kind: "piece",
         value: current as PieceToken["value"],
       });
-      cursor++;
       continue;
     }
 
     if (/[x:]/gu.test(current)) {
-      tokens.push({
+      token(1, {
         kind: "capture",
       });
-      cursor++;
       continue;
     }
 
     if (findWord("(=)")) {
-      tokens.push({
+      token(3, {
         kind: "draw-offer",
       });
-      cursor += 3;
       continue;
     }
 
     if (current === "=" || current === "/") {
-      tokens.push({
+      token(1, {
         kind: "promotion",
       });
-      cursor++;
       continue;
     }
 
     if (current === "(" || current === ")") {
-      tokens.push({
+      token(1, {
         kind: "promotion",
         bracket: current === "(" ? "open" : "close",
       });
-      cursor++;
       continue;
     }
 
     if (current === ">") {
-      tokens.push({
+      token(1, {
         kind: "allegiance",
       });
-      cursor++;
       continue;
     }
 
