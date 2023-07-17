@@ -1,0 +1,15 @@
+{
+  "include": ["ci", "bin"],
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "target": "ES2015",
+    "paths": {
+      "@/*": ["*"]
+    }
+  }
+}
