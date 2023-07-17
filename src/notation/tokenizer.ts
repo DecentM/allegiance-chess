@@ -49,6 +49,10 @@ type DoubleCheckToken = {
   kind: "double-check";
 };
 
+type AllegianceToken = {
+  kind: "allegiance";
+};
+
 type GameOverToken = {
   kind: "game-over";
   outcome:
@@ -81,9 +85,11 @@ export type Token =
   | CheckmateToken
   | DoubleCheckToken
   | GameOverToken
-  | StepNumberToken;
+  | StepNumberToken
+  | AllegianceToken;
 
-export const tokenize = (input: string): Token[] => {
+export const tokenize = (rawInput: string): Token[] => {
+  const input = rawInput.replace("–", "-").replace("\r", "");
   let row = 1;
   let cursor = 0;
   const tokens: Token[] = [];
@@ -122,7 +128,7 @@ export const tokenize = (input: string): Token[] => {
       row++;
     }
 
-    if ([" ", "\n", "\r"].includes(current)) {
+    if ([" ", "\n"].includes(current)) {
       cursor++;
       continue;
     }
@@ -220,6 +226,15 @@ export const tokenize = (input: string): Token[] => {
       continue;
     }
 
+    if (findWord("1/2-1/2")) {
+      tokens.push({
+        kind: "game-over",
+        outcome: "draw",
+      });
+      cursor += 7;
+      continue;
+    }
+
     if (findWord("0-0")) {
       tokens.push({
         kind: "game-over",
@@ -238,12 +253,30 @@ export const tokenize = (input: string): Token[] => {
       continue;
     }
 
+    if (findWord("1/2-0")) {
+      tokens.push({
+        kind: "game-over",
+        outcome: "forfeit-white",
+      });
+      cursor += 5;
+      continue;
+    }
+
     if (findWord("0-½")) {
       tokens.push({
         kind: "game-over",
         outcome: "forfeit-black",
       });
       cursor += 3;
+      continue;
+    }
+
+    if (findWord("0-1/2")) {
+      tokens.push({
+        kind: "game-over",
+        outcome: "forfeit-black",
+      });
+      cursor += 5;
       continue;
     }
 
@@ -351,6 +384,14 @@ export const tokenize = (input: string): Token[] => {
       tokens.push({
         kind: "promotion",
         bracket: current === "(" ? "open" : "close",
+      });
+      cursor++;
+      continue;
+    }
+
+    if (current === ">") {
+      tokens.push({
+        kind: "allegiance",
       });
       cursor++;
       continue;
