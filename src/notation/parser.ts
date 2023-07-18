@@ -41,7 +41,7 @@ type GameOverNode = {
   outcome: GameOutcome;
 };
 
-type Node = { sources: Token[] } & (
+export type Node = { sources: Token[] } & (
   | MoveNode
   | EnPassantNode
   | CaptureNode
@@ -196,6 +196,8 @@ export const parse = (tokens: Token[]): RootNode => {
     "move-separator",
   ];
 
+  const noSourceTokens: Token["kind"][] = ["step-number", "move-separator"];
+
   // List of moves that are acceptable. On a clean slate, these things are
   // epected
   const expectedTokens: Set<Token["kind"]> = new Set(moveBeginning);
@@ -315,7 +317,9 @@ export const parse = (tokens: Token[]): RootNode => {
   while (cursor < tokens.length) {
     const current = tokens[cursor];
 
-    wipNode.tokens.push(current);
+    if (!noSourceTokens.includes(current.kind)) {
+      wipNode.tokens.push(current);
+    }
 
     switch (current.kind) {
       case "move-separator":

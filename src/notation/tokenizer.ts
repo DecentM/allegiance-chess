@@ -68,7 +68,13 @@ type MoveSeparatorToken = {
   kind: "move-separator";
 };
 
-export type Token = { source?: { column: number; row: number } } & (
+export type Token = {
+  source?: {
+    column: number;
+    row: number;
+    length: number;
+  };
+} & (
   | RankToken
   | ColumnToken
   | PieceToken
@@ -125,7 +131,7 @@ export const tokenize = (rawInput: string): Token[] => {
     };
 
     const token = (length: number, token: Token) => {
-      tokens.push({ ...token, source: { column, row } });
+      tokens.push({ ...token, source: { column, row, length } });
       cursor += length;
       column += length;
     };
@@ -386,7 +392,9 @@ export const tokenize = (rawInput: string): Token[] => {
       continue;
     }
 
-    throw new VError(`Unsupported character in line ${row}: "${current}"`);
+    throw new VError(
+      `Unsupported character at line ${row} column ${column}: "${current}"`
+    );
   }
 
   return tokens;

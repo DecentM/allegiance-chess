@@ -1,4 +1,96 @@
-import { RootNode } from "./parser";
+import { Node, RootNode } from "./parser";
+
+export const writeNode = (node: Node): string => {
+  switch (node.kind) {
+    case "draw-offer":
+      return "(=)";
+
+    case "game-over":
+      switch (node.outcome) {
+        case "black":
+          return "0-1";
+
+        case "white":
+          return "1-0";
+
+        case "draw":
+          return "1/2-1/2";
+
+        case "default":
+          return "-/-";
+
+        case "default-black":
+          return "-/+";
+
+        case "default-white":
+          return "+/-";
+
+        case "forfeit":
+          return "0-0";
+
+        case "forfeit-black":
+          return "0-1/2";
+
+        case "forfeit-white":
+          return "1/2-0";
+      }
+
+    case "move":
+      const writeMove = (action: string, suffix?: string) => {
+        let result = "";
+
+        if (node.piece) {
+          result += node.piece;
+        }
+
+        if (node.from.column) {
+          result += `${node.from.column}`;
+        }
+
+        if (node.from.rank) {
+          result += `${node.from.rank}`;
+        }
+
+        result += action;
+
+        if (node.to.column) {
+          result += `${node.to.column}`;
+        }
+
+        if (node.to.rank) {
+          result += `${node.to.rank}`;
+        }
+
+        if (node.causesCheck) {
+          result += node.isMate ? "#" : "+";
+        }
+
+        if (suffix) result += suffix;
+
+        return result;
+      };
+
+      switch (node.type) {
+        case "allegiance":
+          return writeMove(">");
+
+        case "capture":
+          return writeMove("x");
+
+        case "castle":
+          return node.side === "king" ? "O-O" : "O-O-O";
+
+        case "en-passant":
+          return writeMove("x", " e.p.");
+
+        case "promotion":
+          return writeMove("=");
+
+        default:
+          return writeMove("");
+      }
+  }
+};
 
 export const write = (root: RootNode): string => {
   const steps: string[] = [];
@@ -14,105 +106,7 @@ export const write = (root: RootNode): string => {
       }
     };
 
-    switch (node.kind) {
-      case "draw-offer":
-        write("(=)");
-        break;
-
-      case "game-over":
-        switch (node.outcome) {
-          case "black":
-            write("0-1");
-            break;
-
-          case "white":
-            write("1-0");
-            break;
-
-          case "draw":
-            write("1/2-1/2");
-            break;
-
-          case "default":
-            write("-/-");
-            break;
-
-          case "default-black":
-            write("-/+");
-            break;
-
-          case "default-white":
-            write("+/-");
-            break;
-
-          case "forfeit":
-            write("0-0");
-            break;
-
-          case "forfeit-black":
-            write("0-1/2");
-            break;
-
-          case "forfeit-white":
-            write("1/2-0");
-            break;
-        }
-        break;
-
-      case "move":
-        const writeMove = (action: string, suffix?: string) => {
-          let result = "";
-
-          if (node.piece) {
-            result += node.piece;
-          }
-
-          if (node.from.column && node.from.rank) {
-            result += `${node.from.column}${node.from.rank}`;
-          }
-
-          result += action;
-
-          if (node.to.column && node.to.rank) {
-            result += `${node.to.column}${node.to.rank}`;
-          }
-
-          if (node.causesCheck) {
-            result += node.isMate ? "#" : "+";
-          }
-
-          if (suffix) result += suffix;
-
-          return write(result);
-        };
-
-        switch (node.type) {
-          case "allegiance":
-            writeMove(">");
-            break;
-
-          case "capture":
-            writeMove("x");
-            break;
-
-          case "castle":
-            write(node.side === "king" ? "O-O" : "O-O-O");
-            break;
-
-          case "en-passant":
-            writeMove("", " e.p.");
-            break;
-
-          case "promotion":
-            writeMove("=");
-            break;
-
-          default:
-            writeMove("");
-            break;
-        }
-        break;
-    }
+    write(writeNode(node));
   });
 
   return steps

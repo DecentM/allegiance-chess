@@ -6,7 +6,7 @@ import { write } from "./writer";
 
 test("allegiance", (t) => {
   const result = write(
-    parse(tokenize("d3d4 Nf1e3 Qxd8 xd2 e.p. Ka5 Nxf7 N>d2 Bd5>e6# 1-0"))
+    parse(tokenize("d3d4 Nf1e3 Qxd8 xd2 e.p. Ka5 N>d2 Bd5>e6# 1-0"))
   );
 
   t.pass();
@@ -14,7 +14,7 @@ test("allegiance", (t) => {
 
 test("recursion", (t) => {
   const source =
-    "1. d3d4 Nf1e3 2. Qxd8 xd2 e.p. 3. Ka5 Nxf7 4. N>d2 Bd5>e6# 5. 1-0";
+    "1. axb5 Nf1e3+ 2. Qxd8 xd2 e.p. 3. Ka5 Nxf7 4. N>d2 Bd5>e6# 5. 1-0";
 
   const rewrite = (input: string) => write(parse(tokenize(input)));
 
