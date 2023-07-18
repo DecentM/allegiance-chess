@@ -335,7 +335,7 @@ export const tokenize = (rawInput: string): Token[] => {
     if (/[1-8]/gu.test(current)) {
       token(1, {
         kind: "rank",
-        value: Number.parseInt(current, 10) as Rank,
+        value: current as Rank,
       });
       continue;
     }
