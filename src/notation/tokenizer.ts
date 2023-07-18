@@ -133,13 +133,22 @@ export const tokenize = (rawInput: string): Token[] => {
     if (current === "\n") {
       row++;
       column = 1;
-      cursor++;
+      token(1, {
+        kind: "move-separator",
+      });
       continue;
     }
 
     if (current === "\r") {
       column = 1;
       cursor++;
+      continue;
+    }
+
+    if (findWord("e.p.") || findWord(" e.p.")) {
+      token(current === " " ? 5 : 4, {
+        kind: "en-passant",
+      });
       continue;
     }
 
@@ -321,13 +330,6 @@ export const tokenize = (rawInput: string): Token[] => {
       token(1, {
         kind: "rank",
         value: Number.parseInt(current, 10) as Rank,
-      });
-      continue;
-    }
-
-    if (findWord("e.p.")) {
-      token(4, {
-        kind: "en-passant",
       });
       continue;
     }

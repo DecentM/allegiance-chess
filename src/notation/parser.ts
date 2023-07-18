@@ -3,18 +3,17 @@ import VError from "verror";
 import { Token } from "./tokenizer";
 import { Column, GameOutcome, Piece, Rank } from "./declarations";
 
+export type Coordinates = {
+  column: Column;
+  rank: Rank;
+};
+
 type MoveNode<T = void> = {
   kind: "move";
   type: T;
-  piece: Piece | "pawn";
-  from: {
-    column: Column;
-    rank: Rank;
-  };
-  to: {
-    column: Column;
-    rank: Rank;
-  };
+  piece: Piece;
+  from: Coordinates;
+  to: Coordinates;
   causesCheck: boolean;
   isMate: boolean;
 };
@@ -60,7 +59,7 @@ type AnyMoveNode =
   | PromotionNode
   | AllegianceNode;
 
-type RootNode = {
+export type RootNode = {
   kind: "root";
   children: Node[];
 };
@@ -220,8 +219,12 @@ export const parse = (tokens: Token[]): RootNode => {
     }
 
     switch (current.kind) {
+      case "move-separator":
+        expect(...moveBeginning, "step-number", "capture");
+        break;
+
       case "step-number":
-        expect(...moveBeginning);
+        expect(...moveBeginning, "move-separator");
         break;
 
       case "promotion":
@@ -253,8 +256,7 @@ export const parse = (tokens: Token[]): RootNode => {
         break;
 
       case "game-over":
-        // Must be the last token
-        expect();
+        expect("move-separator");
         break;
 
       case "rank":
