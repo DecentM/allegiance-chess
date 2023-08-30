@@ -1,7 +1,7 @@
 import VError from "verror";
 
 import { File, Piece, Rank } from "../notation/declarations";
-import { Coordinates, Node } from "../notation/parser";
+import { CastleSide, Coordinates, Node } from "../notation/parser";
 import { Vector2 } from "../lib/vector2";
 import { BoardMemory, BoardSquare } from "./board-memory";
 
@@ -26,6 +26,10 @@ type BoardMove = {
   from: Coordinates;
   to: Coordinates;
   takes: Coordinates | null;
+  implies: null | {
+    from: Coordinates;
+    to: Coordinates;
+  };
 };
 
 type BoardMoveHistoryItem = BoardMove & {
@@ -158,6 +162,62 @@ export class Board {
     return steps;
   }
 
+  private castlingEligibility(side: "white" | "black"): CastleSide[] {
+    const ownMoves = this.moveHistory.filter(
+      (move) => allegianceSide(move.allegiance) === side
+    );
+
+    const queenSideRookMoves = ownMoves.filter((move) => {
+      return move.piece === "R" && move.from.file === 1;
+    });
+
+    const kingSideRookMoves = ownMoves.filter((move) => {
+      return move.piece === "R" && move.from.file === 8;
+    });
+
+    const kingMoves = ownMoves.filter((move) => {
+      return move.piece === "K";
+    });
+
+    const result: CastleSide[] = [];
+
+    if (queenSideRookMoves.length === 0 && kingMoves.length === 0) {
+      const fileB = this.memory.getSquare({
+        file: 2,
+        rank: side === "white" ? 1 : 8,
+      });
+      const fileC = this.memory.getSquare({
+        file: 3,
+        rank: side === "white" ? 1 : 8,
+      });
+      const fileD = this.memory.getSquare({
+        file: 4,
+        rank: side === "white" ? 1 : 8,
+      });
+
+      if (!fileB && !fileC && !fileD) {
+        result.push("queen");
+      }
+    }
+
+    if (kingSideRookMoves.length === 0 && kingMoves.length === 0) {
+      const fileF = this.memory.getSquare({
+        file: 6,
+        rank: side === "white" ? 1 : 8,
+      });
+      const fileG = this.memory.getSquare({
+        file: 7,
+        rank: side === "white" ? 1 : 8,
+      });
+
+      if (!fileF && !fileG) {
+        result.push("king");
+      }
+    }
+
+    return result;
+  }
+
   public getValidMoves(): BoardMove[] {
     const result: BoardMove[] = [];
     const squares = this.memory.getSquares();
@@ -207,6 +267,7 @@ export class Board {
             result.push({
               from: square,
               takes: lastMove.to,
+              implies: null,
               to: this.getCoordsRelative(
                 square,
                 new Vector2(
@@ -224,6 +285,7 @@ export class Board {
             from: square,
             to: inFront,
             takes: null,
+            implies: null,
           });
         }
 
@@ -232,6 +294,7 @@ export class Board {
             from: square,
             to: diagLeft,
             takes: diagLeft,
+            implies: null,
           });
         }
 
@@ -240,6 +303,7 @@ export class Board {
             from: square,
             to: diagRight,
             takes: diagRight,
+            implies: null,
           });
         }
 
@@ -264,6 +328,7 @@ export class Board {
               from: square,
               to: inFront2,
               takes: null,
+              implies: null,
             });
           }
         }
@@ -289,6 +354,7 @@ export class Board {
             from: square,
             to: step,
             takes: this.memory.getSquare(step) ? step : null,
+            implies: null,
           }))
         );
       }
@@ -322,6 +388,7 @@ export class Board {
             from: square,
             to: target,
             takes: targetSquare ? target : null,
+            implies: null,
           });
         });
       }
@@ -346,6 +413,7 @@ export class Board {
             from: square,
             to: step,
             takes: this.memory.getSquare(step) ? step : null,
+            implies: null,
           }))
         );
       }
@@ -378,6 +446,7 @@ export class Board {
             from: square,
             to: step,
             takes: this.memory.getSquare(step) ? step : null,
+            implies: null,
           }))
         );
       }
@@ -385,7 +454,6 @@ export class Board {
       /**
        * KING
        */
-      // TODO: Castling
       if (square.piece === "K") {
         const possibleMoves: Coordinates[] = [
           this.getCoordsRelative(square, new Vector2(0, 1)),
@@ -409,7 +477,88 @@ export class Board {
             from: square,
             to: possibleMove,
             takes: toSquare ? { ...possibleMove, ...toSquare } : null,
+            implies: null,
           });
+        });
+
+        const whiteCastling = this.castlingEligibility("white");
+
+        whiteCastling.forEach((castling) => {
+          if (castling === "king") {
+            result.push({
+              from: square,
+              to: this.getCoordsRelative(square, new Vector2(2, 0)),
+              takes: null,
+              implies: {
+                from: {
+                  file: 8,
+                  rank: 1,
+                },
+                to: {
+                  file: 6,
+                  rank: 1,
+                },
+              },
+            });
+          }
+
+          if (castling === "queen") {
+            result.push({
+              from: square,
+              to: this.getCoordsRelative(square, new Vector2(-2, 0)),
+              takes: null,
+              implies: {
+                from: {
+                  file: 1,
+                  rank: 1,
+                },
+                to: {
+                  file: 4,
+                  rank: 1,
+                },
+              },
+            });
+          }
+        });
+
+        const blackCastling = this.castlingEligibility("black");
+
+        blackCastling.forEach((castling) => {
+          if (castling === "king") {
+            result.push({
+              from: square,
+              to: this.getCoordsRelative(square, new Vector2(2, 0)),
+              takes: null,
+              implies: {
+                from: {
+                  file: 8,
+                  rank: 8,
+                },
+                to: {
+                  file: 6,
+                  rank: 8,
+                },
+              },
+            });
+          }
+
+          if (castling === "queen") {
+            result.push({
+              from: square,
+              to: this.getCoordsRelative(square, new Vector2(-2, 0)),
+              takes: null,
+              implies: {
+                from: {
+                  file: 1,
+                  rank: 8,
+                },
+                to: {
+                  file: 4,
+                  rank: 8,
+                },
+              },
+            });
+          }
         });
       }
     });

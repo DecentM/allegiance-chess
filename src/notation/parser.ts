@@ -22,8 +22,10 @@ type EnPassantNode = MoveNode<"en-passant">;
 
 type CaptureNode = MoveNode<"capture">;
 
+export type CastleSide = "king" | "queen";
+
 type CastleNode = MoveNode<"castle"> & {
-  side: "king" | "queen";
+  side: CastleSide;
 };
 
 type PromotionNode = MoveNode<"promotion"> & {
