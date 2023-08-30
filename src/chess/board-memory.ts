@@ -35,6 +35,11 @@ export class BoardMemory {
 
     this.memory.forEach((ranks, file) => {
       ranks.forEach((square, rank) => {
+        if (!square) {
+          result.push(null);
+          return;
+        }
+
         result.push({
           allegiance: square.allegiance,
           piece: square.piece,
@@ -185,42 +190,42 @@ export class BoardMemory {
     // Black pieces
 
     this.memory[0][7] = {
-      allegiance: PieceAllegiance.White,
+      allegiance: PieceAllegiance.Black,
       piece: "R",
     };
 
     this.memory[1][7] = {
-      allegiance: PieceAllegiance.White,
+      allegiance: PieceAllegiance.Black,
       piece: "N",
     };
 
     this.memory[2][7] = {
-      allegiance: PieceAllegiance.White,
+      allegiance: PieceAllegiance.Black,
       piece: "B",
     };
 
     this.memory[3][7] = {
-      allegiance: PieceAllegiance.White,
+      allegiance: PieceAllegiance.Black,
       piece: "Q",
     };
 
     this.memory[4][7] = {
-      allegiance: PieceAllegiance.White,
+      allegiance: PieceAllegiance.Black,
       piece: "K",
     };
 
     this.memory[5][7] = {
-      allegiance: PieceAllegiance.White,
+      allegiance: PieceAllegiance.Black,
       piece: "B",
     };
 
     this.memory[6][7] = {
-      allegiance: PieceAllegiance.White,
+      allegiance: PieceAllegiance.Black,
       piece: "N",
     };
 
     this.memory[7][7] = {
-      allegiance: PieceAllegiance.White,
+      allegiance: PieceAllegiance.Black,
       piece: "R",
     };
   }

@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import test from "ava";
 
 import { Board } from "./board";
@@ -6,7 +7,7 @@ import { Vector2 } from "../lib/vector2";
 test("board", (t) => {
   const b = new Board();
 
-  b.traceCapture(
+  b.traceCaptureSteps(
     {
       file: 1,
       rank: 2,
@@ -15,6 +16,14 @@ test("board", (t) => {
   );
 
   t.pass();
+});
+
+test.only("finds 40 moves on a starting board", (t) => {
+  const b = new Board();
+
+  const moves = b.getValidMoves();
+
+  t.is(moves.length, 40);
 });
 
 test("traces steps forward", (t) => {

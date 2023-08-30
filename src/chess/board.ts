@@ -22,8 +22,19 @@ const allegianceSide = (allegiance: PieceAllegiance): "white" | "black" => {
     : "white";
 };
 
+type BoardMove = {
+  from: Coordinates;
+  to: Coordinates;
+  takes: Coordinates | null;
+};
+
+type BoardMoveHistoryItem = BoardMove & {
+  piece: Piece | null;
+  allegiance: PieceAllegiance;
+};
+
 export class Board {
-  private moveHistory: Node[] = [];
+  private moveHistory: BoardMoveHistoryItem[] = [];
 
   private memory: BoardMemory;
 
@@ -33,7 +44,7 @@ export class Board {
     this.memory.setup();
   }
 
-  private hasCastled(side: "black" | "white") {
+  /* private hasCastled(side: "black" | "white") {
     return this.moveHistory.some((node) => {
       if (node.kind !== "move") {
         return false;
@@ -43,7 +54,7 @@ export class Board {
 
       return node.type === "castle" && node.from?.rank === rank;
     });
-  }
+  } */
 
   private getCoordsRelative(
     coords: Coordinates,
@@ -147,23 +158,260 @@ export class Board {
     return steps;
   }
 
-  public traceCapture(coords: Coordinates, direction: Vector2): Coordinates[] {
-    const steps = this.traceCaptureSteps(coords, direction);
-
-    return [];
-  }
-
-  private getValidMoves(side: "black" | "white"): Node[] {
-    const result: Node[] = [];
+  public getValidMoves(): BoardMove[] {
+    const result: BoardMove[] = [];
     const squares = this.memory.getSquares();
-    const sideSquares = squares.filter((square) => {
-      return side === "white"
-        ? square.allegiance >= PieceAllegiance.LightGrey
-        : square.allegiance <= PieceAllegiance.DarkGrey;
-    });
 
-    sideSquares.forEach((square) => {
-      // TODO: switch (square.piece) and implement movement rules with trace
+    squares.forEach((square) => {
+      // No piece on square
+      if (!square) {
+        return;
+      }
+
+      const side = allegianceSide(square.allegiance);
+
+      /**
+       * PAWN
+       */
+      if (square.piece === null) {
+        const inFront = this.getCoordsRelative(
+          square,
+          new Vector2(0, side === "white" ? 1 : -1)
+        );
+
+        const diagLeft = this.getCoordsRelative(
+          square,
+          new Vector2(side === "white" ? -1 : 1, side === "white" ? 1 : -1)
+        );
+
+        const diagRight = this.getCoordsRelative(
+          square,
+          new Vector2(side === "white" ? 1 : -1, side === "white" ? 1 : -1)
+        );
+
+        // En passant
+        const lastMove = this.moveHistory[this.moveHistory.length - 1];
+
+        if (lastMove) {
+          const lastMoveSide = allegianceSide(lastMove.allegiance);
+          const lastMoveIsPawnJump =
+            lastMove.piece === null &&
+            Math.abs(lastMove.to.rank - lastMove.from.rank) === 2;
+
+          if (
+            lastMoveSide !== allegianceSide(square.allegiance) &&
+            lastMoveIsPawnJump &&
+            square.rank === lastMove.to.rank &&
+            Math.abs(square.file - lastMove.to.file) === 1
+          ) {
+            result.push({
+              from: square,
+              takes: lastMove.to,
+              to: this.getCoordsRelative(
+                square,
+                new Vector2(
+                  // TODO: Is this the correct direction?
+                  Math.sign(square.file - lastMove.to.file),
+                  side === "white" ? 1 : -1
+                )
+              ),
+            });
+          }
+        }
+
+        if (inFront && !this.memory.getSquare(inFront)) {
+          result.push({
+            from: square,
+            to: inFront,
+            takes: null,
+          });
+        }
+
+        if (diagLeft && this.memory.getSquare(diagLeft)) {
+          result.push({
+            from: square,
+            to: diagLeft,
+            takes: diagLeft,
+          });
+        }
+
+        if (diagRight && this.memory.getSquare(diagRight)) {
+          result.push({
+            from: square,
+            to: diagRight,
+            takes: diagRight,
+          });
+        }
+
+        // TODO: Scan for promotions and self-checks after all steps are
+        // calculated
+
+        // Starting jump
+        if (
+          (square.rank === 2 && side === "white") ||
+          (square.rank === 7 && side === "black")
+        ) {
+          const inFront2 = this.getCoordsRelative(
+            square,
+            new Vector2(0, side === "white" ? 2 : -2)
+          );
+
+          if (
+            !this.memory.getSquare(inFront) &&
+            !this.memory.getSquare(inFront2)
+          ) {
+            result.push({
+              from: square,
+              to: inFront2,
+              takes: null,
+            });
+          }
+        }
+      }
+
+      /**
+       * ROOK
+       */
+      if (square.piece === "R") {
+        const steps: Coordinates[] = [
+          // X pos
+          ...this.traceCaptureSteps(square, new Vector2(1, 0)),
+          // X neg
+          ...this.traceCaptureSteps(square, new Vector2(-1, 0)),
+          // Y pos
+          ...this.traceCaptureSteps(square, new Vector2(0, 1)),
+          // Y neg
+          ...this.traceCaptureSteps(square, new Vector2(0, -1)),
+        ];
+
+        result.push(
+          ...steps.map((step) => ({
+            from: square,
+            to: step,
+            takes: this.memory.getSquare(step) ? step : null,
+          }))
+        );
+      }
+
+      /**
+       * KNIGHT
+       */
+      if (square.piece === "N") {
+        const targets = [
+          this.getCoordsRelative(square, new Vector2(1, 2)),
+          this.getCoordsRelative(square, new Vector2(2, 1)),
+          this.getCoordsRelative(square, new Vector2(2, -1)),
+          this.getCoordsRelative(square, new Vector2(1, -2)),
+          this.getCoordsRelative(square, new Vector2(-1, -2)),
+          this.getCoordsRelative(square, new Vector2(-2, -1)),
+          this.getCoordsRelative(square, new Vector2(-2, 1)),
+          this.getCoordsRelative(square, new Vector2(-1, 2)),
+        ].filter(Boolean);
+
+        targets.forEach((target) => {
+          const targetSquare = this.memory.getSquare(target);
+
+          if (
+            targetSquare &&
+            allegianceSide(targetSquare.allegiance) === side
+          ) {
+            return;
+          }
+
+          result.push({
+            from: square,
+            to: target,
+            takes: targetSquare ? target : null,
+          });
+        });
+      }
+
+      /**
+       * BISHOP
+       */
+      if (square.piece === "B") {
+        const steps: Coordinates[] = [
+          // NE
+          ...this.traceCaptureSteps(square, new Vector2(1, 1)),
+          // SE
+          ...this.traceCaptureSteps(square, new Vector2(1, -1)),
+          // SW
+          ...this.traceCaptureSteps(square, new Vector2(-1, -1)),
+          // NW
+          ...this.traceCaptureSteps(square, new Vector2(-1, 1)),
+        ];
+
+        result.push(
+          ...steps.map((step) => ({
+            from: square,
+            to: step,
+            takes: this.memory.getSquare(step) ? step : null,
+          }))
+        );
+      }
+
+      /**
+       * QUEEN
+       */
+      if (square.piece === "Q") {
+        const steps: Coordinates[] = [
+          // X pos
+          ...this.traceCaptureSteps(square, new Vector2(1, 0)),
+          // X neg
+          ...this.traceCaptureSteps(square, new Vector2(-1, 0)),
+          // Y pos
+          ...this.traceCaptureSteps(square, new Vector2(0, 1)),
+          // Y neg
+          ...this.traceCaptureSteps(square, new Vector2(0, -1)),
+          // NE
+          ...this.traceCaptureSteps(square, new Vector2(1, 1)),
+          // SE
+          ...this.traceCaptureSteps(square, new Vector2(1, -1)),
+          // SW
+          ...this.traceCaptureSteps(square, new Vector2(-1, -1)),
+          // NW
+          ...this.traceCaptureSteps(square, new Vector2(-1, 1)),
+        ];
+
+        result.push(
+          ...steps.map((step) => ({
+            from: square,
+            to: step,
+            takes: this.memory.getSquare(step) ? step : null,
+          }))
+        );
+      }
+
+      /**
+       * KING
+       */
+      // TODO: Castling
+      if (square.piece === "K") {
+        const possibleMoves: Coordinates[] = [
+          this.getCoordsRelative(square, new Vector2(0, 1)),
+          this.getCoordsRelative(square, new Vector2(1, 1)),
+          this.getCoordsRelative(square, new Vector2(1, 0)),
+          this.getCoordsRelative(square, new Vector2(1, -1)),
+          this.getCoordsRelative(square, new Vector2(0, -1)),
+          this.getCoordsRelative(square, new Vector2(-1, -1)),
+          this.getCoordsRelative(square, new Vector2(-1, 0)),
+          this.getCoordsRelative(square, new Vector2(-1, 1)),
+        ].filter(Boolean);
+
+        possibleMoves.forEach((possibleMove) => {
+          const toSquare = this.memory.getSquare(possibleMove);
+
+          if (toSquare && allegianceSide(toSquare.allegiance) === side) {
+            return;
+          }
+
+          result.push({
+            from: square,
+            to: possibleMove,
+            takes: toSquare ? { ...possibleMove, ...toSquare } : null,
+          });
+        });
+      }
     });
 
     return result;
