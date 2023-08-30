@@ -1,10 +1,10 @@
 import VError from "verror";
 
 import { Token } from "./tokenizer";
-import { Column, GameOutcome, Piece, Rank } from "./declarations";
+import { File, GameOutcome, Piece, Rank } from "./declarations";
 
 export type Coordinates = {
-  column: Column;
+  file: File;
   rank: Rank;
 };
 
@@ -66,7 +66,7 @@ export type RootNode = {
 
 class WipNode {
   moveType?: AnyMoveNode["type"];
-  columns: Column[] = [];
+  files: File[] = [];
   ranks: Rank[] = [];
   pieces: Piece[] = [];
   castleSide: "king" | "queen";
@@ -83,7 +83,7 @@ class WipNode {
   isEmpty() {
     return (
       !this.moveType &&
-      this.columns.length === 0 &&
+      this.files.length === 0 &&
       this.ranks.length === 0 &&
       this.pieces.length === 0 &&
       !this.castleSide &&
@@ -117,15 +117,13 @@ class WipNode {
     if (this.causesCheck) moveResult.causesCheck = this.causesCheck;
     if (this.isMate) moveResult.isMate = this.isMate;
 
-    if (this.columns.length === 2) {
-      moveResult.from.column = this.columns[0];
-      moveResult.to.column = this.columns[1];
-    } else if (this.columns.length === 1) {
-      moveResult.to.column = this.columns[0];
-    } else if (this.columns.length !== 0) {
-      throw new VError(
-        `Parsed ${this.columns.length} columns for a single move`
-      );
+    if (this.files.length === 2) {
+      moveResult.from.file = this.files[0];
+      moveResult.to.file = this.files[1];
+    } else if (this.files.length === 1) {
+      moveResult.to.file = this.files[0];
+    } else if (this.files.length !== 0) {
+      throw new VError(`Parsed ${this.files.length} columns for a single move`);
     }
 
     if (this.ranks.length === 2) {
@@ -192,7 +190,7 @@ export const parse = (tokens: Token[]): RootNode => {
     "piece",
     "step-number",
     "game-over",
-    "column",
+    "file",
     "move-separator",
   ];
 
@@ -235,7 +233,7 @@ export const parse = (tokens: Token[]): RootNode => {
 
       case "allegiance":
       case "capture":
-        expect("column");
+        expect("file");
         break;
 
       case "castle":
@@ -249,8 +247,8 @@ export const parse = (tokens: Token[]): RootNode => {
         expect("game-over", "move-separator");
         break;
 
-      case "column":
-        expect("rank", "capture", "allegiance", "column");
+      case "file":
+        expect("rank", "capture", "allegiance", "file");
         break;
 
       case "draw-offer":
@@ -281,7 +279,7 @@ export const parse = (tokens: Token[]): RootNode => {
           "check",
           "checkmate",
           "game-over",
-          "column",
+          "file",
           "double-check",
           "en-passant",
           "promotion"
@@ -361,8 +359,8 @@ export const parse = (tokens: Token[]): RootNode => {
         if (nextTokenKind() !== "move-separator") newNode();
         break;
 
-      case "column":
-        wipNode.columns.push(current.value);
+      case "file":
+        wipNode.files.push(current.value);
         break;
 
       case "rank":

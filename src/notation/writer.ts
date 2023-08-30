@@ -43,8 +43,8 @@ export const writeNode = (node: Node): string => {
           result += node.piece;
         }
 
-        if (node.from.column) {
-          result += `${node.from.column}`;
+        if (node.from.file) {
+          result += `${node.from.file}`;
         }
 
         if (node.from.rank) {
@@ -53,8 +53,8 @@ export const writeNode = (node: Node): string => {
 
         result += action;
 
-        if (node.to.column) {
-          result += `${node.to.column}`;
+        if (node.to.file) {
+          result += `${node.to.file}`;
         }
 
         if (node.to.rank) {

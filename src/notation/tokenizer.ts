@@ -1,5 +1,5 @@
 import VError from "verror";
-import { Column, GameOutcome, Piece, Rank } from "./declarations";
+import { File, GameOutcome, Piece, Rank } from "./declarations";
 
 type RankToken = {
   kind: "rank";
@@ -7,8 +7,8 @@ type RankToken = {
 };
 
 type ColumnToken = {
-  kind: "column";
-  value: Column;
+  kind: "file";
+  value: File;
 };
 
 type PieceToken = {
@@ -335,15 +335,15 @@ export const tokenize = (rawInput: string): Token[] => {
     if (/[1-8]/gu.test(current)) {
       token(1, {
         kind: "rank",
-        value: current as Rank,
+        value: Number.parseInt(current, 10) as Rank,
       });
       continue;
     }
 
     if (/[a-h]/gu.test(current)) {
       token(1, {
-        kind: "column",
-        value: current as ColumnToken["value"],
+        kind: "file",
+        value: Number.parseInt(current, 10) as File,
       });
       continue;
     }

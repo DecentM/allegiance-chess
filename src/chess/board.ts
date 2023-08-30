@@ -1,8 +1,9 @@
 import VError from "verror";
 
-import { Column, Piece, Rank } from "../notation/declarations";
+import { File, Piece, Rank } from "../notation/declarations";
 import { Coordinates, Node } from "../notation/parser";
 import { Vector2 } from "../lib/vector2";
+import { BoardMemory, BoardSquare } from "./board-memory";
 
 export const PieceAllegiance = {
   Black: 0,
@@ -14,176 +15,22 @@ export const PieceAllegiance = {
 export type PieceAllegiance =
   (typeof PieceAllegiance)[keyof typeof PieceAllegiance];
 
-type BoardSquare = {
-  piece: Piece | null;
-  allegiance: PieceAllegiance;
+const allegianceSide = (allegiance: PieceAllegiance): "white" | "black" => {
+  return allegiance === PieceAllegiance.Black ||
+    allegiance == PieceAllegiance.DarkGrey
+    ? "black"
+    : "white";
 };
 
-type StandaloneBoardSquare = BoardSquare & Coordinates;
-
-type BoardMemory = Partial<Record<Rank, Partial<Record<Column, BoardSquare>>>>;
-
 export class Board {
-  private memory: BoardMemory = {};
-
   private moveHistory: Node[] = [];
 
-  public setup = () => {
-    this.memory = {
-      "1": {
-        a: {
-          allegiance: PieceAllegiance.White,
-          piece: "R",
-        },
-        b: {
-          allegiance: PieceAllegiance.White,
-          piece: "N",
-        },
-        c: {
-          allegiance: PieceAllegiance.White,
-          piece: "B",
-        },
-        d: {
-          allegiance: PieceAllegiance.White,
-          piece: "Q",
-        },
-        e: {
-          allegiance: PieceAllegiance.White,
-          piece: "K",
-        },
-        f: {
-          allegiance: PieceAllegiance.White,
-          piece: "B",
-        },
-        g: {
-          allegiance: PieceAllegiance.White,
-          piece: "N",
-        },
-        h: {
-          allegiance: PieceAllegiance.White,
-          piece: "R",
-        },
-      },
-      "2": {
-        a: {
-          allegiance: PieceAllegiance.White,
-          piece: null,
-        },
-        b: {
-          allegiance: PieceAllegiance.White,
-          piece: null,
-        },
-        c: {
-          allegiance: PieceAllegiance.White,
-          piece: null,
-        },
-        d: {
-          allegiance: PieceAllegiance.White,
-          piece: null,
-        },
-        e: {
-          allegiance: PieceAllegiance.White,
-          piece: null,
-        },
-        f: {
-          allegiance: PieceAllegiance.White,
-          piece: null,
-        },
-        g: {
-          allegiance: PieceAllegiance.White,
-          piece: null,
-        },
-        h: {
-          allegiance: PieceAllegiance.White,
-          piece: null,
-        },
-      },
-      "7": {
-        a: {
-          allegiance: PieceAllegiance.Black,
-          piece: null,
-        },
-        b: {
-          allegiance: PieceAllegiance.Black,
-          piece: null,
-        },
-        c: {
-          allegiance: PieceAllegiance.Black,
-          piece: null,
-        },
-        d: {
-          allegiance: PieceAllegiance.Black,
-          piece: null,
-        },
-        e: {
-          allegiance: PieceAllegiance.Black,
-          piece: null,
-        },
-        f: {
-          allegiance: PieceAllegiance.Black,
-          piece: null,
-        },
-        g: {
-          allegiance: PieceAllegiance.Black,
-          piece: null,
-        },
-        h: {
-          allegiance: PieceAllegiance.Black,
-          piece: null,
-        },
-      },
-      "8": {
-        a: {
-          allegiance: PieceAllegiance.Black,
-          piece: "R",
-        },
-        b: {
-          allegiance: PieceAllegiance.Black,
-          piece: "N",
-        },
-        c: {
-          allegiance: PieceAllegiance.Black,
-          piece: "B",
-        },
-        d: {
-          allegiance: PieceAllegiance.Black,
-          piece: "Q",
-        },
-        e: {
-          allegiance: PieceAllegiance.Black,
-          piece: "K",
-        },
-        f: {
-          allegiance: PieceAllegiance.Black,
-          piece: "B",
-        },
-        g: {
-          allegiance: PieceAllegiance.Black,
-          piece: "N",
-        },
-        h: {
-          allegiance: PieceAllegiance.Black,
-          piece: "R",
-        },
-      },
-    };
-  };
+  private memory: BoardMemory;
 
-  private getSquares(): StandaloneBoardSquare[] {
-    const result: StandaloneBoardSquare[] = [];
+  constructor() {
+    this.memory = new BoardMemory();
 
-    Object.entries(this.memory).forEach(([rank, row]) => {
-      Object.entries(row).forEach(([column, square]) => {
-        result.push({
-          allegiance: square.allegiance,
-          piece: square.piece,
-          column: column as Column,
-          rank: rank as Rank,
-        });
-      });
-    });
-
-    return result;
+    this.memory.setup();
   }
 
   private hasCastled(side: "black" | "white") {
@@ -192,21 +39,130 @@ export class Board {
         return false;
       }
 
-      const rank: Rank = side === "white" ? "1" : "8";
+      const rank: Rank = side === "white" ? 1 : 8;
 
       return node.type === "castle" && node.from?.rank === rank;
     });
   }
 
-  private trace(coords: Coordinates, direction: Vector2) {
-    // TODO
+  private getCoordsRelative(
+    coords: Coordinates,
+    direction: Vector2
+  ): Coordinates {
+    // Not typed as Coords because we don't know if it's valid yet
+    const newCoords = {
+      file: coords.file + direction.x,
+      rank: coords.rank + direction.y,
+    };
+
+    if (newCoords.file > 8 || newCoords.file <= 0) {
+      return null;
+    }
+
+    if (newCoords.rank > 8 || newCoords.rank <= 0) {
+      return null;
+    }
+
+    return newCoords as Coordinates;
   }
 
-  private getValidMoves(): Node[] {
-    const result: Node[] = [];
-    const squares = this.getSquares();
+  private getSquareRelative(
+    coords: Coordinates,
+    direction: Vector2
+  ): BoardSquare | null {
+    const newCoords = this.getCoordsRelative(coords, direction);
 
-    squares.forEach((square) => {
+    if (!newCoords) {
+      return null;
+    }
+
+    return this.memory.getSquare(newCoords);
+  }
+
+  public traceCaptureSteps(
+    coords: Coordinates,
+    direction: Vector2
+  ): Coordinates[] {
+    if (
+      Math.abs(direction.x) !== Math.abs(direction.y) &&
+      direction.x !== 0 &&
+      direction.y !== 0
+    ) {
+      throw new VError("Cannot trace in a non-continuous direction");
+    }
+
+    const startSquare = this.memory.getSquare(coords);
+
+    if (!startSquare) {
+      // No captures can be made from a square with no piece on it
+      return [];
+    }
+
+    const steps: Coordinates[] = [];
+    const singleStepVector = new Vector2(
+      Math.sign(direction.x),
+      Math.sign(direction.y)
+    );
+
+    let currentCoords = coords;
+
+    while (
+      currentCoords.file !== coords.file + direction.x ||
+      currentCoords.rank !== coords.rank + direction.y
+    ) {
+      currentCoords = this.getCoordsRelative(currentCoords, singleStepVector);
+
+      if (!currentCoords) {
+        break;
+      }
+
+      const currentSquare = this.memory.getSquare(currentCoords);
+
+      if (!currentSquare) {
+        steps.push({ ...currentCoords });
+        continue;
+      }
+
+      if (
+        // Cannot capture own piece
+        allegianceSide(currentSquare.allegiance) ===
+        allegianceSide(startSquare.allegiance)
+      ) {
+        break;
+      }
+
+      if (
+        // Can capture enemy piece, but not beyond
+        allegianceSide(currentSquare.allegiance) !==
+        allegianceSide(startSquare.allegiance)
+      ) {
+        steps.push({ ...currentCoords });
+
+        break;
+      }
+
+      steps.push({ ...currentCoords });
+    }
+
+    return steps;
+  }
+
+  public traceCapture(coords: Coordinates, direction: Vector2): Coordinates[] {
+    const steps = this.traceCaptureSteps(coords, direction);
+
+    return [];
+  }
+
+  private getValidMoves(side: "black" | "white"): Node[] {
+    const result: Node[] = [];
+    const squares = this.memory.getSquares();
+    const sideSquares = squares.filter((square) => {
+      return side === "white"
+        ? square.allegiance >= PieceAllegiance.LightGrey
+        : square.allegiance <= PieceAllegiance.DarkGrey;
+    });
+
+    sideSquares.forEach((square) => {
       // TODO: switch (square.piece) and implement movement rules with trace
     });
 
