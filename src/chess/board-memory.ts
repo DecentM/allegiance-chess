@@ -1,3 +1,4 @@
+import { VError } from "verror";
 import { File, Piece, Rank } from "../notation/declarations";
 import { Coordinates } from "../notation/parser";
 
@@ -15,6 +16,44 @@ type StandaloneBoardSquare = BoardSquare & Coordinates;
 
 export class BoardMemory {
   private memory: Memory = [];
+
+  public activeColour: "black" | "white" = "white";
+
+  public enPassantTarget: Coordinates | null = null;
+
+  private castlingRights: Coordinates[] = [
+    { file: 1, rank: 1 },
+    { file: 8, rank: 1 },
+    { file: 1, rank: 8 },
+    { file: 8, rank: 8 },
+    { file: 5, rank: 1 },
+    { file: 5, rank: 8 },
+  ];
+
+  public removeCastlightRights(coords: Coordinates) {
+    const index = this.castlingRights.findIndex(
+      (possibleCoords) =>
+        possibleCoords.file === coords.file &&
+        possibleCoords.rank === coords.rank
+    );
+
+    if (index === -1) {
+      throw new VError(
+        `Cannot remove castlight rights from ${coords.file}:${coords.rank}, because that square has none`
+      );
+    }
+
+    this.castlingRights.splice(index);
+  }
+
+  public hasCastlingRights(side: "white" | "black") {
+    const rank: Rank = side === "white" ? 1 : 8;
+    const uncastledCoords = this.castlingRights.filter((coord) => {
+      return coord.rank === rank;
+    });
+
+    return uncastledCoords.length === 3;
+  }
 
   private clear() {
     for (let file: number = 0; file < 8; file++) {

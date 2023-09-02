@@ -65,7 +65,7 @@ export class Board {
 
   /**
    * @internal
-   * TODO: Remove this when implement FEN import/export
+   * TODO: Remove this when implementing FEN import/export
    */
   public dump() {
     return this.memory.getSquares();
@@ -341,7 +341,7 @@ export class Board {
     return steps;
   }
 
-  private castlingEligibility(side: "white" | "black"): CastleSide[] {
+  /* private castlingEligibility(side: "white" | "black"): CastleSide[] {
     const ownMoves = this.moveHistory.filter((move) => move.fromSide === side);
 
     const queenSideRookMoves = ownMoves.filter((move) => {
@@ -393,7 +393,7 @@ export class Board {
     }
 
     return result;
-  }
+  } */
 
   public getValidMoves(): BoardMove[] {
     const result: BoardMove[] = [];
