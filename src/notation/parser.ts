@@ -14,8 +14,8 @@ export type MoveNode<T = void> = {
   piece: Piece;
   from: Coordinates;
   to: Coordinates;
-  causesCheck: boolean;
-  isMate: boolean;
+  // causesCheck: boolean;
+  // isMate: boolean;
 };
 
 export type EnPassantNode = MoveNode<"en-passant">;
@@ -45,7 +45,7 @@ export type GameOverNode = {
   outcome: GameOutcome;
 };
 
-export type Node = { sources: Token[] } & (
+export type Node =
   | MoveNode
   | EnPassantNode
   | CaptureNode
@@ -53,10 +53,12 @@ export type Node = { sources: Token[] } & (
   | PromotionNode
   | AllegianceNode
   | DrawOfferNode
-  | GameOverNode
-);
+  | GameOverNode;
+
+type NodeWithSources = Node & { sources: Token[] };
 
 export type AnyMoveNode =
+  | DefaultNode
   | EnPassantNode
   | CaptureNode
   | CastleNode
@@ -96,7 +98,7 @@ class WipNode {
     );
   }
 
-  toNode(): Node {
+  toNode(): NodeWithSources {
     if (this.isDrawOffer) {
       return {
         sources: this.tokens,
@@ -118,8 +120,8 @@ class WipNode {
 
     moveResult.kind = "move";
 
-    if (this.causesCheck) moveResult.causesCheck = this.causesCheck;
-    if (this.isMate) moveResult.isMate = this.isMate;
+    // if (this.causesCheck) moveResult.causesCheck = this.causesCheck;
+    // if (this.isMate) moveResult.isMate = this.isMate;
 
     if (this.files.length === 2) {
       moveResult.from.file = this.files[0];

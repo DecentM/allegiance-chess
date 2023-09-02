@@ -53,7 +53,7 @@ type ExecuteMoveTypeInput<NodeType extends MoveNode<string | void>> = {
 };
 
 export class Board {
-  private moveHistory: ExecuteMoveTypeInput<MoveNode<string>>[] = [];
+  private moveHistory: ExecuteMoveTypeInput<AnyMoveNode>[] = [];
 
   private memory: BoardMemory;
 
@@ -61,6 +61,14 @@ export class Board {
     this.memory = new BoardMemory();
 
     this.memory.setup();
+  }
+
+  /**
+   * @internal
+   * TODO: Remove this when implement FEN import/export
+   */
+  public dump() {
+    return this.memory.getSquares();
   }
 
   private executeAllegianceMoveNode(
@@ -134,7 +142,7 @@ export class Board {
     const from = this.memory.getSquare(node.from);
     const to = this.memory.getSquare(node.to);
     const fromSide = allegianceSide(from.allegiance);
-    const toSide = allegianceSide(to.allegiance);
+    const toSide = to ? allegianceSide(to.allegiance) : null;
 
     /* if (to && node.type !== "capture" && node.type !== "allegiance") {
       throw new VError(
@@ -218,7 +226,7 @@ export class Board {
   private executeNode(node: Node) {
     switch (node.kind) {
       case "move": {
-        if (node.type) this.executeMoveNode(node);
+        this.executeMoveNode(node);
 
         break;
       }

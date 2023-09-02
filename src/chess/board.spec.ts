@@ -18,12 +18,34 @@ test("board", (t) => {
   t.pass();
 });
 
-test.only("finds 40 moves on a starting board", (t) => {
+test("finds 40 moves on a starting board", (t) => {
   const b = new Board();
 
   const moves = b.getValidMoves();
 
   t.is(moves.length, 40);
+});
+
+test.only("executes moves", (t) => {
+  const b = new Board();
+
+  b.execute([
+    {
+      kind: "move",
+      type: null,
+      from: {
+        file: 1,
+        rank: 2,
+      },
+      to: {
+        file: 1,
+        rank: 3,
+      },
+      piece: null,
+    },
+  ]);
+
+  t.pass();
 });
 
 test("traces steps forward", (t) => {
