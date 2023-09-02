@@ -8,7 +8,7 @@ export type Coordinates = {
   rank: Rank;
 };
 
-type MoveNode<T = void> = {
+export type MoveNode<T = void> = {
   kind: "move";
   type: T;
   piece: Piece;
@@ -18,27 +18,29 @@ type MoveNode<T = void> = {
   isMate: boolean;
 };
 
-type EnPassantNode = MoveNode<"en-passant">;
+export type EnPassantNode = MoveNode<"en-passant">;
 
-type CaptureNode = MoveNode<"capture">;
+export type CaptureNode = MoveNode<"capture">;
 
 export type CastleSide = "king" | "queen";
 
-type CastleNode = MoveNode<"castle"> & {
+export type CastleNode = MoveNode<"castle"> & {
   side: CastleSide;
 };
 
-type PromotionNode = MoveNode<"promotion"> & {
+export type PromotionNode = MoveNode<"promotion"> & {
   promotionTo: Piece;
 };
 
-type DrawOfferNode = {
+export type DefaultNode = MoveNode<void>;
+
+export type DrawOfferNode = {
   kind: "draw-offer";
 };
 
-type AllegianceNode = MoveNode<"allegiance">;
+export type AllegianceNode = MoveNode<"allegiance">;
 
-type GameOverNode = {
+export type GameOverNode = {
   kind: "game-over";
   outcome: GameOutcome;
 };
@@ -54,7 +56,7 @@ export type Node = { sources: Token[] } & (
   | GameOverNode
 );
 
-type AnyMoveNode =
+export type AnyMoveNode =
   | EnPassantNode
   | CaptureNode
   | CastleNode

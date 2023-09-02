@@ -1,7 +1,19 @@
 import VError from "verror";
 
-import { File, Piece, Rank } from "../notation/declarations";
-import { CastleSide, Coordinates, Node } from "../notation/parser";
+import { Rank } from "../notation/declarations";
+import {
+  AllegianceNode,
+  AnyMoveNode,
+  CaptureNode,
+  CastleNode,
+  CastleSide,
+  Coordinates,
+  DefaultNode,
+  EnPassantNode,
+  MoveNode,
+  Node,
+  PromotionNode,
+} from "../notation/parser";
 import { Vector2 } from "../lib/vector2";
 import { BoardMemory, BoardSquare } from "./board-memory";
 
@@ -32,13 +44,16 @@ type BoardMove = {
   };
 };
 
-type BoardMoveHistoryItem = BoardMove & {
-  piece: Piece | null;
-  allegiance: PieceAllegiance;
+type ExecuteMoveTypeInput<NodeType extends MoveNode<string | void>> = {
+  node: NodeType;
+  from: BoardSquare;
+  to: BoardSquare;
+  fromSide: "white" | "black";
+  toSide: "white" | "black";
 };
 
 export class Board {
-  private moveHistory: BoardMoveHistoryItem[] = [];
+  private moveHistory: ExecuteMoveTypeInput<MoveNode<string>>[] = [];
 
   private memory: BoardMemory;
 
@@ -48,17 +63,173 @@ export class Board {
     this.memory.setup();
   }
 
-  /* private hasCastled(side: "black" | "white") {
-    return this.moveHistory.some((node) => {
-      if (node.kind !== "move") {
-        return false;
-      }
-
-      const rank: Rank = side === "white" ? 1 : 8;
-
-      return node.type === "castle" && node.from?.rank === rank;
+  private executeAllegianceMoveNode(
+    input: ExecuteMoveTypeInput<AllegianceNode>
+  ) {
+    this.memory.setSquare(input.node.to, {
+      allegiance: (input.fromSide === "white"
+        ? input.to.allegiance + 1
+        : input.to.allegiance - 1) as PieceAllegiance,
+      piece: input.to.piece,
     });
-  } */
+  }
+
+  private executeCaptureMoveNode(input: ExecuteMoveTypeInput<CaptureNode>) {
+    this.memory.setSquare(input.node.to, input.from);
+    this.memory.setSquare(input.node.from, null);
+  }
+
+  private executeCastleMoveNode(input: ExecuteMoveTypeInput<CastleNode>) {
+    const rank: Rank = input.fromSide === "white" ? 1 : 8;
+    const rookCoords: Coordinates =
+      input.node.side === "king" ? { file: 8, rank } : { file: 1, rank };
+
+    const king = input.from;
+    const rook = this.memory.getSquare(rookCoords);
+
+    const kingToCoords: Coordinates =
+      input.node.side === "king" ? { file: 7, rank } : { file: 3, rank };
+
+    const rookToCoords: Coordinates =
+      input.node.side === "king" ? { file: 6, rank } : { file: 4, rank };
+
+    this.memory.setSquare(kingToCoords, king);
+    this.memory.setSquare(rookToCoords, rook);
+    this.memory.setSquare(rookCoords, null);
+    this.memory.setSquare(input.node.from, null);
+  }
+
+  private executeEnPassantMoveNode(input: ExecuteMoveTypeInput<EnPassantNode>) {
+    const targetFile = input.node.to.file;
+
+    this.memory.setSquare(
+      {
+        rank: (input.fromSide === "white"
+          ? input.node.from.rank + 1
+          : input.node.from.rank - 1) as Rank,
+        file: targetFile,
+      },
+      input.from
+    );
+    this.memory.setSquare(input.node.to, null);
+    this.memory.setSquare(input.node.from, null);
+  }
+
+  private executePromotionMoveNode(input: ExecuteMoveTypeInput<PromotionNode>) {
+    this.memory.setSquare(input.node.to, {
+      allegiance: input.from.allegiance,
+      piece: input.node.promotionTo,
+    });
+    this.memory.setSquare(input.node.from, null);
+  }
+
+  private executeDefaultMoveNode(input: ExecuteMoveTypeInput<DefaultNode>) {
+    this.memory.setSquare(input.node.from, null);
+    this.memory.setSquare(input.node.to, input.from);
+  }
+
+  private executeMoveNode(node: AnyMoveNode) {
+    // TODO: Validate moves before executing them
+
+    const from = this.memory.getSquare(node.from);
+    const to = this.memory.getSquare(node.to);
+    const fromSide = allegianceSide(from.allegiance);
+    const toSide = allegianceSide(to.allegiance);
+
+    /* if (to && node.type !== "capture" && node.type !== "allegiance") {
+      throw new VError(
+        `Cannot step from ${node.from.file}:${node.from.rank} to ${node.to.file}:${node.to.rank}, because it would be a capture or allegiance`
+      );
+    } */
+    // TODO: Non-capture and non-allegiance nodes should check if their targets
+    // TODO  are empty
+
+    switch (node.type) {
+      case "allegiance":
+        this.executeAllegianceMoveNode({
+          from,
+          to,
+          fromSide,
+          toSide,
+          node,
+        });
+        break;
+
+      case "capture":
+        this.executeCaptureMoveNode({
+          from,
+          to,
+          fromSide,
+          toSide,
+          node,
+        });
+        break;
+
+      case "castle":
+        this.executeCastleMoveNode({
+          from,
+          to,
+          fromSide,
+          toSide,
+          node,
+        });
+        break;
+
+      case "en-passant":
+        this.executeEnPassantMoveNode({
+          from,
+          to,
+          fromSide,
+          toSide,
+          node,
+        });
+        break;
+
+      case "promotion":
+        this.executePromotionMoveNode({
+          from,
+          to,
+          fromSide,
+          toSide,
+          node,
+        });
+        break;
+
+      default:
+        this.executeDefaultMoveNode({
+          from,
+          to,
+          fromSide,
+          toSide,
+          node,
+        });
+        break;
+    }
+
+    this.moveHistory.push({
+      from,
+      to,
+      fromSide,
+      toSide,
+      node,
+    });
+  }
+
+  private executeNode(node: Node) {
+    switch (node.kind) {
+      case "move": {
+        if (node.type) this.executeMoveNode(node);
+
+        break;
+      }
+    }
+  }
+
+  public execute(nodes: Node[]) {
+    nodes.forEach((node) => {
+      this.executeNode(node);
+    });
+  }
 
   private getCoordsRelative(
     coords: Coordinates,
@@ -163,20 +334,18 @@ export class Board {
   }
 
   private castlingEligibility(side: "white" | "black"): CastleSide[] {
-    const ownMoves = this.moveHistory.filter(
-      (move) => allegianceSide(move.allegiance) === side
-    );
+    const ownMoves = this.moveHistory.filter((move) => move.fromSide === side);
 
     const queenSideRookMoves = ownMoves.filter((move) => {
-      return move.piece === "R" && move.from.file === 1;
+      return move.from.piece === "R" && move.node.from.file === 1;
     });
 
     const kingSideRookMoves = ownMoves.filter((move) => {
-      return move.piece === "R" && move.from.file === 8;
+      return move.from.piece === "R" && move.node.from.file === 8;
     });
 
     const kingMoves = ownMoves.filter((move) => {
-      return move.piece === "K";
+      return move.from.piece === "K";
     });
 
     const result: CastleSide[] = [];
@@ -253,26 +422,26 @@ export class Board {
         const lastMove = this.moveHistory[this.moveHistory.length - 1];
 
         if (lastMove) {
-          const lastMoveSide = allegianceSide(lastMove.allegiance);
+          const lastMoveSide = lastMove.fromSide;
           const lastMoveIsPawnJump =
-            lastMove.piece === null &&
-            Math.abs(lastMove.to.rank - lastMove.from.rank) === 2;
+            lastMove.from.piece === null &&
+            Math.abs(lastMove.node.to.rank - lastMove.node.from.rank) === 2;
 
           if (
             lastMoveSide !== allegianceSide(square.allegiance) &&
             lastMoveIsPawnJump &&
-            square.rank === lastMove.to.rank &&
-            Math.abs(square.file - lastMove.to.file) === 1
+            square.rank === lastMove.node.to.rank &&
+            Math.abs(square.file - lastMove.node.to.file) === 1
           ) {
             result.push({
               from: square,
-              takes: lastMove.to,
+              takes: lastMove.node.to,
               implies: null,
               to: this.getCoordsRelative(
                 square,
                 new Vector2(
                   // TODO: Is this the correct direction?
-                  Math.sign(square.file - lastMove.to.file),
+                  Math.sign(square.file - lastMove.node.to.file),
                   side === "white" ? 1 : -1
                 )
               ),
@@ -308,7 +477,7 @@ export class Board {
         }
 
         // TODO: Scan for promotions and self-checks after all steps are
-        // calculated
+        // TODO  calculated
 
         // Starting jump
         if (
