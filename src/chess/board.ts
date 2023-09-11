@@ -56,18 +56,16 @@ export class Board {
 
   private memory: BoardMemory;
 
-  constructor() {
-    this.memory = new BoardMemory();
-
-    this.memory.setup();
+  public dump() {
+    return this.memory.dump();
   }
 
-  /**
-   * @internal
-   * TODO: Remove this when implementing FEN import/export
-   */
-  public dump() {
-    return this.memory.getSquares();
+  public importAFEN(afen: string) {
+    this.memory.importAFEN(afen);
+  }
+
+  constructor() {
+    this.memory = new BoardMemory();
   }
 
   private executeAllegianceMoveNode(
@@ -140,6 +138,13 @@ export class Board {
 
     const from = this.memory.getSquare(node.from);
     const to = this.memory.getSquare(node.to);
+
+    if (!from) {
+      throw new VError(
+        `There is no piece on file ${node.from.file} rank ${node.from.rank}`
+      );
+    }
+
     const fromSide = allegianceSide(from.allegiance);
     const toSide = to ? allegianceSide(to.allegiance) : null;
 

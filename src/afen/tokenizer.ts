@@ -38,43 +38,68 @@ export const tokenize = (input: string): Token[] => {
   let cursor = 0;
   const tokens: Token[] = [];
 
-  const token = (token: Token) => {
+  const token = (length, token: Token) => {
     tokens.push(token);
-    cursor++;
+    cursor += length;
+  };
+
+  const consumeUntil = (predicate: (char: string) => boolean) => {
+    let result = "";
+    let subcursor = cursor;
+
+    while (true) {
+      const current = input[subcursor];
+
+      // Prevent infinite loops by sanity checking that we're still inside the
+      // source string. Also break if we reached the target character
+      if (subcursor >= input.length || predicate(current)) {
+        // Prevent consuming the target character by rewinding the cursor
+        subcursor--;
+
+        break;
+      }
+
+      result += current;
+      subcursor++;
+    }
+
+    return result;
   };
 
   while (cursor < input.length) {
     const current = input[cursor];
 
     if (current === "+") {
-      token({ kind: "allegiance" });
+      token(1, { kind: "allegiance" });
       continue;
     }
 
     if (current === "/") {
-      token({ kind: "separator" });
+      token(1, { kind: "separator" });
       continue;
     }
 
     if (/\d/gu.test(current)) {
-      token({
+      const fullNumber = consumeUntil((char) => !/[\d]/gu.test(char));
+
+      token(fullNumber.length, {
         kind: "number",
-        value: Number.parseInt(current, 10),
+        value: Number.parseInt(fullNumber, 10),
       });
       continue;
     }
 
     if (current === " ") {
-      token({ kind: "space" });
+      token(1, { kind: "space" });
       continue;
     }
 
     if (current === "-" || current === "–") {
-      token({ kind: "hyphen" });
+      token(1, { kind: "hyphen" });
       continue;
     }
 
-    token({
+    token(1, {
       kind: "char",
       value: current,
     });

@@ -2,11 +2,16 @@ import test from "ava";
 import { tokenize } from "./tokenizer";
 import { parse } from "./parser";
 
-test("parses", (t) => {
-  const tokens = tokenize("8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8 b - - 99 50");
+test("case 1", (t) => {
+  const tokens = tokenize("8/5k2/3p+4/1p1P+p2p/pP2Pp1P/P4P1K/8/8 b - - 99 50");
   const ast = parse(tokens);
 
-  t.log(ast);
+  t.snapshot(ast);
+});
 
-  t.pass();
+test("case 2", (t) => {
+  const tokens = tokenize("4k2r/6r1/8/8/8/8/3R4/R3K3 w Qk - 0 1");
+  const ast = parse(tokens);
+
+  t.snapshot(ast);
 });

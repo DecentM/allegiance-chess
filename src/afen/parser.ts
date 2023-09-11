@@ -1,9 +1,15 @@
 import VError from "verror";
 import { Token, TokenKind } from "./tokenizer";
-import { Piece } from "../notation/declarations";
+import { File, Piece, Rank } from "../notation/declarations";
 import { PieceAllegiance } from "../chess/board";
 import { CastleSide, Coordinates } from "../notation/parser";
-import { isLowerPiece, isPiece } from "../lib/is-piece";
+import {
+  isFile,
+  isLowerPiece,
+  isPiece,
+  isRank,
+  letterToFile,
+} from "../lib/notation";
 
 type PieceNode = {
   kind: "piece";
@@ -61,14 +67,7 @@ type RootNode = {
 };
 
 enum ParseState {
-  Rank8,
-  Rank7,
-  Rank6,
-  Rank5,
-  Rank4,
-  Rank3,
-  Rank2,
-  Rank1,
+  Ranks,
   ActiveColour,
   CastlingRights,
   EnPassantTargets,
@@ -93,13 +92,13 @@ class WipNode {
     this.pieceSide = input;
   }
 
-  private piece: Piece | Lowercase<Piece>;
+  private piece: Piece | Lowercase<Piece> | null;
 
   canSetPiece() {
-    return !this.piece;
+    return !this.piece && this.piece !== null;
   }
 
-  setPiece(piece: Piece | Lowercase<Piece>) {
+  setPiece(piece: Piece | Lowercase<Piece> | null) {
     if (!this.canSetPiece()) {
       throw new VError(
         "Cannot set piece on WipNode, because there is already one set"
@@ -127,11 +126,83 @@ class WipNode {
     return !this.canSetPiece() && !this.canSetPieceSide();
   }
 
+  private activeColour: "white" | "black";
+
+  setActiveColour(input: "white" | "black") {
+    this.activeColour = input;
+  }
+
+  private castlingRights: Array<"Q" | "K" | "q" | "k"> = [];
+
+  hasCastlingRights() {
+    return this.castlingRights.length !== 0;
+  }
+
+  addCastlingRight(input: "Q" | "K" | "q" | "k") {
+    this.castlingRights.push(input);
+  }
+
+  private enPassantFile: File;
+
+  canSetEnPassantFile() {
+    return !this.enPassantFile;
+  }
+
+  setEnPassantFile(file: File) {
+    if (!this.canSetEnPassantFile()) {
+      throw new VError(
+        "Cannot set en passant file on WipNode, because there is already one set"
+      );
+    }
+
+    this.enPassantFile = file;
+  }
+
+  private enPassantRank: Rank;
+
+  canSetEnPassantRank() {
+    return !this.enPassantRank;
+  }
+
+  setEnPassantRank(rank: Rank) {
+    if (!this.canSetEnPassantRank()) {
+      throw new VError(
+        "Cannot set en passant rank on WipNode, because there is already one set"
+      );
+    }
+
+    this.enPassantRank = rank;
+  }
+
+  private halfmoveClock: number;
+
+  canSetHalfmoveClock() {
+    return typeof this.halfmoveClock !== "number";
+  }
+
+  setHalfmoveClock(input: number) {
+    this.halfmoveClock = input;
+  }
+
+  private fullmoveNumber: number;
+
+  canSetFullmoveNumber() {
+    return typeof this.fullmoveNumber !== "number";
+  }
+
+  setFullmoveNumber(input: number) {
+    this.fullmoveNumber = input;
+  }
+
+  isEnPassantType() {
+    return !!(this.enPassantFile && this.enPassantRank);
+  }
+
   toNode(): Node {
     /**
      * PieceNode
      */
-    if (this.piece) {
+    if (this.piece || this.piece === null) {
       if (this.pieceSide === "white") {
         return {
           kind: "piece",
@@ -139,7 +210,7 @@ class WipNode {
             allegiance: this.allegianceMark
               ? PieceAllegiance.LightGrey
               : PieceAllegiance.White,
-            piece: this.piece.toUpperCase() as Piece,
+            piece: this.piece ? (this.piece.toUpperCase() as Piece) : null,
           },
         };
       }
@@ -150,23 +221,80 @@ class WipNode {
           allegiance: this.allegianceMark
             ? PieceAllegiance.DarkGrey
             : PieceAllegiance.Black,
-          piece: this.piece.toUpperCase() as Piece,
+          piece: this.piece ? (this.piece.toUpperCase() as Piece) : null,
         },
       };
     }
+
+    /**
+     * ActiveColour
+     */
+    if (this.activeColour) {
+      return {
+        kind: "active-colour",
+        value: this.activeColour,
+      };
+    }
+
+    /**
+     * CastlingRights
+     */
+    if (this.castlingRights.length > 0) {
+      const black: CastleSide[] = [];
+      const white: CastleSide[] = [];
+
+      if (this.castlingRights.includes("K")) white.push("king");
+      if (this.castlingRights.includes("Q")) white.push("queen");
+      if (this.castlingRights.includes("k")) black.push("king");
+      if (this.castlingRights.includes("q")) black.push("queen");
+
+      return {
+        kind: "castling-rights",
+        value: {
+          black,
+          white,
+        },
+      };
+    }
+
+    /**
+     * En passant target
+     */
+    if (this.enPassantFile && this.enPassantRank) {
+      return {
+        kind: "en-passant-targets",
+        value: {
+          file: this.enPassantFile,
+          rank: this.enPassantRank,
+        },
+      };
+    }
+
+    /**
+     * Halfmove clock
+     */
+    if (typeof this.halfmoveClock === "number") {
+      return {
+        kind: "halfmove-clock",
+        value: this.halfmoveClock,
+      };
+    }
+
+    /**
+     * Fullmove number
+     */
+    if (typeof this.fullmoveNumber === "number") {
+      return {
+        kind: "fullmove-number",
+        value: this.fullmoveNumber,
+      };
+    }
+
+    throw new VError(
+      `Cannot create Node from WipNode, ${JSON.stringify({ ...this }, null, 2)}`
+    );
   }
 }
-
-const positionStates: ParseState[] = [
-  ParseState.Rank1,
-  ParseState.Rank2,
-  ParseState.Rank3,
-  ParseState.Rank4,
-  ParseState.Rank5,
-  ParseState.Rank6,
-  ParseState.Rank7,
-  ParseState.Rank8,
-];
 
 export const parse = (input: Token[]): RootNode => {
   const result: RootNode = {
@@ -176,9 +304,9 @@ export const parse = (input: Token[]): RootNode => {
 
   let cursor = 0;
 
-  // FEN represents boards starting with A8
-  let state: ParseState = ParseState.Rank8 as ParseState;
+  let state: ParseState = ParseState.Ranks as ParseState;
   let wipNode = new WipNode();
+  let rank: Rank = 8;
 
   const node = (node: Node) => {
     result.children.push(node);
@@ -198,30 +326,49 @@ export const parse = (input: Token[]): RootNode => {
   while (cursor < input.length) {
     const current = input[cursor];
 
-    if (positionStates.includes(state)) {
+    if (state === ParseState.Ranks) {
+      if (
+        (current.kind === "char" ||
+          current.kind === "number" ||
+          current.kind === "separator" ||
+          current.kind === "space") &&
+        wipNode.pieceDataReady()
+      ) {
+        completeWipNode();
+      }
+
       if (current.kind === "char" && isLowerPiece(current.value)) {
         wipNode.setPieceSide("black");
         wipNode.setPiece(current.value);
         cursor++;
-        break;
+        continue;
       }
 
       if (current.kind === "char" && isPiece(current.value)) {
         wipNode.setPieceSide("white");
         wipNode.setPiece(current.value);
         cursor++;
-        break;
+        continue;
+      }
+
+      if (current.kind === "char" && current.value === "p") {
+        wipNode.setPieceSide("black");
+        wipNode.setPiece(null);
+        cursor++;
+        continue;
+      }
+
+      if (current.kind === "char" && current.value === "P") {
+        wipNode.setPieceSide("white");
+        wipNode.setPiece(null);
+        cursor++;
+        continue;
       }
 
       if (current.kind === "allegiance") {
         wipNode.addAllegianceMark();
         cursor++;
-        break;
-      }
-
-      if (current.kind === "char" && wipNode.pieceDataReady()) {
-        completeWipNode();
-        break;
+        continue;
       }
 
       if (
@@ -235,97 +382,17 @@ export const parse = (input: Token[]): RootNode => {
     }
 
     switch (state) {
-      /**
-       * Rank 8
-       */
-      case ParseState.Rank8: {
+      case ParseState.Ranks: {
         if (current.kind === "separator") {
-          setState(ParseState.Rank7);
-          break;
+          rank--;
+          cursor++;
+          continue;
         }
 
-        break;
-      }
-
-      /**
-       * Rank 7
-       */
-      case ParseState.Rank7: {
-        if (current.kind === "separator") {
-          setState(ParseState.Rank6);
-          break;
-        }
-
-        break;
-      }
-
-      /**
-       * Rank 6
-       */
-      case ParseState.Rank6: {
-        if (current.kind === "separator") {
-          setState(ParseState.Rank5);
-          break;
-        }
-
-        break;
-      }
-
-      /**
-       * Rank 5
-       */
-      case ParseState.Rank5: {
-        if (current.kind === "separator") {
-          setState(ParseState.Rank4);
-          break;
-        }
-
-        break;
-      }
-
-      /**
-       * Rank 4
-       */
-      case ParseState.Rank4: {
-        if (current.kind === "separator") {
-          setState(ParseState.Rank3);
-          break;
-        }
-
-        break;
-      }
-
-      /**
-       * Rank 3
-       */
-      case ParseState.Rank3: {
-        if (current.kind === "separator") {
-          setState(ParseState.Rank3);
-          break;
-        }
-
-        break;
-      }
-
-      /**
-       * Rank 2
-       */
-      case ParseState.Rank2: {
-        if (current.kind === "separator") {
-          setState(ParseState.Rank1);
-          break;
-        }
-
-        break;
-      }
-
-      /**
-       * Rank 1
-       */
-      case ParseState.Rank1: {
         if (current.kind === "space") {
-          setState(ParseState.ActiveColour);
-          break;
+          state = ParseState.ActiveColour;
+          cursor++;
+          continue;
         }
 
         break;
@@ -335,9 +402,22 @@ export const parse = (input: Token[]): RootNode => {
        * Active colour
        */
       case ParseState.ActiveColour: {
+        if (current.kind === "char" && current.value === "w") {
+          wipNode.setActiveColour("white");
+          cursor++;
+          continue;
+        }
+
+        if (current.kind === "char" && current.value === "b") {
+          wipNode.setActiveColour("black");
+          cursor++;
+          continue;
+        }
+
         if (current.kind === "space") {
+          completeWipNode();
           setState(ParseState.CastlingRights);
-          break;
+          continue;
         }
 
         break;
@@ -347,9 +427,29 @@ export const parse = (input: Token[]): RootNode => {
        * Castling rights
        */
       case ParseState.CastlingRights: {
+        if (
+          current.kind === "char" &&
+          (current.value === "q" ||
+            current.value === "Q" ||
+            current.value === "k" ||
+            current.value === "K")
+        ) {
+          wipNode.addCastlingRight(current.value);
+          cursor++;
+          continue;
+        }
+
+        // Means noone can castle
+        if (current.kind === "hyphen") {
+          cursor++;
+          continue;
+        }
+
         if (current.kind === "space") {
+          if (wipNode.hasCastlingRights()) completeWipNode();
+
           setState(ParseState.EnPassantTargets);
-          break;
+          continue;
         }
 
         break;
@@ -359,9 +459,29 @@ export const parse = (input: Token[]): RootNode => {
        * En passant targets
        */
       case ParseState.EnPassantTargets: {
+        // Means there are no en passant targets
+        if (current.kind === "hyphen") {
+          cursor++;
+          continue;
+        }
+
+        if (current.kind === "char" && isFile(current.value)) {
+          wipNode.setEnPassantFile(letterToFile(current.value));
+          cursor++;
+          continue;
+        }
+
+        if (current.kind === "number" && isRank(current.value)) {
+          wipNode.setEnPassantRank(current.value);
+          cursor++;
+          continue;
+        }
+
         if (current.kind === "space") {
+          if (wipNode.isEnPassantType()) completeWipNode();
+
           setState(ParseState.HalfmoveClock);
-          break;
+          continue;
         }
 
         break;
@@ -371,9 +491,16 @@ export const parse = (input: Token[]): RootNode => {
        * Halfmove clock
        */
       case ParseState.HalfmoveClock: {
+        if (current.kind === "number") {
+          wipNode.setHalfmoveClock(current.value);
+          cursor++;
+          continue;
+        }
+
         if (current.kind === "space") {
+          completeWipNode();
           setState(ParseState.FullmoveNumber);
-          break;
+          continue;
         }
 
         break;
@@ -383,11 +510,19 @@ export const parse = (input: Token[]): RootNode => {
        * Fullmove number
        */
       case ParseState.FullmoveNumber: {
-        // TODO: Handle parsing termination
+        if (current.kind === "number") {
+          wipNode.setFullmoveNumber(current.value);
+          cursor++;
+          completeWipNode();
+        }
 
-        break;
+        continue;
       }
     }
+
+    throw new VError(
+      `Unhandled token: ${current.kind}, cursor ${cursor}, state: ${ParseState[state]}`
+    );
   }
 
   return result;

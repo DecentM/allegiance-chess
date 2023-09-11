@@ -21,13 +21,17 @@ test("board", (t) => {
 test("finds 40 moves on a starting board", (t) => {
   const b = new Board();
 
+  b.importAFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+
   const moves = b.getValidMoves();
 
   t.is(moves.length, 40);
 });
 
-test.only("executes moves", (t) => {
+test("executes moves", (t) => {
   const b = new Board();
+
+  b.importAFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 
   b.execute([
     {
@@ -45,11 +49,15 @@ test.only("executes moves", (t) => {
     },
   ]);
 
+  t.log(b.dump());
+
   t.pass();
 });
 
 test("traces steps forward", (t) => {
   const b = new Board();
+
+  b.importAFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 
   const steps = b.traceCaptureSteps(
     {
