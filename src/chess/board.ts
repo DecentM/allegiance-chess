@@ -6,7 +6,6 @@ import {
   AnyMoveNode,
   CaptureNode,
   CastleNode,
-  CastleSide,
   Coordinates,
   DefaultNode,
   EnPassantNode,
@@ -144,11 +143,6 @@ export class Board {
     const fromSide = allegianceSide(from.allegiance);
     const toSide = to ? allegianceSide(to.allegiance) : null;
 
-    /* if (to && node.type !== "capture" && node.type !== "allegiance") {
-      throw new VError(
-        `Cannot step from ${node.from.file}:${node.from.rank} to ${node.to.file}:${node.to.rank}, because it would be a capture or allegiance`
-      );
-    } */
     // TODO: Non-capture and non-allegiance nodes should check if their targets
     // TODO  are empty
 
@@ -260,19 +254,6 @@ export class Board {
     return newCoords as Coordinates;
   }
 
-  private getSquareRelative(
-    coords: Coordinates,
-    direction: Vector2
-  ): BoardSquare | null {
-    const newCoords = this.getCoordsRelative(coords, direction);
-
-    if (!newCoords) {
-      return null;
-    }
-
-    return this.memory.getSquare(newCoords);
-  }
-
   public traceCaptureSteps(
     coords: Coordinates,
     direction: Vector2
@@ -340,60 +321,6 @@ export class Board {
 
     return steps;
   }
-
-  /* private castlingEligibility(side: "white" | "black"): CastleSide[] {
-    const ownMoves = this.moveHistory.filter((move) => move.fromSide === side);
-
-    const queenSideRookMoves = ownMoves.filter((move) => {
-      return move.from.piece === "R" && move.node.from.file === 1;
-    });
-
-    const kingSideRookMoves = ownMoves.filter((move) => {
-      return move.from.piece === "R" && move.node.from.file === 8;
-    });
-
-    const kingMoves = ownMoves.filter((move) => {
-      return move.from.piece === "K";
-    });
-
-    const result: CastleSide[] = [];
-
-    if (queenSideRookMoves.length === 0 && kingMoves.length === 0) {
-      const fileB = this.memory.getSquare({
-        file: 2,
-        rank: side === "white" ? 1 : 8,
-      });
-      const fileC = this.memory.getSquare({
-        file: 3,
-        rank: side === "white" ? 1 : 8,
-      });
-      const fileD = this.memory.getSquare({
-        file: 4,
-        rank: side === "white" ? 1 : 8,
-      });
-
-      if (!fileB && !fileC && !fileD) {
-        result.push("queen");
-      }
-    }
-
-    if (kingSideRookMoves.length === 0 && kingMoves.length === 0) {
-      const fileF = this.memory.getSquare({
-        file: 6,
-        rank: side === "white" ? 1 : 8,
-      });
-      const fileG = this.memory.getSquare({
-        file: 7,
-        rank: side === "white" ? 1 : 8,
-      });
-
-      if (!fileF && !fileG) {
-        result.push("king");
-      }
-    }
-
-    return result;
-  } */
 
   public getValidMoves(): BoardMove[] {
     const result: BoardMove[] = [];
@@ -658,7 +585,7 @@ export class Board {
           });
         });
 
-        const whiteCastling = this.castlingEligibility("white");
+        const whiteCastling = this.memory.castlingRights("white");
 
         whiteCastling.forEach((castling) => {
           if (castling === "king") {
@@ -698,7 +625,7 @@ export class Board {
           }
         });
 
-        const blackCastling = this.castlingEligibility("black");
+        const blackCastling = this.memory.castlingRights("black");
 
         blackCastling.forEach((castling) => {
           if (castling === "king") {

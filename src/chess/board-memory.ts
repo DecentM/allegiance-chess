@@ -21,17 +21,17 @@ export class BoardMemory {
 
   public enPassantTarget: Coordinates | null = null;
 
-  private castlingRights: Coordinates[] = [
+  private unmovedPiecesForCastling: Coordinates[] = [
     { file: 1, rank: 1 },
     { file: 8, rank: 1 },
+    { file: 5, rank: 1 },
     { file: 1, rank: 8 },
     { file: 8, rank: 8 },
-    { file: 5, rank: 1 },
     { file: 5, rank: 8 },
   ];
 
-  public removeCastlightRights(coords: Coordinates) {
-    const index = this.castlingRights.findIndex(
+  public removeCastlingRights(coords: Coordinates) {
+    const index = this.unmovedPiecesForCastling.findIndex(
       (possibleCoords) =>
         possibleCoords.file === coords.file &&
         possibleCoords.rank === coords.rank
@@ -43,16 +43,39 @@ export class BoardMemory {
       );
     }
 
-    this.castlingRights.splice(index);
+    this.unmovedPiecesForCastling.splice(index);
   }
 
-  public hasCastlingRights(side: "white" | "black") {
+  public castlingRights(side: "white" | "black"): Array<"queen" | "king"> {
+    const result: Array<"queen" | "king"> = [];
     const rank: Rank = side === "white" ? 1 : 8;
-    const uncastledCoords = this.castlingRights.filter((coord) => {
-      return coord.rank === rank;
+
+    const kingUnmoved = this.unmovedPiecesForCastling.some((coord) => {
+      return coord.file === 5 && coord.rank === rank;
     });
 
-    return uncastledCoords.length === 3;
+    // If the king has been moved, no castling is possible
+    if (!kingUnmoved) {
+      return [];
+    }
+
+    const queenSideCastling = this.unmovedPiecesForCastling.find((coord) => {
+      return coord.rank === rank && coord.file === 1;
+    });
+
+    const kingSideCastling = this.unmovedPiecesForCastling.find((coord) => {
+      return coord.rank === rank && coord.file === 8;
+    });
+
+    if (queenSideCastling) {
+      result.push("queen");
+    }
+
+    if (kingSideCastling) {
+      result.push("king");
+    }
+
+    return result;
   }
 
   private clear() {
