@@ -26,6 +26,10 @@ export class BoardMemory {
 
   private unmovedPiecesForCastling: Coordinates[];
 
+  public halfmoveClock: number;
+
+  public fullmoveNumber: number;
+
   public removeCastlingRights(coords: Coordinates) {
     const index = this.unmovedPiecesForCastling.findIndex(
       (possibleCoords) =>
@@ -79,6 +83,8 @@ export class BoardMemory {
     this.activeColour = "white";
     this.enPassantTarget = null;
     this.unmovedPiecesForCastling = [];
+    this.halfmoveClock = 0;
+    this.fullmoveNumber = 0;
 
     for (let file: number = 0; file < 8; file++) {
       this.memory[file] = [];
@@ -183,6 +189,13 @@ export class BoardMemory {
       }
 
       if (node.kind === "castling-rights") {
+        if (node.value.black.length !== 0) {
+          this.unmovedPiecesForCastling.push({
+            file: 5,
+            rank: 8,
+          });
+        }
+
         node.value.black.forEach((blackCastleSide) => {
           this.unmovedPiecesForCastling.push(
             blackCastleSide === "queen"
@@ -196,6 +209,13 @@ export class BoardMemory {
                 }
           );
         });
+
+        if (node.value.white.length !== 0) {
+          this.unmovedPiecesForCastling.push({
+            file: 5,
+            rank: 1,
+          });
+        }
 
         node.value.white.forEach((whiteCastleSide) => {
           this.unmovedPiecesForCastling.push(
@@ -219,9 +239,21 @@ export class BoardMemory {
         return;
       }
 
-      // TODO:
-      // Fullmove number
-      // Halfmove clock
+      if (node.kind === "fullmove-number") {
+        this.fullmoveNumber = node.value;
+        return;
+      }
+
+      if (node.kind === "halfmove-clock") {
+        this.halfmoveClock = node.value;
+        return;
+      }
+
+      throw new VError(
+        `Unhandled node while importing AFEN: ${
+          node["kind"] ?? JSON.stringify(node, null, 2)
+        }`
+      );
     });
   }
 }

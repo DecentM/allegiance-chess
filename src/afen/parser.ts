@@ -325,6 +325,7 @@ export const parse = (input: Token[]): RootNode => {
 
   while (cursor < input.length) {
     const current = input[cursor];
+    const next = input[cursor + 1];
 
     if (state === ParseState.Ranks) {
       if (
@@ -340,6 +341,8 @@ export const parse = (input: Token[]): RootNode => {
       if (current.kind === "char" && isLowerPiece(current.value)) {
         wipNode.setPieceSide("black");
         wipNode.setPiece(current.value);
+        if (!next) completeWipNode();
+
         cursor++;
         continue;
       }
@@ -347,6 +350,8 @@ export const parse = (input: Token[]): RootNode => {
       if (current.kind === "char" && isPiece(current.value)) {
         wipNode.setPieceSide("white");
         wipNode.setPiece(current.value);
+        if (!next) completeWipNode();
+
         cursor++;
         continue;
       }
@@ -354,6 +359,8 @@ export const parse = (input: Token[]): RootNode => {
       if (current.kind === "char" && current.value === "p") {
         wipNode.setPieceSide("black");
         wipNode.setPiece(null);
+        if (!next) completeWipNode();
+
         cursor++;
         continue;
       }
@@ -361,6 +368,8 @@ export const parse = (input: Token[]): RootNode => {
       if (current.kind === "char" && current.value === "P") {
         wipNode.setPieceSide("white");
         wipNode.setPiece(null);
+        if (!next) completeWipNode();
+
         cursor++;
         continue;
       }

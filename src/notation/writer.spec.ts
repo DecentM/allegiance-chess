@@ -9,6 +9,8 @@ test("allegiance", (t) => {
     parse(tokenize("d3d4 Nf1e3 Qxd8 xd2 e.p. Ka5 N>d2 Bd5>e6# 1-0"))
   );
 
+  t.snapshot(result);
+
   t.pass();
 });
 
@@ -20,7 +22,7 @@ test("recursion", (t) => {
 
   const result = rewrite(rewrite(source));
 
-  t.is(result.replace(/\n/g, " "), source);
+  t.snapshot(result);
 });
 
 // http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c2.3
@@ -35,5 +37,5 @@ f3 Bc8 34. Kf2 Bf5 35. Ra7 g6 36. Ra6+ Kc5 37. Ke1 Nf4 38. g3 Nxh3 39. Kd2 Kb5
 
   const result = write(parse(tokenize(spec)));
 
-  t.is(result.replace(/\n/g, " "), spec.replace(/\n/g, " "));
+  t.snapshot(result);
 });

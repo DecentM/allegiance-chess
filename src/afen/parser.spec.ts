@@ -15,3 +15,10 @@ test("case 2", (t) => {
 
   t.snapshot(ast);
 });
+
+test("parses last character with no metadata", (t) => {
+  const tokens = tokenize("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR");
+  const ast = parse(tokens);
+
+  t.is((ast.children.at(-1).value as any).piece, "R");
+});

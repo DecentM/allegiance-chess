@@ -1,30 +1,5 @@
-import { VError } from "verror";
-import { File } from "./declarations";
 import { Node, RootNode } from "./parser";
-
-const fileToLetter = (file: File): string => {
-  switch (file) {
-    case 1:
-      return "a";
-    case 2:
-      return "b";
-    case 3:
-      return "c";
-    case 4:
-      return "d";
-    case 5:
-      return "e";
-    case 6:
-      return "f";
-    case 7:
-      return "g";
-    case 8:
-      return "h";
-
-    default:
-      throw new VError(`Cannot stringify file "${file}" to string`);
-  }
-};
+import { fileToLetter } from "../lib/notation";
 
 export const writeNode = (node: Node): string => {
   switch (node.kind) {
@@ -85,10 +60,6 @@ export const writeNode = (node: Node): string => {
 
         if (node.to.rank) {
           result += `${node.to.rank}`;
-        }
-
-        if (node.causesCheck) {
-          result += node.isMate ? "#" : "+";
         }
 
         if (suffix) result += suffix;

@@ -14,8 +14,6 @@ export type MoveNode<T = void> = {
   piece: Piece;
   from: Coordinates;
   to: Coordinates;
-  // causesCheck: boolean;
-  // isMate: boolean;
 };
 
 export type EnPassantNode = MoveNode<"en-passant">;

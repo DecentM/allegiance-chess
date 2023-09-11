@@ -1,6 +1,11 @@
 import test from "ava";
 import { BoardMemory } from "./board-memory";
 
+/**
+ * Cases 1-3 from:
+ * https://www.chess.com/terms/fen-chess
+ */
+
 test("case 1", (t) => {
   const memory = new BoardMemory();
 
@@ -14,6 +19,24 @@ test("case 2", (t) => {
 
   memory.importAFEN(
     "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+  );
+
+  t.snapshot(memory.dump());
+});
+
+test("case 3", (t) => {
+  const memory = new BoardMemory();
+
+  memory.importAFEN("8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8 b - - 99 50");
+
+  t.snapshot(memory.dump());
+});
+
+test("case 4", (t) => {
+  const memory = new BoardMemory();
+
+  memory.importAFEN(
+    "rnbqkbnr/pppppp+p+p/8/8/4P+3/8/PPPP+1PPP/RNBQKBNR b KQkq e3 0 1"
   );
 
   t.snapshot(memory.dump());
