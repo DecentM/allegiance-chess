@@ -77,14 +77,14 @@ test("traces steps forward", (t) => {
   ]);
 });
 
-test.only("clones empty", (t) => {
+test("clones empty", (t) => {
   const b = new Board();
   const b1 = b.clone();
 
   t.is(b.dump(), b1.dump());
 });
 
-test.only("clones with state", (t) => {
+test("clones with state", (t) => {
   const b = new Board();
 
   b.importAFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");

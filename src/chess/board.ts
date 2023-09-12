@@ -537,7 +537,7 @@ export class Board {
               type: target ? "capture" : null,
               from: square,
               to: step,
-              piece: target.piece,
+              piece: square.piece,
             } as const;
           })
         );
@@ -575,7 +575,7 @@ export class Board {
               type: target ? "capture" : null,
               from: square,
               to: step,
-              piece: target.piece,
+              piece: square.piece,
             } as const;
           })
         );
@@ -608,7 +608,7 @@ export class Board {
             type: toSquare ? "capture" : null,
             from: square,
             to: possibleMove,
-            piece: toSquare.piece,
+            piece: square.piece,
           });
         });
 
@@ -684,27 +684,34 @@ export class Board {
   }
 
   public getValidMoves(side: "white" | "black"): Node[] {
-    const moves = this.getPossibleMoves();
+    const moveNodes = this.getPossibleMoves();
 
-    return moves.filter((move) => {
-      const virtualBoard = this.clone();
-
-      try {
-        virtualBoard.executeNode(move);
-      } catch (error) {
-        console.error(virtualBoard.dump());
-        console.error(error);
-        throw error;
+    return moveNodes.filter((moveNode) => {
+      if (moveNode.kind !== "move") {
+        return false;
       }
 
-      const checks = virtualBoard.getCheckMoves();
+      const fromSquare = this.memory.getSquare(moveNode.from);
 
-      return checks.every((checkMove) => {
-        if (checkMove.kind !== "move") {
-          return true;
+      // Filter out moves that the other side makes
+      if (allegianceSide(fromSquare.allegiance) !== side) {
+        return false;
+      }
+
+      // Sets up a clone of the board with this move applied so wee can scan for
+      // checks
+      const virtualBoard = this.clone();
+      virtualBoard.executeNode(moveNode);
+
+      const checkMoveNodes = virtualBoard.getCheckMoves();
+
+      // Filter out moves that would result in us getting checked
+      return checkMoveNodes.every((checkMoveNode) => {
+        if (checkMoveNode.kind !== "move") {
+          return false;
         }
 
-        const toSquare = virtualBoard.memory.getSquare(checkMove.to);
+        const toSquare = virtualBoard.memory.getSquare(checkMoveNode.to);
 
         return allegianceSide(toSquare.allegiance) !== side;
       });

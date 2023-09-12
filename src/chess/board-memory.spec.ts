@@ -41,3 +41,13 @@ test("case 4", (t) => {
 
   t.snapshot(memory.dump());
 });
+
+test("clones with state", (t) => {
+  const m = new BoardMemory();
+
+  m.importAFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+
+  const m1 = m.clone();
+
+  t.is(m.dump(), m1.dump());
+});

@@ -35,7 +35,7 @@ export class BoardMemory {
   public clone() {
     const memory = new BoardMemory();
 
-    memory.memory = cloneDeep(memory.memory);
+    memory.memory = cloneDeep(this.memory);
     memory.activeColour = this.activeColour;
     memory.enPassantTarget = cloneDeep(this.enPassantTarget);
     memory.unmovedPiecesForCastling = cloneDeep(this.unmovedPiecesForCastling);
