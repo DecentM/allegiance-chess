@@ -1,4 +1,5 @@
 import VError from "verror";
+import cloneDeep from "lodash.clonedeep";
 
 import { Rank } from "../notation/declarations";
 import {
@@ -33,16 +34,6 @@ const allegianceSide = (allegiance: PieceAllegiance): "white" | "black" => {
     : "white";
 };
 
-type BoardMove = {
-  from: Coordinates;
-  to: Coordinates;
-  takes: Coordinates | null;
-  implies: null | {
-    from: Coordinates;
-    to: Coordinates;
-  };
-};
-
 type ExecuteMoveTypeInput<NodeType extends MoveNode<string | void>> = {
   node: NodeType;
   from: BoardSquare;
@@ -55,6 +46,15 @@ export class Board {
   private moveHistory: ExecuteMoveTypeInput<AnyMoveNode>[] = [];
 
   private memory: BoardMemory;
+
+  public clone() {
+    const board = new Board();
+
+    board.moveHistory = cloneDeep(this.moveHistory);
+    board.memory = this.memory.clone();
+
+    return board;
+  }
 
   public dump() {
     return this.memory.dump();
@@ -232,7 +232,7 @@ export class Board {
     }
   }
 
-  public execute(nodes: Node[]) {
+  public executeNodes(nodes: Node[]) {
     nodes.forEach((node) => {
       this.executeNode(node);
     });
@@ -327,8 +327,8 @@ export class Board {
     return steps;
   }
 
-  public getValidMoves(): BoardMove[] {
-    const result: BoardMove[] = [];
+  private getPossibleMoves(): Node[] {
+    const result: Node[] = [];
     const squares = this.memory.getSquares();
 
     squares.forEach((square) => {
@@ -374,9 +374,10 @@ export class Board {
             Math.abs(square.file - lastMove.node.to.file) === 1
           ) {
             result.push({
+              kind: "move",
+              type: "en-passant",
               from: square,
-              takes: lastMove.node.to,
-              implies: null,
+              piece: this.memory.getSquare(square).piece,
               to: this.getCoordsRelative(
                 square,
                 new Vector2(
@@ -391,28 +392,31 @@ export class Board {
 
         if (inFront && !this.memory.getSquare(inFront)) {
           result.push({
+            kind: "move",
+            type: null,
+            piece: this.memory.getSquare(square).piece,
             from: square,
             to: inFront,
-            takes: null,
-            implies: null,
           });
         }
 
         if (diagLeft && this.memory.getSquare(diagLeft)) {
           result.push({
+            kind: "move",
+            type: "capture",
             from: square,
             to: diagLeft,
-            takes: diagLeft,
-            implies: null,
+            piece: this.memory.getSquare(square).piece,
           });
         }
 
         if (diagRight && this.memory.getSquare(diagRight)) {
           result.push({
+            kind: "move",
+            type: "capture",
             from: square,
             to: diagRight,
-            takes: diagRight,
-            implies: null,
+            piece: this.memory.getSquare(square).piece,
           });
         }
 
@@ -434,10 +438,11 @@ export class Board {
             !this.memory.getSquare(inFront2)
           ) {
             result.push({
+              kind: "move",
+              type: null,
               from: square,
               to: inFront2,
-              takes: null,
-              implies: null,
+              piece: this.memory.getSquare(square).piece,
             });
           }
         }
@@ -459,12 +464,17 @@ export class Board {
         ];
 
         result.push(
-          ...steps.map((step) => ({
-            from: square,
-            to: step,
-            takes: this.memory.getSquare(step) ? step : null,
-            implies: null,
-          }))
+          ...steps.map((step) => {
+            const target = this.memory.getSquare(step);
+
+            return {
+              kind: "move",
+              type: target ? "capture" : null,
+              from: square,
+              to: step,
+              piece: square.piece,
+            } as const;
+          })
         );
       }
 
@@ -494,10 +504,11 @@ export class Board {
           }
 
           result.push({
+            kind: "move",
+            type: targetSquare ? "capture" : null,
             from: square,
             to: target,
-            takes: targetSquare ? target : null,
-            implies: null,
+            piece: square.piece,
           });
         });
       }
@@ -518,12 +529,17 @@ export class Board {
         ];
 
         result.push(
-          ...steps.map((step) => ({
-            from: square,
-            to: step,
-            takes: this.memory.getSquare(step) ? step : null,
-            implies: null,
-          }))
+          ...steps.map((step) => {
+            const target = this.memory.getSquare(step);
+
+            return {
+              kind: "move",
+              type: target ? "capture" : null,
+              from: square,
+              to: step,
+              piece: target.piece,
+            } as const;
+          })
         );
       }
 
@@ -551,12 +567,17 @@ export class Board {
         ];
 
         result.push(
-          ...steps.map((step) => ({
-            from: square,
-            to: step,
-            takes: this.memory.getSquare(step) ? step : null,
-            implies: null,
-          }))
+          ...steps.map((step) => {
+            const target = this.memory.getSquare(step);
+
+            return {
+              kind: "move",
+              type: target ? "capture" : null,
+              from: square,
+              to: step,
+              piece: target.piece,
+            } as const;
+          })
         );
       }
 
@@ -583,10 +604,11 @@ export class Board {
           }
 
           result.push({
+            kind: "move",
+            type: toSquare ? "capture" : null,
             from: square,
             to: possibleMove,
-            takes: toSquare ? { ...possibleMove, ...toSquare } : null,
-            implies: null,
+            piece: toSquare.piece,
           });
         });
 
@@ -595,37 +617,23 @@ export class Board {
         whiteCastling.forEach((castling) => {
           if (castling === "king") {
             result.push({
+              kind: "move",
+              type: "castle",
               from: square,
               to: this.getCoordsRelative(square, new Vector2(2, 0)),
-              takes: null,
-              implies: {
-                from: {
-                  file: 8,
-                  rank: 1,
-                },
-                to: {
-                  file: 6,
-                  rank: 1,
-                },
-              },
+              piece: this.memory.getSquare(square).piece,
+              side: "king",
             });
           }
 
           if (castling === "queen") {
             result.push({
+              kind: "move",
+              type: "castle",
               from: square,
               to: this.getCoordsRelative(square, new Vector2(-2, 0)),
-              takes: null,
-              implies: {
-                from: {
-                  file: 1,
-                  rank: 1,
-                },
-                to: {
-                  file: 4,
-                  rank: 1,
-                },
-              },
+              piece: this.memory.getSquare(square).piece,
+              side: "queen",
             });
           }
         });
@@ -635,37 +643,23 @@ export class Board {
         blackCastling.forEach((castling) => {
           if (castling === "king") {
             result.push({
+              kind: "move",
+              type: "castle",
               from: square,
               to: this.getCoordsRelative(square, new Vector2(2, 0)),
-              takes: null,
-              implies: {
-                from: {
-                  file: 8,
-                  rank: 8,
-                },
-                to: {
-                  file: 6,
-                  rank: 8,
-                },
-              },
+              piece: this.memory.getSquare(square).piece,
+              side: "king",
             });
           }
 
           if (castling === "queen") {
             result.push({
+              kind: "move",
+              type: "castle",
               from: square,
               to: this.getCoordsRelative(square, new Vector2(-2, 0)),
-              takes: null,
-              implies: {
-                from: {
-                  file: 1,
-                  rank: 8,
-                },
-                to: {
-                  file: 4,
-                  rank: 8,
-                },
-              },
+              piece: this.memory.getSquare(square).piece,
+              side: "queen",
             });
           }
         });
@@ -673,5 +667,47 @@ export class Board {
     });
 
     return result;
+  }
+
+  private getCheckMoves(): Node[] {
+    const moves = this.getPossibleMoves();
+
+    return moves.filter((move) => {
+      if (move.kind !== "move") {
+        return;
+      }
+
+      const targetSquare = this.memory.getSquare(move.to);
+
+      return targetSquare && targetSquare.piece === "K";
+    });
+  }
+
+  public getValidMoves(side: "white" | "black"): Node[] {
+    const moves = this.getPossibleMoves();
+
+    return moves.filter((move) => {
+      const virtualBoard = this.clone();
+
+      try {
+        virtualBoard.executeNode(move);
+      } catch (error) {
+        console.error(virtualBoard.dump());
+        console.error(error);
+        throw error;
+      }
+
+      const checks = virtualBoard.getCheckMoves();
+
+      return checks.every((checkMove) => {
+        if (checkMove.kind !== "move") {
+          return true;
+        }
+
+        const toSquare = virtualBoard.memory.getSquare(checkMove.to);
+
+        return allegianceSide(toSquare.allegiance) !== side;
+      });
+    });
   }
 }

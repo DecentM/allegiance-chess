@@ -1,4 +1,6 @@
 import { VError } from "verror";
+import cloneDeep from "lodash.clonedeep";
+
 import { File, Piece, Rank } from "../notation/declarations";
 import { Coordinates } from "../notation/parser";
 
@@ -29,6 +31,19 @@ export class BoardMemory {
   public halfmoveClock: number;
 
   public fullmoveNumber: number;
+
+  public clone() {
+    const memory = new BoardMemory();
+
+    memory.memory = cloneDeep(memory.memory);
+    memory.activeColour = this.activeColour;
+    memory.enPassantTarget = cloneDeep(this.enPassantTarget);
+    memory.unmovedPiecesForCastling = cloneDeep(this.unmovedPiecesForCastling);
+    memory.halfmoveClock = this.halfmoveClock;
+    memory.fullmoveNumber = this.fullmoveNumber;
+
+    return memory;
+  }
 
   public removeCastlingRights(coords: Coordinates) {
     const index = this.unmovedPiecesForCastling.findIndex(

@@ -23,9 +23,10 @@ test("finds 40 moves on a starting board", (t) => {
 
   b.importAFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 
-  const moves = b.getValidMoves();
+  const blackMoves = b.getValidMoves("black");
+  const whiteMoves = b.getValidMoves("white");
 
-  t.is(moves.length, 40);
+  t.is(whiteMoves.length + blackMoves.length, 40);
 });
 
 test("executes moves", (t) => {
@@ -33,7 +34,7 @@ test("executes moves", (t) => {
 
   b.importAFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 
-  b.execute([
+  b.executeNodes([
     {
       kind: "move",
       type: null,
@@ -74,4 +75,21 @@ test("traces steps forward", (t) => {
     { file: 1, rank: 6 },
     { file: 1, rank: 7 },
   ]);
+});
+
+test.only("clones empty", (t) => {
+  const b = new Board();
+  const b1 = b.clone();
+
+  t.is(b.dump(), b1.dump());
+});
+
+test.only("clones with state", (t) => {
+  const b = new Board();
+
+  b.importAFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+
+  const b1 = b.clone();
+
+  t.is(b.dump(), b1.dump());
 });
