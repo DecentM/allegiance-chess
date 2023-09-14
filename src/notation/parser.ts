@@ -369,6 +369,8 @@ export const parse = (tokens: Token[]): RootNode => {
 
       case "rank":
         wipNode.ranks.push(current.value);
+
+        if (!nextTokenKind()) newNode();
         break;
 
       case "draw-offer":

@@ -11,7 +11,7 @@ import {
   letterToFile,
 } from "../lib/notation";
 
-type PieceNode = {
+export type PieceNode = {
   kind: "piece";
   value: {
     piece: Piece;

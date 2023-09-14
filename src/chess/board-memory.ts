@@ -53,9 +53,7 @@ export class BoardMemory {
     );
 
     if (index === -1) {
-      throw new VError(
-        `Cannot remove castlight rights from ${coords.file}:${coords.rank}, because that square has none`
-      );
+      return;
     }
 
     this.unmovedPiecesForCastling.splice(index);

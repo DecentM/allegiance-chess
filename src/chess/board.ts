@@ -16,6 +16,7 @@ import {
 } from "../notation/parser";
 import { Vector2 } from "../lib/vector2";
 import { BoardMemory, BoardSquare } from "./board-memory";
+import { coordinatesEqual } from "../lib/coordinate";
 
 export const PieceAllegiance = {
   Black: 0,
@@ -43,14 +44,11 @@ type ExecuteMoveTypeInput<NodeType extends MoveNode<string | void>> = {
 };
 
 export class Board {
-  private moveHistory: ExecuteMoveTypeInput<AnyMoveNode>[] = [];
-
   private memory: BoardMemory;
 
   public clone() {
     const board = new Board();
 
-    board.moveHistory = cloneDeep(this.moveHistory);
     board.memory = this.memory.clone();
 
     return board;
@@ -82,6 +80,9 @@ export class Board {
   private executeCaptureMoveNode(input: ExecuteMoveTypeInput<CaptureNode>) {
     this.memory.setSquare(input.node.to, input.from);
     this.memory.setSquare(input.node.from, null);
+
+    this.memory.removeCastlingRights(input.node.from);
+    this.memory.removeCastlingRights(input.node.to);
   }
 
   private executeCastleMoveNode(input: ExecuteMoveTypeInput<CastleNode>) {
@@ -102,6 +103,9 @@ export class Board {
     this.memory.setSquare(rookToCoords, rook);
     this.memory.setSquare(rookCoords, null);
     this.memory.setSquare(input.node.from, null);
+
+    this.memory.removeCastlingRights(input.node.from);
+    this.memory.removeCastlingRights(rookCoords);
   }
 
   private executeEnPassantMoveNode(input: ExecuteMoveTypeInput<EnPassantNode>) {
@@ -131,10 +135,32 @@ export class Board {
   private executeDefaultMoveNode(input: ExecuteMoveTypeInput<DefaultNode>) {
     this.memory.setSquare(input.node.from, null);
     this.memory.setSquare(input.node.to, input.from);
+
+    if (
+      input.node.piece === null &&
+      Math.abs(input.node.from.rank - input.node.to.rank) === 2
+    ) {
+      this.memory.enPassantTarget = {
+        file: input.node.from.file,
+        rank: (input.fromSide === "white"
+          ? input.node.from.rank + 1
+          : input.node.from.rank - 1) as Rank,
+      };
+    }
   }
 
   private executeMoveNode(node: AnyMoveNode) {
     // TODO: Validate moves before executing them
+
+    if (!node.from.file) {
+      throw new VError(
+        `Cannot execute node without "from.file": ${JSON.stringify(
+          node,
+          null,
+          2
+        )}`
+      );
+    }
 
     const from = this.memory.getSquare(node.from);
     const to = this.memory.getSquare(node.to);
@@ -213,19 +239,20 @@ export class Board {
         break;
     }
 
-    this.moveHistory.push({
-      from,
-      to,
-      fromSide,
-      toSide,
-      node,
-    });
+    if (this.memory.activeColour === "white") this.memory.halfmoveClock++;
+
+    this.memory.fullmoveNumber++;
+
+    this.memory.activeColour =
+      this.memory.activeColour === "white" ? "black" : "white";
   }
 
-  private executeNode(node: Node) {
-    switch (node.kind) {
+  public executeNode(node: Node) {
+    const fullNode = this.inferNode(node);
+
+    switch (fullNode.kind) {
       case "move": {
-        this.executeMoveNode(node);
+        this.executeMoveNode(fullNode);
 
         break;
       }
@@ -236,6 +263,103 @@ export class Board {
     nodes.forEach((node) => {
       this.executeNode(node);
     });
+  }
+
+  public inferNode(node: Partial<Node>): Node {
+    if (node.kind !== "move") {
+      return node as Node;
+    }
+
+    // No inferrence needed on fully qualified nodes
+    if (
+      node.from &&
+      Object.keys(node.from).length === 2 &&
+      node.to &&
+      Object.keys(node.to).length === 2 &&
+      (node.piece || node.piece === null)
+    ) {
+      return node as Node;
+    }
+
+    if (node.type === "castle") {
+      const side = this.memory.activeColour;
+      const rank = side === "white" ? 1 : 8;
+
+      return {
+        kind: "move",
+        type: "castle",
+        side: node.side,
+        piece: "K",
+        from: side === "white" ? { rank, file: 5 } : { rank, file: 5 },
+        to: node.side === "king" ? { rank, file: 7 } : { rank, file: 3 },
+      };
+    }
+
+    const result: Partial<Node> = { ...node };
+
+    const possibleMoves: MoveNode[] = (
+      this.getPossibleMoves().filter(
+        (move) => move.kind === "move"
+      ) as MoveNode[]
+    ).filter((moveNode) => {
+      const square = this.memory.getSquare(moveNode.from);
+
+      return allegianceSide(square.allegiance) === this.memory.activeColour;
+    });
+
+    let moves = possibleMoves;
+
+    if (node.to && Object.keys(node.to).length === 2) {
+      moves = moves.filter((validMove) =>
+        coordinatesEqual(validMove.to, node.to)
+      );
+    }
+
+    if (node.from && Object.keys(node.from).length === 2) {
+      moves = moves.filter((validMove) =>
+        coordinatesEqual(validMove.from, node.from)
+      );
+    }
+
+    if (node.piece || node.piece === null) {
+      moves = moves.filter((validMove) => validMove.piece === node.piece);
+    } else if (moves.length > 1 && !node.piece) {
+      // If there are multiple valid moves for this node but the node has no
+      // piece defined, we can assume it's a pawn
+      moves = moves.filter((validMove) => validMove.piece === null);
+    }
+
+    if (moves.length > 1) {
+      throw new VError(
+        `Move node is not qualified enough for this board. Matching valid moves: ${
+          moves.length
+        }. Node: ${JSON.stringify({
+          from: node.from,
+          to: node.to,
+          piece: node.piece,
+        })}`
+      );
+    }
+
+    if (moves.length === 1) {
+      const move = moves[0];
+
+      result.from = move.from;
+      result.to = move.to;
+      result.piece = move.piece;
+    }
+
+    if (moves.length === 0) {
+      throw new VError(
+        `Move node does not qualify a valid move: ${JSON.stringify({
+          from: node.from,
+          to: node.to,
+          piece: node.piece,
+        })}`
+      );
+    }
+
+    return result as Node;
   }
 
   private getCoordsRelative(
@@ -286,10 +410,7 @@ export class Board {
 
     let currentCoords = coords;
 
-    while (
-      currentCoords.file !== coords.file + direction.x ||
-      currentCoords.rank !== coords.rank + direction.y
-    ) {
+    while (true) {
       currentCoords = this.getCoordsRelative(currentCoords, singleStepVector);
 
       if (!currentCoords) {
@@ -358,34 +479,18 @@ export class Board {
           new Vector2(side === "white" ? 1 : -1, side === "white" ? 1 : -1)
         );
 
-        // En passant
-        const lastMove = this.moveHistory[this.moveHistory.length - 1];
-
-        if (lastMove) {
-          const lastMoveSide = lastMove.fromSide;
-          const lastMoveIsPawnJump =
-            lastMove.from.piece === null &&
-            Math.abs(lastMove.node.to.rank - lastMove.node.from.rank) === 2;
-
+        if (this.memory.enPassantTarget) {
           if (
-            lastMoveSide !== allegianceSide(square.allegiance) &&
-            lastMoveIsPawnJump &&
-            square.rank === lastMove.node.to.rank &&
-            Math.abs(square.file - lastMove.node.to.file) === 1
+            this.memory.activeColour !== allegianceSide(square.allegiance) &&
+            square.rank === this.memory.enPassantTarget.rank &&
+            Math.abs(square.file - this.memory.enPassantTarget.file) === 1
           ) {
             result.push({
               kind: "move",
               type: "en-passant",
               from: square,
               piece: this.memory.getSquare(square).piece,
-              to: this.getCoordsRelative(
-                square,
-                new Vector2(
-                  // TODO: Is this the correct direction?
-                  Math.sign(square.file - lastMove.node.to.file),
-                  side === "white" ? 1 : -1
-                )
-              ),
+              to: this.memory.enPassantTarget,
             });
           }
         }

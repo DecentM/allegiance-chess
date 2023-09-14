@@ -24,3 +24,17 @@ f3 Bc8 34. Kf2 Bf5 35. Ra7 g6 36. Ra6+ Kc5 37. Ke1 Nf4 38. g3 Nxh3 39. Kd2 Kb5
 
   t.pass();
 });
+
+test("parses Nf3", (t) => {
+  const tokens = tokenize("1. Nf3");
+  const result = parse(tokens);
+
+  t.deepEqual(result.children, [
+    {
+      ...result.children[0],
+      kind: "move",
+      to: { file: 6, rank: 3 },
+      piece: "N",
+    },
+  ]);
+});
