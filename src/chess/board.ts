@@ -17,6 +17,7 @@ import {
 import { Vector2 } from "../lib/vector2";
 import { BoardMemory, BoardSquare } from "./board-memory";
 import { coordinatesEqual } from "../lib/coordinate";
+import { allegianceSide } from "../lib/allegiance";
 
 export const PieceAllegiance = {
   Black: 0,
@@ -27,13 +28,6 @@ export const PieceAllegiance = {
 
 export type PieceAllegiance =
   (typeof PieceAllegiance)[keyof typeof PieceAllegiance];
-
-const allegianceSide = (allegiance: PieceAllegiance): "white" | "black" => {
-  return allegiance === PieceAllegiance.Black ||
-    allegiance == PieceAllegiance.DarkGrey
-    ? "black"
-    : "white";
-};
 
 type ExecuteMoveTypeInput<NodeType extends MoveNode<string | void>> = {
   node: NodeType;

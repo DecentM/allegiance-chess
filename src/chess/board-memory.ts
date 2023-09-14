@@ -8,6 +8,7 @@ import { PieceAllegiance } from "./board";
 import { tokenize } from "../afen/tokenizer";
 import { parse } from "../afen/parser";
 import { fileToLetter } from "../lib/notation";
+import { allegianceSide } from "../lib/allegiance";
 
 export type BoardSquare = {
   piece: Piece | null;
@@ -124,12 +125,15 @@ export class BoardMemory {
     let result = "";
 
     squares.filter(Boolean).forEach((square) => {
-      ranks[square.rank - 1][square.file - 1] = square.piece;
+      ranks[square.rank - 1][square.file - 1] =
+        allegianceSide(square.allegiance) === "white"
+          ? square.piece?.toUpperCase() ?? "P"
+          : square.piece?.toLowerCase() ?? "p";
     });
 
     for (let i = 7; i >= 0; i--) {
       result += `${i + 1} `;
-      result += ranks[i].map((item) => item ?? "P").join(" ");
+      result += ranks[i].map((item) => item).join(" ");
       result += "\n";
     }
 
