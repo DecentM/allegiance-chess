@@ -241,7 +241,7 @@ export class Board {
       this.memory.activeColour === "white" ? "black" : "white";
   }
 
-  public executeNode(node: Node) {
+  public executeNode(node: Partial<Node>) {
     const fullNode = this.inferNode(node);
 
     switch (fullNode.kind) {

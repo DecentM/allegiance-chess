@@ -30,9 +30,29 @@ test("board", (t) => {
 test("finds 20 moves on a starting board for white", (t) => {
   const b = createDefaultBoard();
 
-  const whiteMoves = b.getValidMoves("white");
+  const moves = b.getValidMoves("white");
 
-  t.is(whiteMoves.length, 20);
+  t.is(moves.length, 20);
+
+  t.throws(() => b.getValidMoves("black"));
+});
+
+test("finds 20 moves for black after a move", (t) => {
+  const b = createDefaultBoard();
+
+  b.executeNode({
+    kind: "move",
+    to: {
+      rank: 4,
+      file: 2,
+    },
+  });
+
+  const moves = b.getValidMoves("black");
+
+  t.is(moves.length, 20);
+
+  t.throws(() => b.getValidMoves("white"));
 });
 
 test("executes single move", (t) => {
