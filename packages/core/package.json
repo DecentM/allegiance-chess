@@ -1,0 +1,26 @@
+{
+  "name": "@decentm/allegiance-chess-core",
+  "version": "0.0.1",
+  "license": "MIT",
+  "scripts": {
+    "t": "ava"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register/transpile-only"
+    ]
+  },
+  "devDependencies": {
+    "@types/lodash.clonedeep": "^4.5.7",
+    "@types/verror": "^1.10.6",
+    "ava": "^5.3.1",
+    "c8": "^8.0.1"
+  },
+  "dependencies": {
+    "lodash.clonedeep": "^4.5.0",
+    "verror": "^1.10.1"
+  }
+}
