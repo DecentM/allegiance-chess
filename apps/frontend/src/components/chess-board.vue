@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { Board, BoardSquare } from '@decentm/allegiance-chess-core'
 import { computed } from 'vue'
+import {
+  Container as DndContainer,
+  Draggable as DndDraggable,
+} from 'vue3-smooth-dnd'
 
 import ChessPiece from './chess-piece.vue'
 
@@ -71,25 +75,35 @@ const squares = computed(() => {
 </style>
 
 <template>
-  <q-card class="board col" :style="{ width: props.width + 'px' }">
-    <div class="rank row" v-for="(rank, rankIndex) in squares" :key="rankIndex">
-      <q-card
-        flat
-        square
-        class="file col-1 square text-center items-center"
-        v-for="(square, fileIndex) in rank"
-        :key="fileIndex"
-        :style="{
-          width: props.width / 8 + 'px',
-          height: props.width / 8 + 'px',
-        }"
+  <dnd-container>
+    <q-card class="board col" :style="{ width: props.width + 'px' }">
+      <div
+        class="rank row"
+        v-for="(rank, rankIndex) in squares"
+        :key="rankIndex"
       >
-        <chess-piece
-          v-if="square"
-          :piece="square.piece"
-          :allegiance="square.allegiance"
-        />
-      </q-card>
-    </div>
-  </q-card>
+        <q-card
+          flat
+          square
+          class="file col-1 square text-center items-center"
+          v-for="(square, fileIndex) in rank"
+          :key="fileIndex"
+          :style="{
+            width: props.width / 8 + 'px',
+            height: props.width / 8 + 'px',
+          }"
+        >
+          <dnd-draggable>
+            <chess-piece
+              v-if="square"
+              :piece="square.piece"
+              :allegiance="square.allegiance"
+            />
+
+            <div v-else></div>
+          </dnd-draggable>
+        </q-card>
+      </div>
+    </q-card>
+  </dnd-container>
 </template>
