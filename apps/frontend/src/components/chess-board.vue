@@ -4,6 +4,7 @@ import { computed } from 'vue'
 
 const props = defineProps<{
   afen: string
+  width: number
 }>()
 
 const squares = computed(() => {
@@ -33,21 +34,16 @@ const squares = computed(() => {
 
 <style lang="scss" scoped>
 .row {
-  > .square {
-    width: 16px;
-    height: 16px;
-  }
-
   &:nth-child(odd) {
     > .square {
       &:nth-child(odd) {
-        background-color: white;
-        color: black;
+        background-color: $white;
+        color: $black;
       }
 
       &:nth-child(even) {
-        background-color: black;
-        color: white;
+        background-color: $black;
+        color: $white;
       }
     }
   }
@@ -55,13 +51,13 @@ const squares = computed(() => {
   &:nth-child(even) {
     > .square {
       &:nth-child(even) {
-        background-color: white;
-        color: black;
+        background-color: $white;
+        color: $black;
       }
 
       &:nth-child(odd) {
-        background-color: black;
-        color: white;
+        background-color: $black;
+        color: $white;
       }
     }
   }
@@ -69,12 +65,18 @@ const squares = computed(() => {
 </style>
 
 <template>
-  <q-card class="board col">
+  <q-card class="board col" :style="{ width: props.width + 'px' }">
     <div class="rank row" v-for="(rank, rankIndex) in squares" :key="rankIndex">
       <q-card
-        class="file col-1 square"
+        flat
+        square
+        class="file col-1 square text-center items-center"
         v-for="(square, fileIndex) in rank"
         :key="fileIndex"
+        :style="{
+          width: props.width / 8 + 'px',
+          height: props.width / 8 + 'px',
+        }"
       >
         <span v-if="square">
           {{ square.piece || 'p' }}
