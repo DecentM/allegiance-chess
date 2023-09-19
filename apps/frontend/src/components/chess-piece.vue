@@ -37,47 +37,51 @@ const colour = computed(() => {
       return ''
   }
 })
+
+const emit = defineEmits<{ (event: 'click', e: MouseEvent): void }>()
 </script>
 
 <style lang="scss" scoped></style>
 
 <template>
-  <pawn-icon
-    class="piece"
-    :variant="side"
-    :colour="colour"
-    v-if="piece === null"
-  />
+  <div @click="(event) => emit('click', event)">
+    <pawn-icon
+      class="piece"
+      :variant="side"
+      :colour="colour"
+      v-if="piece === null"
+    />
 
-  <bishop-icon
-    class="piece"
-    :variant="side"
-    :colour="colour"
-    :size="size"
-    v-if="piece === 'B'"
-  />
-  <king-icon
-    class="piece"
-    :variant="side"
-    :colour="colour"
-    v-if="piece === 'K'"
-  />
-  <knight-icon
-    class="piece"
-    :variant="side"
-    :colour="colour"
-    v-if="piece === 'N'"
-  />
-  <queen-icon
-    class="piece"
-    :variant="side"
-    :colour="colour"
-    v-if="piece === 'Q'"
-  />
-  <rook-icon
-    class="piece"
-    :variant="side"
-    :colour="colour"
-    v-if="piece === 'R'"
-  />
+    <bishop-icon
+      class="piece"
+      :variant="side"
+      :colour="colour"
+      :size="size"
+      v-if="piece === 'B'"
+    />
+    <king-icon
+      class="piece"
+      :variant="side"
+      :colour="colour"
+      v-if="piece === 'K'"
+    />
+    <knight-icon
+      class="piece"
+      :variant="side"
+      :colour="colour"
+      v-if="piece === 'N'"
+    />
+    <queen-icon
+      class="piece"
+      :variant="side"
+      :colour="colour"
+      v-if="piece === 'Q'"
+    />
+    <rook-icon
+      class="piece"
+      :variant="side"
+      :colour="colour"
+      v-if="piece === 'R'"
+    />
+  </div>
 </template>

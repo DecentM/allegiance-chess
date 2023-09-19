@@ -107,7 +107,9 @@
         "no-unused-vars": "off",
 
         // allow debugger during development only
-        "no-debugger": "warn"
+        "no-debugger": "warn",
+
+        "func-call-spacing": "off"
       }
     }
   ]

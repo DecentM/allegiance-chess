@@ -5,6 +5,7 @@ import ChessBoard from '../components/chess-board.vue'
 <template>
   <q-page class="row items-center justify-evenly">
     <chess-board
+      :draggable="false"
       afen="rnbqkb+n+r+/pppppppp+/8/8/8/8/PPPPPPPP+/RNBQKB+N+R+ "
       :width="800"
     />

@@ -262,6 +262,10 @@ export class Board {
     })
   }
 
+  public getSquare(coords: Coordinates) {
+    return this.memory.getSquare(coords)
+  }
+
   public inferNode(node: Partial<Node>): Node {
     if (node.kind !== 'move') {
       return node as Node
@@ -786,7 +790,7 @@ export class Board {
     })
   }
 
-  public getValidMoves(side: 'white' | 'black'): Node[] {
+  public getValidMoves(): Node[] {
     const moveNodes = this.getPossibleMoves()
 
     return moveNodes.filter((moveNode) => {
@@ -797,7 +801,7 @@ export class Board {
       const fromSquare = this.memory.getSquare(moveNode.from)
 
       // Filter out moves that the other side makes
-      if (allegianceSide(fromSquare.allegiance) !== side) {
+      if (allegianceSide(fromSquare.allegiance) !== this.memory.activeColour) {
         return false
       }
 
@@ -816,7 +820,7 @@ export class Board {
 
         const toSquare = virtualBoard.memory.getSquare(checkMoveNode.to)
 
-        return allegianceSide(toSquare.allegiance) !== side
+        return allegianceSide(toSquare.allegiance) !== this.memory.activeColour
       })
     })
   }
