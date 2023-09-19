@@ -2,6 +2,8 @@
 import { Board, BoardSquare } from '@decentm/allegiance-chess-core'
 import { computed } from 'vue'
 
+import ChessPiece from './chess-piece.vue'
+
 const props = defineProps<{
   afen: string
   width: number
@@ -33,6 +35,10 @@ const squares = computed(() => {
 </script>
 
 <style lang="scss" scoped>
+.file {
+  overflow: hidden;
+}
+
 .row {
   &:nth-child(odd) {
     > .square {
@@ -78,11 +84,11 @@ const squares = computed(() => {
           height: props.width / 8 + 'px',
         }"
       >
-        <span v-if="square">
-          {{ square.piece || 'p' }}
-        </span>
-
-        <span v-else>.</span>
+        <chess-piece
+          v-if="square"
+          :piece="square.piece"
+          :allegiance="square.allegiance"
+        />
       </q-card>
     </div>
   </q-card>
