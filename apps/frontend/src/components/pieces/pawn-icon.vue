@@ -6,7 +6,7 @@ defineProps<{
 </script>
 
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+  <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 46 46">
     <path
       d="m 22.5,9 c -2.21,0 -4,1.79 -4,4 0,0.89 0.29,1.71 0.78,2.38 C 17.33,16.5
     16,18.59 16,21 c 0,2.03 0.94,3.84 2.41,5.03 C 15.41,27.09 11,31.58 11,39.5 H

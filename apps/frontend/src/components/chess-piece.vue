@@ -16,6 +16,7 @@ import { computed } from 'vue'
 const props = defineProps<{
   piece: Piece | null
   allegiance: PieceAllegiance
+  size: number
 }>()
 
 const side = computed(() => {
@@ -38,17 +39,7 @@ const colour = computed(() => {
 })
 </script>
 
-<style lang="scss" scoped>
-.piece {
-  position: absolute;
-  height: 50%;
-  width: 50%;
-  left: 0;
-  top: 0;
-  scale: 2;
-  transform-origin: 0 0;
-}
-</style>
+<style lang="scss" scoped></style>
 
 <template>
   <pawn-icon
@@ -62,6 +53,7 @@ const colour = computed(() => {
     class="piece"
     :variant="side"
     :colour="colour"
+    :size="size"
     v-if="piece === 'B'"
   />
   <king-icon
