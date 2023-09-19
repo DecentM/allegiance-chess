@@ -78,6 +78,7 @@
         "one-var": "off",
         "no-void": "off",
         "multiline-ternary": "off",
+        "comma-dangle": "off",
 
         "import/first": "off",
         "import/namespace": "error",

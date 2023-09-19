@@ -1,18 +1,18 @@
-import VError from "verror";
-import { Token, TokenKind } from "./tokenizer";
-import { File, Piece, Rank } from "../notation/declarations";
-import { PieceAllegiance } from "../chess/board";
-import { CastleSide, Coordinates } from "../notation/parser";
+import VError from 'verror';
+import { Token } from './tokenizer';
+import { File, Piece, Rank } from '../notation/declarations';
+import { PieceAllegiance } from '../chess/board';
+import { CastleSide, Coordinates } from '../notation/parser';
 import {
   isFile,
   isLowerPiece,
   isPiece,
   isRank,
   letterToFile,
-} from "../lib/notation";
+} from '../lib/notation';
 
 export type PieceNode = {
-  kind: "piece";
+  kind: 'piece';
   value: {
     piece: Piece;
     allegiance: PieceAllegiance;
@@ -20,17 +20,17 @@ export type PieceNode = {
 };
 
 type SkipNode = {
-  kind: "skip";
+  kind: 'skip';
   value: number;
 };
 
 type ActiveColourNode = {
-  kind: "active-colour";
-  value: "white" | "black";
+  kind: 'active-colour';
+  value: 'white' | 'black';
 };
 
 type CastlingRightsNode = {
-  kind: "castling-rights";
+  kind: 'castling-rights';
   value: {
     white: CastleSide[];
     black: CastleSide[];
@@ -38,17 +38,17 @@ type CastlingRightsNode = {
 };
 
 type EnPassantTargetsNode = {
-  kind: "en-passant-targets";
+  kind: 'en-passant-targets';
   value: Coordinates;
 };
 
 type HalfmoveClockNode = {
-  kind: "halfmove-clock";
+  kind: 'halfmove-clock';
   value: number;
 };
 
 type FullmoveNumberNode = {
-  kind: "fullmove-number";
+  kind: 'fullmove-number';
   value: number;
 };
 
@@ -62,7 +62,7 @@ type Node =
   | FullmoveNumberNode;
 
 type RootNode = {
-  kind: "ast";
+  kind: 'ast';
   children: Node[];
 };
 
@@ -76,13 +76,13 @@ enum ParseState {
 }
 
 class WipNode {
-  private pieceSide: "white" | "black";
+  private pieceSide: 'white' | 'black';
 
   canSetPieceSide() {
     return !this.pieceSide;
   }
 
-  setPieceSide(input: "white" | "black") {
+  setPieceSide(input: 'white' | 'black') {
     if (!this.canSetPieceSide()) {
       throw new VError(
         "Cannot set piece side on WipNode, because it's already set"
@@ -101,7 +101,7 @@ class WipNode {
   setPiece(piece: Piece | Lowercase<Piece> | null) {
     if (!this.canSetPiece()) {
       throw new VError(
-        "Cannot set piece on WipNode, because there is already one set"
+        'Cannot set piece on WipNode, because there is already one set'
       );
     }
 
@@ -116,7 +116,7 @@ class WipNode {
 
   addAllegianceMark() {
     if (!this.canSetAllegianceMark()) {
-      throw new VError("Allegiance mark already set");
+      throw new VError('Allegiance mark already set');
     }
 
     this.allegianceMark = true;
@@ -126,19 +126,19 @@ class WipNode {
     return !this.canSetPiece() && !this.canSetPieceSide();
   }
 
-  private activeColour: "white" | "black";
+  private activeColour: 'white' | 'black';
 
-  setActiveColour(input: "white" | "black") {
+  setActiveColour(input: 'white' | 'black') {
     this.activeColour = input;
   }
 
-  private castlingRights: Array<"Q" | "K" | "q" | "k"> = [];
+  private castlingRights: Array<'Q' | 'K' | 'q' | 'k'> = [];
 
   hasCastlingRights() {
     return this.castlingRights.length !== 0;
   }
 
-  addCastlingRight(input: "Q" | "K" | "q" | "k") {
+  addCastlingRight(input: 'Q' | 'K' | 'q' | 'k') {
     this.castlingRights.push(input);
   }
 
@@ -151,7 +151,7 @@ class WipNode {
   setEnPassantFile(file: File) {
     if (!this.canSetEnPassantFile()) {
       throw new VError(
-        "Cannot set en passant file on WipNode, because there is already one set"
+        'Cannot set en passant file on WipNode, because there is already one set'
       );
     }
 
@@ -167,7 +167,7 @@ class WipNode {
   setEnPassantRank(rank: Rank) {
     if (!this.canSetEnPassantRank()) {
       throw new VError(
-        "Cannot set en passant rank on WipNode, because there is already one set"
+        'Cannot set en passant rank on WipNode, because there is already one set'
       );
     }
 
@@ -177,7 +177,7 @@ class WipNode {
   private halfmoveClock: number;
 
   canSetHalfmoveClock() {
-    return typeof this.halfmoveClock !== "number";
+    return typeof this.halfmoveClock !== 'number';
   }
 
   setHalfmoveClock(input: number) {
@@ -187,7 +187,7 @@ class WipNode {
   private fullmoveNumber: number;
 
   canSetFullmoveNumber() {
-    return typeof this.fullmoveNumber !== "number";
+    return typeof this.fullmoveNumber !== 'number';
   }
 
   setFullmoveNumber(input: number) {
@@ -203,9 +203,9 @@ class WipNode {
      * PieceNode
      */
     if (this.piece || this.piece === null) {
-      if (this.pieceSide === "white") {
+      if (this.pieceSide === 'white') {
         return {
-          kind: "piece",
+          kind: 'piece',
           value: {
             allegiance: this.allegianceMark
               ? PieceAllegiance.LightGrey
@@ -216,7 +216,7 @@ class WipNode {
       }
 
       return {
-        kind: "piece",
+        kind: 'piece',
         value: {
           allegiance: this.allegianceMark
             ? PieceAllegiance.DarkGrey
@@ -231,7 +231,7 @@ class WipNode {
      */
     if (this.activeColour) {
       return {
-        kind: "active-colour",
+        kind: 'active-colour',
         value: this.activeColour,
       };
     }
@@ -243,13 +243,13 @@ class WipNode {
       const black: CastleSide[] = [];
       const white: CastleSide[] = [];
 
-      if (this.castlingRights.includes("K")) white.push("king");
-      if (this.castlingRights.includes("Q")) white.push("queen");
-      if (this.castlingRights.includes("k")) black.push("king");
-      if (this.castlingRights.includes("q")) black.push("queen");
+      if (this.castlingRights.includes('K')) white.push('king');
+      if (this.castlingRights.includes('Q')) white.push('queen');
+      if (this.castlingRights.includes('k')) black.push('king');
+      if (this.castlingRights.includes('q')) black.push('queen');
 
       return {
-        kind: "castling-rights",
+        kind: 'castling-rights',
         value: {
           black,
           white,
@@ -262,7 +262,7 @@ class WipNode {
      */
     if (this.enPassantFile && this.enPassantRank) {
       return {
-        kind: "en-passant-targets",
+        kind: 'en-passant-targets',
         value: {
           file: this.enPassantFile,
           rank: this.enPassantRank,
@@ -273,9 +273,9 @@ class WipNode {
     /**
      * Halfmove clock
      */
-    if (typeof this.halfmoveClock === "number") {
+    if (typeof this.halfmoveClock === 'number') {
       return {
-        kind: "halfmove-clock",
+        kind: 'halfmove-clock',
         value: this.halfmoveClock,
       };
     }
@@ -283,9 +283,9 @@ class WipNode {
     /**
      * Fullmove number
      */
-    if (typeof this.fullmoveNumber === "number") {
+    if (typeof this.fullmoveNumber === 'number') {
       return {
-        kind: "fullmove-number",
+        kind: 'fullmove-number',
         value: this.fullmoveNumber,
       };
     }
@@ -298,7 +298,7 @@ class WipNode {
 
 export const parse = (input: Token[]): RootNode => {
   const result: RootNode = {
-    kind: "ast",
+    kind: 'ast',
     children: [],
   };
 
@@ -329,17 +329,17 @@ export const parse = (input: Token[]): RootNode => {
 
     if (state === ParseState.Ranks) {
       if (
-        (current.kind === "char" ||
-          current.kind === "number" ||
-          current.kind === "separator" ||
-          current.kind === "space") &&
+        (current.kind === 'char' ||
+          current.kind === 'number' ||
+          current.kind === 'separator' ||
+          current.kind === 'space') &&
         wipNode.pieceDataReady()
       ) {
         completeWipNode();
       }
 
-      if (current.kind === "char" && isLowerPiece(current.value)) {
-        wipNode.setPieceSide("black");
+      if (current.kind === 'char' && isLowerPiece(current.value)) {
+        wipNode.setPieceSide('black');
         wipNode.setPiece(current.value);
         if (!next) completeWipNode();
 
@@ -347,8 +347,8 @@ export const parse = (input: Token[]): RootNode => {
         continue;
       }
 
-      if (current.kind === "char" && isPiece(current.value)) {
-        wipNode.setPieceSide("white");
+      if (current.kind === 'char' && isPiece(current.value)) {
+        wipNode.setPieceSide('white');
         wipNode.setPiece(current.value);
         if (!next) completeWipNode();
 
@@ -356,8 +356,8 @@ export const parse = (input: Token[]): RootNode => {
         continue;
       }
 
-      if (current.kind === "char" && current.value === "p") {
-        wipNode.setPieceSide("black");
+      if (current.kind === 'char' && current.value === 'p') {
+        wipNode.setPieceSide('black');
         wipNode.setPiece(null);
         if (!next) completeWipNode();
 
@@ -365,8 +365,8 @@ export const parse = (input: Token[]): RootNode => {
         continue;
       }
 
-      if (current.kind === "char" && current.value === "P") {
-        wipNode.setPieceSide("white");
+      if (current.kind === 'char' && current.value === 'P') {
+        wipNode.setPieceSide('white');
         wipNode.setPiece(null);
         if (!next) completeWipNode();
 
@@ -374,31 +374,31 @@ export const parse = (input: Token[]): RootNode => {
         continue;
       }
 
-      if (current.kind === "allegiance") {
+      if (current.kind === 'allegiance') {
         wipNode.addAllegianceMark();
         cursor++;
         continue;
       }
 
       if (
-        current.kind === "number" &&
+        current.kind === 'number' &&
         current.value > 0 &&
         current.value <= 8
       ) {
-        node({ kind: "skip", value: current.value });
+        node({ kind: 'skip', value: current.value });
         continue;
       }
     }
 
     switch (state) {
       case ParseState.Ranks: {
-        if (current.kind === "separator") {
+        if (current.kind === 'separator') {
           rank--;
           cursor++;
           continue;
         }
 
-        if (current.kind === "space") {
+        if (current.kind === 'space') {
           state = ParseState.ActiveColour;
           cursor++;
           continue;
@@ -411,19 +411,19 @@ export const parse = (input: Token[]): RootNode => {
        * Active colour
        */
       case ParseState.ActiveColour: {
-        if (current.kind === "char" && current.value === "w") {
-          wipNode.setActiveColour("white");
+        if (current.kind === 'char' && current.value === 'w') {
+          wipNode.setActiveColour('white');
           cursor++;
           continue;
         }
 
-        if (current.kind === "char" && current.value === "b") {
-          wipNode.setActiveColour("black");
+        if (current.kind === 'char' && current.value === 'b') {
+          wipNode.setActiveColour('black');
           cursor++;
           continue;
         }
 
-        if (current.kind === "space") {
+        if (current.kind === 'space') {
           completeWipNode();
           setState(ParseState.CastlingRights);
           continue;
@@ -437,11 +437,11 @@ export const parse = (input: Token[]): RootNode => {
        */
       case ParseState.CastlingRights: {
         if (
-          current.kind === "char" &&
-          (current.value === "q" ||
-            current.value === "Q" ||
-            current.value === "k" ||
-            current.value === "K")
+          current.kind === 'char' &&
+          (current.value === 'q' ||
+            current.value === 'Q' ||
+            current.value === 'k' ||
+            current.value === 'K')
         ) {
           wipNode.addCastlingRight(current.value);
           cursor++;
@@ -449,12 +449,12 @@ export const parse = (input: Token[]): RootNode => {
         }
 
         // Means noone can castle
-        if (current.kind === "hyphen") {
+        if (current.kind === 'hyphen') {
           cursor++;
           continue;
         }
 
-        if (current.kind === "space") {
+        if (current.kind === 'space') {
           if (wipNode.hasCastlingRights()) completeWipNode();
 
           setState(ParseState.EnPassantTargets);
@@ -469,24 +469,24 @@ export const parse = (input: Token[]): RootNode => {
        */
       case ParseState.EnPassantTargets: {
         // Means there are no en passant targets
-        if (current.kind === "hyphen") {
+        if (current.kind === 'hyphen') {
           cursor++;
           continue;
         }
 
-        if (current.kind === "char" && isFile(current.value)) {
+        if (current.kind === 'char' && isFile(current.value)) {
           wipNode.setEnPassantFile(letterToFile(current.value));
           cursor++;
           continue;
         }
 
-        if (current.kind === "number" && isRank(current.value)) {
+        if (current.kind === 'number' && isRank(current.value)) {
           wipNode.setEnPassantRank(current.value);
           cursor++;
           continue;
         }
 
-        if (current.kind === "space") {
+        if (current.kind === 'space') {
           if (wipNode.isEnPassantType()) completeWipNode();
 
           setState(ParseState.HalfmoveClock);
@@ -500,13 +500,13 @@ export const parse = (input: Token[]): RootNode => {
        * Halfmove clock
        */
       case ParseState.HalfmoveClock: {
-        if (current.kind === "number") {
+        if (current.kind === 'number') {
           wipNode.setHalfmoveClock(current.value);
           cursor++;
           continue;
         }
 
-        if (current.kind === "space") {
+        if (current.kind === 'space') {
           completeWipNode();
           setState(ParseState.FullmoveNumber);
           continue;
@@ -519,7 +519,7 @@ export const parse = (input: Token[]): RootNode => {
        * Fullmove number
        */
       case ParseState.FullmoveNumber: {
-        if (current.kind === "number") {
+        if (current.kind === 'number') {
           wipNode.setFullmoveNumber(current.value);
           cursor++;
           completeWipNode();

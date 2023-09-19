@@ -8,7 +8,9 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
+const path = require('node:path');
 const { configure } = require('quasar/wrappers');
+const { nodePolyfills } = require('vite-plugin-node-polyfills');
 
 module.exports = configure(function (/* ctx */) {
   return {
@@ -53,6 +55,14 @@ module.exports = configure(function (/* ctx */) {
         node: 'node16',
       },
 
+      alias: {
+        // Add your own alias like this
+        '@decentm/allegiance-chess-core': path.resolve(
+          __dirname,
+          '../../packages/core/src/index.ts'
+        ),
+      },
+
       vueRouterMode: 'hash', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,
@@ -72,9 +82,7 @@ module.exports = configure(function (/* ctx */) {
       // extendViteConf (viteConf) {},
       // viteVuePluginOptions: {},
 
-      // vitePlugins: [
-      //   [ 'package-name', { ..options.. } ]
-      // ]
+      vitePlugins: [[nodePolyfills()]],
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
@@ -85,7 +93,9 @@ module.exports = configure(function (/* ctx */) {
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
     framework: {
-      config: {},
+      config: {
+        dark: true,
+      },
 
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack

@@ -1,27 +1,27 @@
 type SeparatorToken = {
-  kind: "separator";
+  kind: 'separator';
 };
 
 type AllegianceToken = {
-  kind: "allegiance";
+  kind: 'allegiance';
 };
 
 type CharToken = {
-  kind: "char";
+  kind: 'char';
   value: string;
 };
 
 type NumberToken = {
-  kind: "number";
+  kind: 'number';
   value: number;
 };
 
 type SpaceToken = {
-  kind: "space";
+  kind: 'space';
 };
 
 type HyphenToken = {
-  kind: "hyphen";
+  kind: 'hyphen';
 };
 
 export type Token =
@@ -32,7 +32,7 @@ export type Token =
   | SpaceToken
   | HyphenToken;
 
-export type TokenKind = Token["kind"];
+export type TokenKind = Token['kind'];
 
 export const tokenize = (input: string): Token[] => {
   let cursor = 0;
@@ -44,9 +44,10 @@ export const tokenize = (input: string): Token[] => {
   };
 
   const consumeUntil = (predicate: (char: string) => boolean) => {
-    let result = "";
+    let result = '';
     let subcursor = cursor;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const current = input[subcursor];
 
@@ -69,13 +70,13 @@ export const tokenize = (input: string): Token[] => {
   while (cursor < input.length) {
     const current = input[cursor];
 
-    if (current === "+") {
-      token(1, { kind: "allegiance" });
+    if (current === '+') {
+      token(1, { kind: 'allegiance' });
       continue;
     }
 
-    if (current === "/") {
-      token(1, { kind: "separator" });
+    if (current === '/') {
+      token(1, { kind: 'separator' });
       continue;
     }
 
@@ -83,24 +84,24 @@ export const tokenize = (input: string): Token[] => {
       const fullNumber = consumeUntil((char) => !/[\d]/gu.test(char));
 
       token(fullNumber.length, {
-        kind: "number",
+        kind: 'number',
         value: Number.parseInt(fullNumber, 10),
       });
       continue;
     }
 
-    if (current === " ") {
-      token(1, { kind: "space" });
+    if (current === ' ') {
+      token(1, { kind: 'space' });
       continue;
     }
 
-    if (current === "-" || current === "–") {
-      token(1, { kind: "hyphen" });
+    if (current === '-' || current === '–') {
+      token(1, { kind: 'hyphen' });
       continue;
     }
 
     token(1, {
-      kind: "char",
+      kind: 'char',
       value: current,
     });
   }
