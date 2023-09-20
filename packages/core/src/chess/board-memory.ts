@@ -197,7 +197,7 @@ export class BoardMemory {
 
         const side = allegianceSide(square.allegiance)
 
-        const hasPlus =
+        const hasAllegiance =
           square.allegiance === PieceAllegiance.DarkGrey ||
           square.allegiance === PieceAllegiance.LightGrey
 
@@ -209,8 +209,8 @@ export class BoardMemory {
 
         rankString += piece || pawn
 
-        if (hasPlus) {
-          rankString += '+'
+        if (hasAllegiance) {
+          rankString += '>'
         }
       })
 

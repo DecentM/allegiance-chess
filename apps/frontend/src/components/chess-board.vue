@@ -146,11 +146,21 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
 
 .move-placeholder {
   &::before {
+    filter: blur(1px);
+
     display: block;
     position: absolute;
     content: '';
     border-radius: 50%;
     z-index: 2;
+
+    background-color: rgba(0, 0, 0, 0);
+    border-color: rgba(0, 0, 0, 0);
+
+    transition-property: background-color, border-color;
+    transition-duration: 0.1s;
+    transition-timing-function: linear;
+    transition-delay: inherit;
   }
 
   &.empty {
@@ -159,7 +169,6 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
       width: 33%;
       left: 33%;
       top: 33%;
-      background-color: rgba(0, 0, 0, 0.2);
     }
   }
 
@@ -170,9 +179,22 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
       left: 5%;
       top: 5%;
 
-      border-color: rgba(0, 0, 0, 0.2);
       border-width: 1rem;
       border-style: solid;
+    }
+  }
+
+  &.show {
+    &.empty {
+      &::before {
+        background-color: rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    &.target {
+      &::before {
+        border-color: rgba(0, 0, 0, 0.2);
+      }
     }
   }
 }
@@ -191,9 +213,9 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
       <div class="rank row" v-for="(_, rankIndex) in 8" :key="rankIndex">
         <div
           v-for="(_, fileIndex) in 8"
-          class="file col-1 text-center items-center relative-position"
+          class="file col-1 text-center items-center relative-position move-placeholder"
           :class="{
-            'move-placeholder': isHighlighted({
+            show: isHighlighted({
               file: (fileIndex + 1) as File,
               rank: (rankIndex + 1) as Rank,
             }),
@@ -210,6 +232,13 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
           :style="{
             width: props.width / 8 + 'px',
             height: props.width / 8 + 'px',
+            transitionDelay: pieceFocus
+              ? `${
+                  Math.abs(pieceFocus.file - fileIndex) *
+                  Math.abs(pieceFocus.rank - rankIndex) *
+                  10
+                }ms`
+              : '0ms',
           }"
           @click="
             (event) => handlePieceClick({
@@ -218,7 +247,9 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
             }, event)
           "
         >
-          <div class="absolute absolute-bottom-left q-ml-xs">
+          <div
+            class="absolute absolute-bottom-left q-ml-xs no-pointer-events non-selectable"
+          >
             {{ fileToLetter((fileIndex + 1) as File) }}{{ rankIndex + 1 }}
           </div>
         </div>
