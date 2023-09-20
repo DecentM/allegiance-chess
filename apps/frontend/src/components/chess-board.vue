@@ -280,7 +280,7 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
           }"
         >
           <chess-piece
-            data-testid="piece"
+            :data-testid="`piece-${fileToLetter(square.file)}${square.rank}`"
             @click="(event) => handlePieceClick(square, event)"
             :piece="square.piece"
             :allegiance="square.allegiance"
