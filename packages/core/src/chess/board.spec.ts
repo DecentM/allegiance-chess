@@ -1,20 +1,20 @@
-import test from "ava";
+import test from 'ava'
 
-import { Board } from "./board";
-import { Vector2 } from "../lib/vector2";
-import { tokenize } from "../notation/tokenizer";
-import { parse } from "../notation/parser";
+import { Board } from './board'
+import { Vector2 } from '../lib/vector2'
+import { tokenize } from '../notation/tokenizer'
+import { parse } from '../notation/parser'
 
 const createDefaultBoard = () => {
-  const b = new Board();
+  const b = new Board()
 
-  b.importAFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+  b.importAFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR')
 
-  return b;
-};
+  return b
+}
 
-test("board", (t) => {
-  const b = new Board();
+test('board', (t) => {
+  const b = new Board()
 
   b.traceCaptureSteps(
     {
@@ -22,45 +22,41 @@ test("board", (t) => {
       rank: 2,
     },
     new Vector2(0, 10)
-  );
+  )
 
-  t.pass();
-});
+  t.pass()
+})
 
-test("finds 20 moves on a starting board for white", (t) => {
-  const b = createDefaultBoard();
+test('finds 20 moves on a starting board for white', (t) => {
+  const b = createDefaultBoard()
 
-  const moves = b.getValidMoves("white");
+  const moves = b.getValidMoves()
 
-  t.is(moves.length, 20);
+  t.is(moves.length, 20)
+})
 
-  t.throws(() => b.getValidMoves("black"));
-});
-
-test("finds 20 moves for black after a move", (t) => {
-  const b = createDefaultBoard();
+test('finds 20 moves for black after a move', (t) => {
+  const b = createDefaultBoard()
 
   b.executeNode({
-    kind: "move",
+    kind: 'move',
     to: {
       rank: 4,
       file: 2,
     },
-  });
+  })
 
-  const moves = b.getValidMoves("black");
+  const moves = b.getValidMoves()
 
-  t.is(moves.length, 20);
+  t.is(moves.length, 20)
+})
 
-  t.throws(() => b.getValidMoves("white"));
-});
-
-test("executes single move", (t) => {
-  const b = createDefaultBoard();
+test('executes single move', (t) => {
+  const b = createDefaultBoard()
 
   b.executeNodes([
     {
-      kind: "move",
+      kind: 'move',
       type: null,
       from: {
         file: 1,
@@ -72,15 +68,15 @@ test("executes single move", (t) => {
       },
       piece: null,
     },
-  ]);
+  ])
 
-  t.log(b.dump());
+  t.log(b.dump())
 
-  t.pass();
-});
+  t.pass()
+})
 
-test("traces steps forward", (t) => {
-  const b = createDefaultBoard();
+test('traces steps forward', (t) => {
+  const b = createDefaultBoard()
 
   const steps = b.traceCaptureSteps(
     {
@@ -88,7 +84,7 @@ test("traces steps forward", (t) => {
       rank: 2,
     },
     new Vector2(0, 10)
-  );
+  )
 
   t.deepEqual(steps, [
     { file: 1, rank: 3 },
@@ -96,27 +92,27 @@ test("traces steps forward", (t) => {
     { file: 1, rank: 5 },
     { file: 1, rank: 6 },
     { file: 1, rank: 7 },
-  ]);
-});
+  ])
+})
 
-test("clones empty", (t) => {
-  const b = new Board();
-  const b1 = b.clone();
+test('clones empty', (t) => {
+  const b = new Board()
+  const b1 = b.clone()
 
-  t.is(b.dump(), b1.dump());
-});
+  t.is(b.dump(), b1.dump())
+})
 
-test("clones with state", (t) => {
-  const b = createDefaultBoard();
-  const b1 = b.clone();
+test('clones with state', (t) => {
+  const b = createDefaultBoard()
+  const b1 = b.clone()
 
-  t.is(b.dump(), b1.dump());
-});
+  t.is(b.dump(), b1.dump())
+})
 
-test("traces capture for a bishop", (t) => {
-  const b = new Board();
+test('traces capture for a bishop', (t) => {
+  const b = new Board()
 
-  b.importAFEN("8/8/8/3b4/8/8/8/8");
+  b.importAFEN('8/8/8/3b4/8/8/8/8')
 
   const captureSteps = b.traceCaptureSteps(
     {
@@ -124,17 +120,17 @@ test("traces capture for a bishop", (t) => {
       file: 4,
     },
     new Vector2(-1, 1)
-  );
+  )
 
   t.deepEqual(captureSteps, [
     { file: 3, rank: 6 },
     { file: 2, rank: 7 },
     { file: 1, rank: 8 },
-  ]);
-});
+  ])
+})
 
-test("executes moves", (t) => {
-  const b = createDefaultBoard();
+test('executes moves', (t) => {
+  const b = createDefaultBoard()
   const moveTokens = tokenize(
     `
       1.e4 e5
@@ -151,27 +147,27 @@ test("executes moves", (t) => {
       12.Ng6+ Kxf7
       13.Nxh8# 1-0
     `
-  );
+  )
 
-  const moveNodes = parse(moveTokens);
+  const moveNodes = parse(moveTokens)
 
-  b.executeNodes(moveNodes.children);
+  b.executeNodes(moveNodes.children)
 
-  t.log(b.dump());
-  t.snapshot(b.dump());
-});
+  t.log(b.dump())
+  t.snapshot(b.dump())
+})
 
-test("infers single node", (t) => {
-  const b = createDefaultBoard();
+test('infers single node', (t) => {
+  const b = createDefaultBoard()
 
   const node = b.inferNode({
-    kind: "move",
+    kind: 'move',
     type: null,
     to: {
       file: 1,
       rank: 4,
     },
-  });
+  })
 
   t.deepEqual(node, {
     from: {
@@ -180,39 +176,39 @@ test("infers single node", (t) => {
       piece: null,
       rank: 2,
     },
-    kind: "move",
+    kind: 'move',
     piece: null,
     to: {
       file: 1,
       rank: 4,
     },
     type: null,
-  });
-});
+  })
+})
 
-test("infers two nodes", (t) => {
-  const b = createDefaultBoard();
+test('infers two nodes', (t) => {
+  const b = createDefaultBoard()
 
   const node1 = b.inferNode({
-    kind: "move",
+    kind: 'move',
     to: {
       file: 5,
       rank: 4,
     },
-  });
+  })
 
-  b.executeNode(node1);
+  b.executeNode(node1)
 
   const node2 = b.inferNode({
-    kind: "move",
+    kind: 'move',
     to: {
       file: 5,
       rank: 5,
     },
-  });
+  })
 
-  b.executeNode(node2);
+  b.executeNode(node2)
 
-  t.log(b.dump());
-  t.snapshot(b.dump());
-});
+  t.log(b.dump())
+  t.snapshot(b.dump())
+})

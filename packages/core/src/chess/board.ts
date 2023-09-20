@@ -55,8 +55,16 @@ export class Board {
     this.memory.importAFEN(afen)
   }
 
+  public toAFEN() {
+    return this.memory.toAFEN()
+  }
+
   public getSquares() {
     return this.memory.getSquares()
+  }
+
+  public get enPassantTarget() {
+    return this.memory.enPassantTarget
   }
 
   constructor() {
@@ -106,18 +114,17 @@ export class Board {
   }
 
   private executeEnPassantMoveNode(input: ExecuteMoveTypeInput<EnPassantNode>) {
-    const targetFile = input.node.to.file
-
     this.memory.setSquare(
       {
         rank: (input.fromSide === 'white'
-          ? input.node.from.rank + 1
-          : input.node.from.rank - 1) as Rank,
-        file: targetFile,
+          ? input.node.to.rank - 1
+          : input.node.to.rank + 1) as Rank,
+        file: input.node.to.file,
       },
-      input.from
+      null
     )
-    this.memory.setSquare(input.node.to, null)
+
+    this.memory.setSquare(input.node.to, input.from)
     this.memory.setSquare(input.node.from, null)
   }
 
@@ -147,8 +154,6 @@ export class Board {
   }
 
   private executeMoveNode(node: AnyMoveNode) {
-    // TODO: Validate moves before executing them
-
     if (!node.from.file) {
       throw new VError(
         `Cannot execute node without "from.file": ${JSON.stringify(
@@ -167,6 +172,8 @@ export class Board {
         `There is no piece on file ${node.from.file} rank ${node.from.rank}`
       )
     }
+
+    this.memory.enPassantTarget = null
 
     const fromSide = allegianceSide(from.allegiance)
     const toSide = to ? allegianceSide(to.allegiance) : null
@@ -244,16 +251,20 @@ export class Board {
       this.memory.activeColour === 'white' ? 'black' : 'white'
   }
 
-  public executeNode(node: Partial<Node>) {
-    const fullNode = this.inferNode(node)
-
-    switch (fullNode.kind) {
+  public executeInferredNode(node: Node) {
+    switch (node.kind) {
       case 'move': {
-        this.executeMoveNode(fullNode)
+        this.executeMoveNode(node)
 
         break
       }
     }
+  }
+
+  public executeNode(node: Partial<Node>) {
+    const fullNode = this.inferNode(node)
+
+    this.executeInferredNode(fullNode)
   }
 
   public executeNodes(nodes: Node[]) {
@@ -481,20 +492,32 @@ export class Board {
           new Vector2(side === 'white' ? 1 : -1, side === 'white' ? 1 : -1)
         )
 
-        if (this.memory.enPassantTarget) {
-          if (
-            this.memory.activeColour !== allegianceSide(square.allegiance) &&
-            square.rank === this.memory.enPassantTarget.rank &&
-            Math.abs(square.file - this.memory.enPassantTarget.file) === 1
-          ) {
-            result.push({
-              kind: 'move',
-              type: 'en-passant',
-              from: square,
-              piece: this.memory.getSquare(square).piece,
-              to: this.memory.enPassantTarget,
-            })
-          }
+        if (
+          this.memory.enPassantTarget &&
+          diagLeft &&
+          coordinatesEqual(this.memory.enPassantTarget, diagLeft)
+        ) {
+          result.push({
+            kind: 'move',
+            type: 'en-passant',
+            from: square,
+            to: this.memory.enPassantTarget,
+            piece: this.memory.getSquare(square).piece,
+          })
+        }
+
+        if (
+          this.memory.enPassantTarget &&
+          diagRight &&
+          coordinatesEqual(this.memory.enPassantTarget, diagRight)
+        ) {
+          result.push({
+            kind: 'move',
+            type: 'en-passant',
+            from: square,
+            to: this.memory.enPassantTarget,
+            piece: this.memory.getSquare(square).piece,
+          })
         }
 
         if (inFront && !this.memory.getSquare(inFront)) {
@@ -507,24 +530,38 @@ export class Board {
           })
         }
 
-        if (diagLeft && this.memory.getSquare(diagLeft)) {
-          result.push({
-            kind: 'move',
-            type: 'capture',
-            from: square,
-            to: diagLeft,
-            piece: this.memory.getSquare(square).piece,
-          })
+        if (diagLeft) {
+          const diagLeftSquare = this.memory.getSquare(diagLeft)
+
+          if (
+            diagLeftSquare &&
+            allegianceSide(diagLeftSquare.allegiance) !== side
+          ) {
+            result.push({
+              kind: 'move',
+              type: 'capture',
+              from: square,
+              to: diagLeft,
+              piece: this.memory.getSquare(square).piece,
+            })
+          }
         }
 
-        if (diagRight && this.memory.getSquare(diagRight)) {
-          result.push({
-            kind: 'move',
-            type: 'capture',
-            from: square,
-            to: diagRight,
-            piece: this.memory.getSquare(square).piece,
-          })
+        if (diagRight) {
+          const diagRightSquare = this.memory.getSquare(diagRight)
+
+          if (
+            diagRightSquare &&
+            allegianceSide(diagRightSquare.allegiance) !== side
+          ) {
+            result.push({
+              kind: 'move',
+              type: 'capture',
+              from: square,
+              to: diagRight,
+              piece: this.memory.getSquare(square).piece,
+            })
+          }
         }
 
         // TODO: Scan for promotions and self-checks after all steps are
@@ -808,7 +845,7 @@ export class Board {
       // Sets up a clone of the board with this move applied so wee can scan for
       // checks
       const virtualBoard = this.clone()
-      virtualBoard.executeNode(moveNode)
+      virtualBoard.executeInferredNode(moveNode)
 
       const checkMoveNodes = virtualBoard.getCheckMoves()
 

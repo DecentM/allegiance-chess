@@ -15,7 +15,7 @@ export type BoardSquare = {
   allegiance: PieceAllegiance
 }
 
-// memory[file][rank] = BoardSquare
+// memory[rank][file] = BoardSquare
 type Memory = (BoardSquare | null)[][]
 
 type StandaloneBoardSquare = BoardSquare & Coordinates
@@ -100,11 +100,11 @@ export class BoardMemory {
     this.halfmoveClock = 0
     this.fullmoveNumber = 0
 
-    for (let file = 0; file < 8; file++) {
-      this.memory[file] = []
+    for (let rank = 0; rank < 8; rank++) {
+      this.memory[rank] = []
 
-      for (let rank = 0; rank < 8; rank++) {
-        this.memory[file][rank] = null
+      for (let file = 0; file < 8; file++) {
+        this.memory[rank][file] = null
       }
     }
   }
@@ -147,8 +147,8 @@ export class BoardMemory {
   public getSquares(): StandaloneBoardSquare[] {
     const result: StandaloneBoardSquare[] = []
 
-    this.memory.forEach((ranks, file) => {
-      ranks.forEach((square, rank) => {
+    this.memory.forEach((files, rank) => {
+      files.forEach((square, file) => {
         if (!square) {
           result.push(null)
           return
@@ -167,11 +167,91 @@ export class BoardMemory {
   }
 
   public getSquare(coords: Coordinates) {
-    return this.memory[coords.file - 1][coords.rank - 1]
+    return this.memory[coords.rank - 1][coords.file - 1]
   }
 
   public setSquare(coords: Coordinates, square: BoardSquare | null) {
-    this.memory[coords.file - 1][coords.rank - 1] = square
+    this.memory[coords.rank - 1][coords.file - 1] = square
+  }
+
+  public toAFEN(): string {
+    const rankStrings: string[] = []
+    const blackCastling = this.castlingRights('black')
+    const whiteCastling = this.castlingRights('white')
+    let skip = 0
+
+    for (let i = this.memory.length - 1; i >= 0; i--) {
+      const file = this.memory[i]
+      let rankString = ''
+
+      file.forEach((square) => {
+        if (!square) {
+          skip++
+          return
+        }
+
+        if (skip) {
+          rankString += `${skip}`
+          skip = 0
+        }
+
+        const side = allegianceSide(square.allegiance)
+
+        const hasPlus =
+          square.allegiance === PieceAllegiance.DarkGrey ||
+          square.allegiance === PieceAllegiance.LightGrey
+
+        const pawn = side === 'white' ? 'P' : 'p'
+        const piece =
+          side === 'white'
+            ? square.piece?.toUpperCase()
+            : square.piece?.toLowerCase()
+
+        rankString += piece || pawn
+
+        if (hasPlus) {
+          rankString += '+'
+        }
+      })
+
+      if (skip) {
+        rankString += `${skip}`
+        skip = 0
+      }
+
+      rankStrings.push(rankString)
+    }
+
+    let castling = ''
+
+    if (blackCastling.includes('king')) {
+      castling += 'k'
+    }
+
+    if (blackCastling.includes('queen')) {
+      castling += 'q'
+    }
+
+    if (whiteCastling.includes('king')) {
+      castling += 'K'
+    }
+
+    if (whiteCastling.includes('queen')) {
+      castling += 'Q'
+    }
+
+    const enPassantTarget = this.enPassantTarget
+      ? `${fileToLetter(this.enPassantTarget.file)}${this.enPassantTarget.rank}`
+      : '-'
+
+    return [
+      rankStrings.join('/'),
+      this.activeColour === 'white' ? 'w' : 'b',
+      castling || '-',
+      enPassantTarget,
+      this.halfmoveClock,
+      this.fullmoveNumber,
+    ].join(' ')
   }
 
   public importAFEN(afen: string) {
