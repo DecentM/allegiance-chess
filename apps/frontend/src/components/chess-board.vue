@@ -118,13 +118,13 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
   &:nth-child(odd) {
     > .file {
       &:nth-child(odd) {
-        background-color: $white;
-        color: $black;
+        background-color: $chess-white;
+        color: $chess-black;
       }
 
       &:nth-child(even) {
-        background-color: $black;
-        color: $white;
+        background-color: $chess-black;
+        color: $chess-white;
       }
     }
   }
@@ -132,13 +132,13 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
   &:nth-child(even) {
     > .file {
       &:nth-child(even) {
-        background-color: $white;
-        color: $black;
+        background-color: $chess-white;
+        color: $chess-black;
       }
 
       &:nth-child(odd) {
-        background-color: $black;
-        color: $white;
+        background-color: $chess-black;
+        color: $chess-white;
       }
     }
   }
@@ -149,13 +149,31 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
     display: block;
     position: absolute;
     content: '';
-    height: 33%;
-    width: 33%;
-    backdrop-filter: invert(0.5);
-    left: 33%;
-    top: 33%;
     border-radius: 50%;
     z-index: 2;
+  }
+
+  &.empty {
+    &::before {
+      height: 33%;
+      width: 33%;
+      left: 33%;
+      top: 33%;
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  &.target {
+    &::before {
+      height: 90%;
+      width: 90%;
+      left: 5%;
+      top: 5%;
+
+      border-color: rgba(0, 0, 0, 0.2);
+      border-width: 1rem;
+      border-style: solid;
+    }
   }
 }
 </style>
@@ -166,7 +184,10 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
     class="relative"
     :style="{ width: props.width + 'px', height: props.width + 'px' }"
   >
-    <div class="absolute" data-testid="background">
+    <div
+      class="absolute overflow-hidden rounded-borders"
+      data-testid="background"
+    >
       <div class="rank row" v-for="(_, rankIndex) in 8" :key="rankIndex">
         <div
           v-for="(_, fileIndex) in 8"
@@ -176,6 +197,14 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
               file: (fileIndex + 1) as File,
               rank: (rankIndex + 1) as Rank,
             }),
+            empty: !squares.find((coord) => coordinatesEqual(coord, {
+              file: (fileIndex + 1) as File,
+              rank: (rankIndex + 1) as Rank,
+            })),
+            target: squares.find((coord) => coordinatesEqual(coord, {
+              file: (fileIndex + 1) as File,
+              rank: (rankIndex + 1) as Rank,
+            }))
           }"
           :key="fileIndex"
           :style="{
