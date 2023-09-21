@@ -1,9 +1,10 @@
 import test from 'ava'
 
-import { Board } from './board'
 import { Vector2 } from '../lib/vector2'
 import { tokenize } from '../notation/tokenizer'
 import { parse } from '../notation/parser'
+
+import { Board, PROMOTION_PIECES, PieceAllegiance } from './board'
 
 const createDefaultBoard = () => {
   const b = new Board()
@@ -211,4 +212,32 @@ test('infers two nodes', (t) => {
 
   t.log(b.dump())
   t.snapshot(b.dump())
+})
+
+test('finds promotion move', (t) => {
+  const b = new Board()
+
+  b.importAFEN('8/3P4/8/8/8/8/8/8')
+
+  const moves = b.getValidMoves()
+
+  t.deepEqual(
+    moves,
+    PROMOTION_PIECES.map((piece) => ({
+      kind: 'move',
+      type: 'promotion',
+      piece: null,
+      from: {
+        allegiance: PieceAllegiance.White,
+        piece: null,
+        file: 4,
+        rank: 7,
+      },
+      to: {
+        file: 4,
+        rank: 8,
+      },
+      promotionTo: piece,
+    }))
+  )
 })

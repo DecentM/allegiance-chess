@@ -1,6 +1,6 @@
 import VError from 'verror'
 
-import { Rank } from '../notation/declarations'
+import { Piece, Rank } from '../notation/declarations'
 import {
   AllegianceNode,
   AnyMoveNode,
@@ -35,6 +35,8 @@ type ExecuteMoveTypeInput<NodeType extends MoveNode<string | void>> = {
   fromSide: 'white' | 'black'
   toSide: 'white' | 'black'
 }
+
+export const PROMOTION_PIECES: Piece[] = ['B', 'N', 'Q', 'R']
 
 export class Board {
   private memory: BoardMemory
@@ -492,10 +494,25 @@ export class Board {
           new Vector2(side === 'white' ? 1 : -1, side === 'white' ? 1 : -1)
         )
 
+        const isPromotion = (coords: Coordinates) =>
+          coords.rank === (side === 'white' ? 8 : 1)
+
+        const generatePossiblePromotionNodes = (to: Coordinates): Node[] => {
+          return PROMOTION_PIECES.map((piece) => ({
+            kind: 'move',
+            type: 'promotion',
+            from: square,
+            to,
+            piece: this.memory.getSquare(square).piece,
+            promotionTo: piece,
+          }))
+        }
+
         if (
           this.memory.enPassantTarget &&
           diagLeft &&
-          coordinatesEqual(this.memory.enPassantTarget, diagLeft)
+          coordinatesEqual(this.memory.enPassantTarget, diagLeft) &&
+          !isPromotion(diagLeft)
         ) {
           result.push({
             kind: 'move',
@@ -509,7 +526,8 @@ export class Board {
         if (
           this.memory.enPassantTarget &&
           diagRight &&
-          coordinatesEqual(this.memory.enPassantTarget, diagRight)
+          coordinatesEqual(this.memory.enPassantTarget, diagRight) &&
+          !isPromotion(diagRight)
         ) {
           result.push({
             kind: 'move',
@@ -520,7 +538,11 @@ export class Board {
           })
         }
 
-        if (inFront && !this.memory.getSquare(inFront)) {
+        if (
+          inFront &&
+          !this.memory.getSquare(inFront) &&
+          !isPromotion(inFront)
+        ) {
           result.push({
             kind: 'move',
             type: null,
@@ -537,13 +559,17 @@ export class Board {
             diagLeftSquare &&
             allegianceSide(diagLeftSquare.allegiance) !== side
           ) {
-            result.push({
-              kind: 'move',
-              type: 'capture',
-              from: square,
-              to: diagLeft,
-              piece: this.memory.getSquare(square).piece,
-            })
+            if (isPromotion(diagLeft)) {
+              result.push(...generatePossiblePromotionNodes(diagLeft))
+            } else {
+              result.push({
+                kind: 'move',
+                type: 'capture',
+                from: square,
+                to: diagLeft,
+                piece: this.memory.getSquare(square).piece,
+              })
+            }
           }
         }
 
@@ -554,18 +580,19 @@ export class Board {
             diagRightSquare &&
             allegianceSide(diagRightSquare.allegiance) !== side
           ) {
-            result.push({
-              kind: 'move',
-              type: 'capture',
-              from: square,
-              to: diagRight,
-              piece: this.memory.getSquare(square).piece,
-            })
+            if (isPromotion(diagRight)) {
+              result.push(...generatePossiblePromotionNodes(diagLeft))
+            } else {
+              result.push({
+                kind: 'move',
+                type: 'capture',
+                from: square,
+                to: diagRight,
+                piece: this.memory.getSquare(square).piece,
+              })
+            }
           }
         }
-
-        // TODO: Scan for promotions and self-checks after all steps are
-        // TODO  calculated
 
         // Starting jump
         if (
@@ -589,6 +616,11 @@ export class Board {
               piece: this.memory.getSquare(square).piece,
             })
           }
+        }
+
+        // Promotions
+        if (isPromotion(inFront)) {
+          result.push(...generatePossiblePromotionNodes(inFront))
         }
       }
 

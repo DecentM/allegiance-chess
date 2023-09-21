@@ -2,7 +2,9 @@
 import { ref } from 'vue'
 import ChessBoard from '../components/chess-board.vue'
 
-const afen = ref('rnbqkb>n>r>/pppppppp>/8/8/8/8/PPPPPPPP>/RNBQKB>N>R> ')
+const afen = ref(
+  'rn1qkb>n>r>/pbP2ppp>/8/4p3/3p4/8/P2PPPPP>/RNBQKB>N>R> w - - 9 17'
+)
 </script>
 
 <template>
