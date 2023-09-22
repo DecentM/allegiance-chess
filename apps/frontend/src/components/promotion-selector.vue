@@ -28,7 +28,7 @@ const handleDismiss = () => {
 </style>
 
 <template>
-  <q-menu :model-value="modelValue" @update:model-value="handleDismiss">
+  <q-menu cover :model-value="modelValue" @update:model-value="handleDismiss">
     <q-list>
       <q-item
         clickable

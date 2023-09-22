@@ -15,6 +15,7 @@ import {
 
 import ChessPiece from './chess-piece.vue'
 import PromotionSelector from './promotion-selector.vue'
+import CaptureSelector from './capture-selector.vue'
 
 const props = defineProps<{
   modelValue: string
@@ -34,6 +35,7 @@ const squares = computed(() => {
 })
 
 const pieceFocus = ref<Coordinates | null>(null)
+const captureFocus = ref<Coordinates | null>(null)
 
 const highlightSquares = computed(() => {
   if (!pieceFocus.value) {
@@ -110,13 +112,14 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
 
       const fromSquare = board.value.getSquare(pieceFocus.value)
       promotionAllegiance.value = fromSquare?.allegiance ?? null
+    } else if (board.value.getSquare(coords)) {
+      captureFocus.value = coords
     } else {
       board.value.executeNode({
         kind: 'move',
         from: pieceFocus.value,
         to: coords,
       })
-      pieceFocus.value = null
     }
 
     emit('update:modelValue', board.value.toAFEN())
@@ -156,6 +159,37 @@ const handlePromotion = (coords: Coordinates, piece: Piece) => {
 const handlePromotionDismiss = () => {
   showPromotionPopup.value = null
   promotionAllegiance.value = null
+}
+
+const handleCaptureDismiss = () => {
+  captureFocus.value = null
+}
+
+const handleCaptureClick = (decision: 'capture' | 'challenge') => {
+  if (!pieceFocus.value || !captureFocus.value) {
+    return
+  }
+
+  if (decision === 'capture') {
+    board.value.executeNode({
+      kind: 'move',
+      type: 'capture',
+      from: pieceFocus.value,
+      to: captureFocus.value,
+    })
+  } else {
+    board.value.executeNode({
+      kind: 'move',
+      type: 'allegiance',
+      from: pieceFocus.value,
+      to: captureFocus.value,
+    })
+  }
+
+  captureFocus.value = null
+  pieceFocus.value = null
+
+  emit('update:modelValue', board.value.toAFEN())
 }
 </script>
 
@@ -282,7 +316,7 @@ const handlePromotionDismiss = () => {
               ? `${
                   Math.abs(pieceFocus.file - fileIndex) *
                   Math.abs(pieceFocus.rank - rankIndex) *
-                  10
+                  5
                 }ms`
               : '0ms',
           }"
@@ -303,12 +337,13 @@ const handlePromotionDismiss = () => {
             v-if="
               promotionAllegiance !== null &&
               (isPromotion({
-              file: (fileIndex + 1) as File,
-              rank: (rankIndex + 1) as Rank,
-            }, 'white') || isPromotion({
-              file: (fileIndex + 1) as File,
-              rank: (rankIndex + 1) as Rank,
-            }, 'black'))
+                file: (fileIndex + 1) as File,
+                rank: (rankIndex + 1) as Rank,
+              }, 'white')
+              || isPromotion({
+                file: (fileIndex + 1) as File,
+                rank: (rankIndex + 1) as Rank,
+              }, 'black'))
             "
             :model-value="coordinatesEqual(showPromotionPopup, {
               file: (fileIndex + 1) as File,
@@ -355,6 +390,14 @@ const handlePromotionDismiss = () => {
             :piece="square.piece"
             :allegiance="square.allegiance"
             :size="props.width / 8"
+          />
+
+          <capture-selector
+            v-if="captureFocus"
+            :model-value="coordinatesEqual(captureFocus, square) ?? false"
+            :size="props.width / 8"
+            @click="handleCaptureClick"
+            @dismiss="handleCaptureDismiss"
           />
         </div>
 
