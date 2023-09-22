@@ -109,7 +109,8 @@
         // allow debugger during development only
         "no-debugger": "warn",
 
-        "func-call-spacing": "off"
+        "func-call-spacing": "off",
+        "space-before-function-paren": "off"
       }
     }
   ]
