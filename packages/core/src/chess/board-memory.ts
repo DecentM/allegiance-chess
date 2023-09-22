@@ -27,7 +27,10 @@ export class BoardMemory {
 
   public enPassantTarget: Coordinates | null
 
-  private unmovedPiecesForCastling: Coordinates[]
+  private _castlingRights: Array<{
+    colour: 'white' | 'black'
+    side: 'queen' | 'king'
+  }>
 
   public halfmoveClock: number
 
@@ -39,64 +42,39 @@ export class BoardMemory {
     memory.memory = cloneDeep(this.memory)
     memory.activeColour = this.activeColour
     memory.enPassantTarget = cloneDeep(this.enPassantTarget)
-    memory.unmovedPiecesForCastling = cloneDeep(this.unmovedPiecesForCastling)
+    memory._castlingRights = cloneDeep(this._castlingRights)
     memory.halfmoveClock = this.halfmoveClock
     memory.fullmoveNumber = this.fullmoveNumber
 
     return memory
   }
 
-  public removeCastlingRights(coords: Coordinates) {
-    const index = this.unmovedPiecesForCastling.findIndex(
-      (possibleCoords) =>
-        possibleCoords.file === coords.file &&
-        possibleCoords.rank === coords.rank
+  public removeCastlingRights(
+    colour: 'white' | 'black',
+    side: 'queen' | 'king'
+  ) {
+    const index = this._castlingRights.findIndex(
+      (right) => right.colour === colour && right.side === side
     )
 
     if (index === -1) {
       return
     }
 
-    this.unmovedPiecesForCastling.splice(index)
+    this._castlingRights.splice(index, 1)
   }
 
   public castlingRights(side: 'white' | 'black'): Array<'queen' | 'king'> {
-    const result: Array<'queen' | 'king'> = []
-    const rank: Rank = side === 'white' ? 1 : 8
-
-    const kingUnmoved = this.unmovedPiecesForCastling.some((coord) => {
-      return coord.file === 5 && coord.rank === rank
-    })
-
-    // If the king has been moved, no castling is possible
-    if (!kingUnmoved) {
-      return []
-    }
-
-    const queenSideCastling = this.unmovedPiecesForCastling.find((coord) => {
-      return coord.rank === rank && coord.file === 1
-    })
-
-    const kingSideCastling = this.unmovedPiecesForCastling.find((coord) => {
-      return coord.rank === rank && coord.file === 8
-    })
-
-    if (queenSideCastling) {
-      result.push('queen')
-    }
-
-    if (kingSideCastling) {
-      result.push('king')
-    }
-
-    return result
+    return this._castlingRights
+      .filter((right) => right.colour === side)
+      .map((value) => value.side)
   }
 
   private clear() {
     this.memory = []
     this.activeColour = 'white'
     this.enPassantTarget = null
-    this.unmovedPiecesForCastling = []
+    this._castlingRights = []
     this.halfmoveClock = 0
     this.fullmoveNumber = 0
 
@@ -286,46 +264,18 @@ export class BoardMemory {
       }
 
       if (node.kind === 'castling-rights') {
-        if (node.value.black.length !== 0) {
-          this.unmovedPiecesForCastling.push({
-            file: 5,
-            rank: 8,
+        node.value.black.forEach((value) => {
+          this._castlingRights.push({
+            colour: 'black',
+            side: value,
           })
-        }
-
-        node.value.black.forEach((blackCastleSide) => {
-          this.unmovedPiecesForCastling.push(
-            blackCastleSide === 'queen'
-              ? {
-                  file: 1,
-                  rank: 8,
-                }
-              : {
-                  file: 8,
-                  rank: 8,
-                }
-          )
         })
 
-        if (node.value.white.length !== 0) {
-          this.unmovedPiecesForCastling.push({
-            file: 5,
-            rank: 1,
+        node.value.white.forEach((value) => {
+          this._castlingRights.push({
+            colour: 'white',
+            side: value,
           })
-        }
-
-        node.value.white.forEach((whiteCastleSide) => {
-          this.unmovedPiecesForCastling.push(
-            whiteCastleSide === 'queen'
-              ? {
-                  file: 1,
-                  rank: 1,
-                }
-              : {
-                  file: 8,
-                  rank: 1,
-                }
-          )
         })
 
         return

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import {
   Piece,
   PieceAllegiance,
@@ -11,7 +12,6 @@ import KnightIcon from './pieces/knight-icon.vue'
 import PawnIcon from './pieces/pawn-icon.vue'
 import QueenIcon from './pieces/queen-icon.vue'
 import RookIcon from './pieces/rook-icon.vue'
-import { computed } from 'vue'
 
 const props = defineProps<{
   piece: Piece | null

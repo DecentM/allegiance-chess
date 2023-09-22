@@ -138,6 +138,15 @@ const castlingRights = computed(() => {
               piece="K"
               :size="24"
             />
+
+            <q-icon
+              v-if="
+                !castlingRights ||
+                (castlingRights.black.length === 0 &&
+                  castlingRights.white.length === 0)
+              "
+              name="close"
+            />
           </div>
         </q-item-label>
       </q-item-section>

@@ -9,7 +9,7 @@ import { Board, PROMOTION_PIECES, PieceAllegiance } from './board'
 const createDefaultBoard = () => {
   const b = new Board()
 
-  b.importAFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR')
+  b.importAFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0')
 
   return b
 }

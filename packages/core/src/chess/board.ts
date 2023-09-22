@@ -107,9 +107,6 @@ export class Board {
   private executeCaptureMoveNode(input: ExecuteMoveTypeInput<CaptureNode>) {
     this.memory.setSquare(input.node.to, input.from)
     this.memory.setSquare(input.node.from, null)
-
-    this.memory.removeCastlingRights(input.node.from)
-    this.memory.removeCastlingRights(input.node.to)
   }
 
   private executeCastleMoveNode(input: ExecuteMoveTypeInput<CastleNode>) {
@@ -130,9 +127,6 @@ export class Board {
     this.memory.setSquare(rookToCoords, rook)
     this.memory.setSquare(rookCoords, null)
     this.memory.setSquare(input.node.from, null)
-
-    this.memory.removeCastlingRights(input.node.from)
-    this.memory.removeCastlingRights(rookCoords)
   }
 
   private executeEnPassantMoveNode(input: ExecuteMoveTypeInput<EnPassantNode>) {
@@ -193,6 +187,19 @@ export class Board {
       throw new VError(
         `There is no piece on file ${node.from.file} rank ${node.from.rank}`
       )
+    }
+
+    if (from.piece === 'K') {
+      this.memory.removeCastlingRights(this.activeColour, 'king')
+      this.memory.removeCastlingRights(this.activeColour, 'queen')
+    }
+
+    if (from.piece === 'R' && node.from.file === 8) {
+      this.memory.removeCastlingRights(this.activeColour, 'king')
+    }
+
+    if (from.piece === 'R' && node.from.file === 1) {
+      this.memory.removeCastlingRights(this.activeColour, 'queen')
     }
 
     this.memory.enPassantTarget = null
@@ -814,55 +821,71 @@ export class Board {
 
         const whiteCastling = this.memory.castlingRights('white')
 
-        whiteCastling.forEach((castling) => {
-          if (castling === 'king') {
-            result.push({
-              kind: 'move',
-              type: 'castle',
-              from: square,
-              to: this.getCoordsRelative(square, new Vector2(2, 0)),
-              piece: this.memory.getSquare(square).piece,
-              side: 'king',
-            })
-          }
+        if (whiteCastling.length > 0) {
+          const b1 = this.memory.getSquare({ file: 2, rank: 1 })
+          const c1 = this.memory.getSquare({ file: 3, rank: 1 })
+          const d1 = this.memory.getSquare({ file: 4, rank: 1 })
+          const f1 = this.memory.getSquare({ file: 5, rank: 1 })
+          const g1 = this.memory.getSquare({ file: 6, rank: 1 })
 
-          if (castling === 'queen') {
-            result.push({
-              kind: 'move',
-              type: 'castle',
-              from: square,
-              to: this.getCoordsRelative(square, new Vector2(-2, 0)),
-              piece: this.memory.getSquare(square).piece,
-              side: 'queen',
-            })
-          }
-        })
+          whiteCastling.forEach((castling) => {
+            if (castling === 'king' && !f1 && !g1) {
+              result.push({
+                kind: 'move',
+                type: 'castle',
+                from: square,
+                to: this.getCoordsRelative(square, new Vector2(2, 0)),
+                piece: this.memory.getSquare(square).piece,
+                side: 'king',
+              })
+            }
+
+            if (castling === 'queen' && !b1 && !c1 && !d1) {
+              result.push({
+                kind: 'move',
+                type: 'castle',
+                from: square,
+                to: this.getCoordsRelative(square, new Vector2(-2, 0)),
+                piece: this.memory.getSquare(square).piece,
+                side: 'queen',
+              })
+            }
+          })
+        }
 
         const blackCastling = this.memory.castlingRights('black')
 
-        blackCastling.forEach((castling) => {
-          if (castling === 'king') {
-            result.push({
-              kind: 'move',
-              type: 'castle',
-              from: square,
-              to: this.getCoordsRelative(square, new Vector2(2, 0)),
-              piece: this.memory.getSquare(square).piece,
-              side: 'king',
-            })
-          }
+        if (blackCastling.length > 0) {
+          const b8 = this.memory.getSquare({ file: 2, rank: 8 })
+          const c8 = this.memory.getSquare({ file: 3, rank: 8 })
+          const d8 = this.memory.getSquare({ file: 4, rank: 8 })
+          const f8 = this.memory.getSquare({ file: 5, rank: 8 })
+          const g8 = this.memory.getSquare({ file: 6, rank: 8 })
 
-          if (castling === 'queen') {
-            result.push({
-              kind: 'move',
-              type: 'castle',
-              from: square,
-              to: this.getCoordsRelative(square, new Vector2(-2, 0)),
-              piece: this.memory.getSquare(square).piece,
-              side: 'queen',
-            })
-          }
-        })
+          blackCastling.forEach((castling) => {
+            if (castling === 'king' && !f8 && !g8) {
+              result.push({
+                kind: 'move',
+                type: 'castle',
+                from: square,
+                to: this.getCoordsRelative(square, new Vector2(2, 0)),
+                piece: this.memory.getSquare(square).piece,
+                side: 'king',
+              })
+            }
+
+            if (castling === 'queen' && !b8 && !c8 && !d8) {
+              result.push({
+                kind: 'move',
+                type: 'castle',
+                from: square,
+                to: this.getCoordsRelative(square, new Vector2(-2, 0)),
+                piece: this.memory.getSquare(square).piece,
+                side: 'queen',
+              })
+            }
+          })
+        }
       }
     })
 
