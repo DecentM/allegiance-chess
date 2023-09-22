@@ -825,8 +825,8 @@ export class Board {
           const b1 = this.memory.getSquare({ file: 2, rank: 1 })
           const c1 = this.memory.getSquare({ file: 3, rank: 1 })
           const d1 = this.memory.getSquare({ file: 4, rank: 1 })
-          const f1 = this.memory.getSquare({ file: 5, rank: 1 })
-          const g1 = this.memory.getSquare({ file: 6, rank: 1 })
+          const f1 = this.memory.getSquare({ file: 6, rank: 1 })
+          const g1 = this.memory.getSquare({ file: 7, rank: 1 })
 
           whiteCastling.forEach((castling) => {
             if (castling === 'king' && !f1 && !g1) {
@@ -859,8 +859,8 @@ export class Board {
           const b8 = this.memory.getSquare({ file: 2, rank: 8 })
           const c8 = this.memory.getSquare({ file: 3, rank: 8 })
           const d8 = this.memory.getSquare({ file: 4, rank: 8 })
-          const f8 = this.memory.getSquare({ file: 5, rank: 8 })
-          const g8 = this.memory.getSquare({ file: 6, rank: 8 })
+          const f8 = this.memory.getSquare({ file: 6, rank: 8 })
+          const g8 = this.memory.getSquare({ file: 7, rank: 8 })
 
           blackCastling.forEach((castling) => {
             if (castling === 'king' && !f8 && !g8) {

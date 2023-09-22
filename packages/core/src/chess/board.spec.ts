@@ -5,6 +5,7 @@ import { tokenize } from '../notation/tokenizer'
 import { parse } from '../notation/parser'
 
 import { Board, PROMOTION_PIECES, PieceAllegiance } from './board'
+import { coordinatesEqual } from '../lib/coordinate'
 
 const createDefaultBoard = () => {
   const b = new Board()
@@ -240,4 +241,34 @@ test('finds promotion move', (t) => {
       promotionTo: piece,
     }))
   )
+})
+
+test.only('finds kingside castling', (t) => {
+  const b = new Board()
+
+  b.importAFEN('4k2r/8/8/8/8/8/8/4K3 b k - 0 0')
+
+  const validMoves = b.getValidMoves()
+
+  const kingMoves = validMoves.filter((move) => {
+    return move.kind === 'move' && move.piece === 'K'
+  })
+
+  const castleMoves = kingMoves.filter((move) => {
+    return (
+      move.kind === 'move' &&
+      move.type === 'castle' &&
+      move.side === 'king' &&
+      coordinatesEqual(move.from, {
+        file: 5,
+        rank: 8,
+      }) &&
+      coordinatesEqual(move.to, {
+        file: 7,
+        rank: 8,
+      })
+    )
+  })
+
+  t.is(castleMoves.length, 1)
 })
