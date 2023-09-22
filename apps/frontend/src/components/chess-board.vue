@@ -1,15 +1,20 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+
 import {
   Board,
   coordinatesEqual,
   fileToLetter,
+  isPromotion,
   Coordinates,
   File,
   Rank,
+  Piece,
+  PieceAllegiance,
 } from '@decentm/allegiance-chess-core'
-import { computed, ref } from 'vue'
 
 import ChessPiece from './chess-piece.vue'
+import PromotionSelector from './promotion-selector.vue'
 
 const props = defineProps<{
   modelValue: string
@@ -74,8 +79,15 @@ const emit = defineEmits<{
   (event: 'update:modelValue', value: string): void
 }>()
 
+const showPromotionPopup = ref<Coordinates | null>(null)
+const promotionAllegiance = ref<PieceAllegiance | null>(null)
+
 const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
   event.stopPropagation()
+
+  const focusedSquare = pieceFocus.value
+    ? board.value.getSquare(pieceFocus.value)
+    : null
 
   if (isHighlighted(coords) && pieceFocus.value) {
     if (
@@ -88,16 +100,26 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
         from: pieceFocus.value,
         to: coords,
       })
+      pieceFocus.value = null
+    } else if (
+      isPromotion(coords, board.value.activeColour) &&
+      focusedSquare &&
+      focusedSquare.piece === null
+    ) {
+      showPromotionPopup.value = coords
+
+      const fromSquare = board.value.getSquare(pieceFocus.value)
+      promotionAllegiance.value = fromSquare?.allegiance ?? null
     } else {
       board.value.executeNode({
         kind: 'move',
         from: pieceFocus.value,
         to: coords,
       })
+      pieceFocus.value = null
     }
 
     emit('update:modelValue', board.value.toAFEN())
-    pieceFocus.value = null
 
     return
   }
@@ -110,6 +132,30 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
   }
 
   pieceFocus.value = coords
+}
+
+const handlePromotion = (coords: Coordinates, piece: Piece) => {
+  if (!pieceFocus.value) {
+    return
+  }
+
+  showPromotionPopup.value = null
+
+  board.value.executeNode({
+    kind: 'move',
+    type: 'promotion',
+    from: pieceFocus.value,
+    to: coords,
+    promotionTo: piece,
+  })
+
+  emit('update:modelValue', board.value.toAFEN())
+  pieceFocus.value = null
+}
+
+const handlePromotionDismiss = () => {
+  showPromotionPopup.value = null
+  promotionAllegiance.value = null
 }
 </script>
 
@@ -252,6 +298,30 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
           >
             {{ fileToLetter((fileIndex + 1) as File) }}{{ rankIndex + 1 }}
           </div>
+
+          <promotion-selector
+            v-if="
+              promotionAllegiance !== null &&
+              (isPromotion({
+              file: (fileIndex + 1) as File,
+              rank: (rankIndex + 1) as Rank,
+            }, 'white') || isPromotion({
+              file: (fileIndex + 1) as File,
+              rank: (rankIndex + 1) as Rank,
+            }, 'black'))
+            "
+            :model-value="coordinatesEqual(showPromotionPopup, {
+              file: (fileIndex + 1) as File,
+              rank: (rankIndex + 1) as Rank,
+            }) ?? false"
+            :allegiance="promotionAllegiance"
+            :size="props.width / 8"
+            @click="(piece) => handlePromotion({
+              file: (fileIndex + 1) as File,
+              rank: (rankIndex + 1) as Rank,
+            }, piece)"
+            @dismiss="handlePromotionDismiss"
+          />
         </div>
       </div>
     </div>
@@ -287,6 +357,7 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
             :size="props.width / 8"
           />
         </div>
+
         <div v-else></div>
       </div>
     </div>

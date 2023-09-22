@@ -7,3 +7,6 @@ export const getCoordsForIndex = (index: number): Coordinates => {
     rank: (8 - Math.floor(index / 8)) as Rank,
   }
 }
+
+export const isPromotion = (coords: Coordinates, side: 'white' | 'black') =>
+  coords.rank === (side === 'white' ? 8 : 1)

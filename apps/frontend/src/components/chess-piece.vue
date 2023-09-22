@@ -41,10 +41,18 @@ const colour = computed(() => {
 const emit = defineEmits<{ (event: 'click', e: MouseEvent): void }>()
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.chess-piece-svg {
+  overflow: hidden;
+}
+</style>
 
 <template>
-  <div @click="(event) => emit('click', event)">
+  <div
+    class="chess-piece-svg"
+    @click="(event) => emit('click', event)"
+    :style="{ height: `${size}px` }"
+  >
     <pawn-icon
       class="piece"
       :variant="side"

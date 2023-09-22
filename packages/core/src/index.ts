@@ -2,7 +2,7 @@ export { Board, PieceAllegiance } from './chess/board'
 export { allegianceSide } from './lib/allegiance'
 export { coordinatesEqual } from './lib/coordinate'
 export { fileToLetter } from './lib/notation'
-export { getCoordsForIndex } from './lib/board'
+export { getCoordsForIndex, isPromotion } from './lib/board'
 
 export type { MoveNode } from './notation/parser'
 export type { BoardSquare } from './chess/board-memory'

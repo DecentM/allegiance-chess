@@ -17,6 +17,7 @@ import { Vector2 } from '../lib/vector2'
 import { BoardMemory, BoardSquare } from './board-memory'
 import { coordinatesEqual } from '../lib/coordinate'
 import { allegianceSide } from '../lib/allegiance'
+import { isPromotion } from '../lib/board'
 
 export const PieceAllegiance = {
   Black: 0,
@@ -67,6 +68,10 @@ export class Board {
 
   public get enPassantTarget() {
     return this.memory.enPassantTarget
+  }
+
+  public get activeColour() {
+    return this.memory.activeColour
   }
 
   constructor() {
@@ -343,6 +348,16 @@ export class Board {
       moves = moves.filter((validMove) => validMove.piece === null)
     }
 
+    if (node.type === 'promotion') {
+      moves = moves.filter(
+        (validMove) =>
+          'promotionTo' in validMove &&
+          validMove.promotionTo === node.promotionTo &&
+          coordinatesEqual(validMove.to, node.to) &&
+          coordinatesEqual(validMove.from, node.from)
+      )
+    }
+
     if (moves.length > 1) {
       throw new VError(
         `Move node is not qualified enough for this board. Matching valid moves: ${
@@ -494,9 +509,6 @@ export class Board {
           new Vector2(side === 'white' ? 1 : -1, side === 'white' ? 1 : -1)
         )
 
-        const isPromotion = (coords: Coordinates) =>
-          coords.rank === (side === 'white' ? 8 : 1)
-
         const generatePossiblePromotionNodes = (to: Coordinates): Node[] => {
           return PROMOTION_PIECES.map((piece) => ({
             kind: 'move',
@@ -512,7 +524,7 @@ export class Board {
           this.memory.enPassantTarget &&
           diagLeft &&
           coordinatesEqual(this.memory.enPassantTarget, diagLeft) &&
-          !isPromotion(diagLeft)
+          !isPromotion(diagLeft, side)
         ) {
           result.push({
             kind: 'move',
@@ -527,7 +539,7 @@ export class Board {
           this.memory.enPassantTarget &&
           diagRight &&
           coordinatesEqual(this.memory.enPassantTarget, diagRight) &&
-          !isPromotion(diagRight)
+          !isPromotion(diagRight, side)
         ) {
           result.push({
             kind: 'move',
@@ -541,7 +553,7 @@ export class Board {
         if (
           inFront &&
           !this.memory.getSquare(inFront) &&
-          !isPromotion(inFront)
+          !isPromotion(inFront, side)
         ) {
           result.push({
             kind: 'move',
@@ -559,7 +571,7 @@ export class Board {
             diagLeftSquare &&
             allegianceSide(diagLeftSquare.allegiance) !== side
           ) {
-            if (isPromotion(diagLeft)) {
+            if (isPromotion(diagLeft, side)) {
               result.push(...generatePossiblePromotionNodes(diagLeft))
             } else {
               result.push({
@@ -580,8 +592,8 @@ export class Board {
             diagRightSquare &&
             allegianceSide(diagRightSquare.allegiance) !== side
           ) {
-            if (isPromotion(diagRight)) {
-              result.push(...generatePossiblePromotionNodes(diagLeft))
+            if (isPromotion(diagRight, side)) {
+              result.push(...generatePossiblePromotionNodes(diagRight))
             } else {
               result.push({
                 kind: 'move',
@@ -619,7 +631,7 @@ export class Board {
         }
 
         // Promotions
-        if (isPromotion(inFront)) {
+        if (isPromotion(inFront, side)) {
           result.push(...generatePossiblePromotionNodes(inFront))
         }
       }
