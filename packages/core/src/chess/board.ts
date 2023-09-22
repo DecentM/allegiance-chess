@@ -110,23 +110,29 @@ export class Board {
   }
 
   private executeCastleMoveNode(input: ExecuteMoveTypeInput<CastleNode>) {
-    const rank: Rank = input.fromSide === 'white' ? 1 : 8
-    const rookCoords: Coordinates =
-      input.node.side === 'king' ? { file: 8, rank } : { file: 1, rank }
+    const kingFrom = input.node.from
+    const kingTo = input.node.to
 
     const king = input.from
-    const rook = this.memory.getSquare(rookCoords)
+    const to = input.to
 
-    const kingToCoords: Coordinates =
-      input.node.side === 'king' ? { file: 7, rank } : { file: 3, rank }
+    if (to) {
+      throw new VError(
+        `Castling cannot cause a capture on ${JSON.stringify(input.node.to)}`
+      )
+    }
 
-    const rookToCoords: Coordinates =
+    this.memory.setSquare(kingTo, king)
+    this.memory.setSquare(kingFrom, null)
+
+    const rank: Rank = input.fromSide === 'white' ? 1 : 8
+    const rookFrom: Coordinates =
+      input.node.side === 'king' ? { file: 8, rank } : { file: 1, rank }
+    const rookTo: Coordinates =
       input.node.side === 'king' ? { file: 6, rank } : { file: 4, rank }
 
-    this.memory.setSquare(kingToCoords, king)
-    this.memory.setSquare(rookToCoords, rook)
-    this.memory.setSquare(rookCoords, null)
-    this.memory.setSquare(input.node.from, null)
+    this.memory.setSquare(rookTo, this.memory.getSquare(rookFrom))
+    this.memory.setSquare(rookFrom, null)
   }
 
   private executeEnPassantMoveNode(input: ExecuteMoveTypeInput<EnPassantNode>) {
@@ -821,7 +827,7 @@ export class Board {
 
         const whiteCastling = this.memory.castlingRights('white')
 
-        if (whiteCastling.length > 0) {
+        if (this.activeColour === 'white' && whiteCastling.length > 0) {
           const b1 = this.memory.getSquare({ file: 2, rank: 1 })
           const c1 = this.memory.getSquare({ file: 3, rank: 1 })
           const d1 = this.memory.getSquare({ file: 4, rank: 1 })
@@ -855,7 +861,7 @@ export class Board {
 
         const blackCastling = this.memory.castlingRights('black')
 
-        if (blackCastling.length > 0) {
+        if (this.activeColour === 'black' && blackCastling.length > 0) {
           const b8 = this.memory.getSquare({ file: 2, rank: 8 })
           const c8 = this.memory.getSquare({ file: 3, rank: 8 })
           const d8 = this.memory.getSquare({ file: 4, rank: 8 })
@@ -892,15 +898,18 @@ export class Board {
     return result
   }
 
+  /**
+   * @returns Moves that check a king
+   */
   private getCheckMoves(): Node[] {
     const moves = this.getPossibleMoves()
 
-    return moves.filter((move) => {
-      if (move.kind !== 'move') {
+    return moves.filter((node) => {
+      if (node.kind !== 'move' || !node.to) {
         return
       }
 
-      const targetSquare = this.memory.getSquare(move.to)
+      const targetSquare = this.memory.getSquare(node.to)
 
       return targetSquare && targetSquare.piece === 'K'
     })

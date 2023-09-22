@@ -243,7 +243,7 @@ test('finds promotion move', (t) => {
   )
 })
 
-test.only('finds kingside castling', (t) => {
+test('finds kingside castling', (t) => {
   const b = new Board()
 
   b.importAFEN('4k2r/8/8/8/8/8/8/4K3 b k - 0 0')
@@ -271,4 +271,38 @@ test.only('finds kingside castling', (t) => {
   })
 
   t.is(castleMoves.length, 1)
+})
+
+test('makes a move with castling available', (t) => {
+  const b = new Board()
+
+  b.importAFEN(
+    'rnbqkb>n>r>/pppp3p>/5p2/4p1p1/6P1/5N>1B>/PPPPPP1P>/RNBQK2R> b kqKQ e6 3 6'
+  )
+
+  t.notThrows(() => {
+    b.executeNode({
+      kind: 'move',
+      from: {
+        file: 4,
+        rank: 7,
+      },
+      to: {
+        file: 4,
+        rank: 5,
+      },
+    })
+  })
+})
+
+test('does not castle onto a knight while checking for valid moves', (t) => {
+  const b = new Board()
+
+  b.importAFEN(
+    'r3kb>n>r>/pppbq2p>/2n2p2/1P1pp1p1/6P1/2PP1N>1B>/P3PP1P>/RNBQK2R> b kqKQ - 7 14'
+  )
+
+  t.notThrows(() => {
+    b.getValidMoves()
+  })
 })

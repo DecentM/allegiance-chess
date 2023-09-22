@@ -5,7 +5,7 @@ import ChessBoard from '../components/chess-board.vue'
 import AfenSidebar from '../components/afen-sidebar.vue'
 
 const afen = ref(
-  'rnbqkb>n>r>/pppp3p>/5p2/4p1p1/6P1/5N>1B>/PPPPPP1P>/RNBQK2R> w kqKQ e6 3 6'
+  'r3kb>n>r>/pppbq2p>/2n2p2/1P1pp1p1/6P1/2PP1N>1B>/P3PP1P>/RNBQK2R> b kqKQ - 7 14'
 )
 </script>
 

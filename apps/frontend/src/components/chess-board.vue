@@ -114,6 +114,17 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
       promotionAllegiance.value = fromSquare?.allegiance ?? null
     } else if (board.value.getSquare(coords)) {
       captureFocus.value = coords
+    } else if (
+      focusedSquare?.piece === 'K' &&
+      Math.abs(pieceFocus.value.file - coords.file) > 1
+    ) {
+      board.value.executeNode({
+        kind: 'move',
+        type: 'castle',
+        side: coords.file === 7 ? 'king' : 'queen',
+        from: pieceFocus.value,
+        to: coords,
+      })
     } else {
       board.value.executeNode({
         kind: 'move',

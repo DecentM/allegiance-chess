@@ -145,6 +145,10 @@ export class BoardMemory {
   }
 
   public getSquare(coords: Coordinates) {
+    if (!coords) {
+      throw new VError('Attempted to get square with no coordinates')
+    }
+
     return this.memory[coords.rank - 1][coords.file - 1]
   }
 
