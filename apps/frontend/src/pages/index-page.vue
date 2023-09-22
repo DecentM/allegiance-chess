@@ -11,10 +11,19 @@ const afen = ref(
 
 <template>
   <q-page class="row items-center justify-evenly">
-    <q-card>
+    <q-card flat>
       <q-card-section horizontal>
         <chess-board v-model="afen" :draggable="false" :width="800" />
-        <afen-sidebar :model-value="afen" />
+
+        <div class="col q-ml-md">
+          <q-card flat bordered class="full-height">
+            <q-card-section class="bg-primary q-mb-md">
+              <q-item-label>Board information</q-item-label>
+            </q-card-section>
+
+            <afen-sidebar :model-value="afen" />
+          </q-card>
+        </div>
       </q-card-section>
     </q-card>
   </q-page>

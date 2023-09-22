@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { Board } from '@decentm/allegiance-chess-core'
 
 import ChessPiece from './chess-piece.vue'
+import { useQuasar } from 'quasar'
 
 const props = defineProps<{
   modelValue: string
@@ -47,6 +48,33 @@ const castlingRights = computed(() => {
 
   return board.value.castlingRights
 })
+
+const q = useQuasar()
+
+const handleAFENCopy = () => {
+  if (!board.value) {
+    return
+  }
+
+  try {
+    navigator.clipboard.writeText(props.modelValue)
+
+    q.notify({
+      position: 'bottom-right',
+      timeout: 4000,
+      message: 'AFEN copied to clipboard',
+      icon: 'content_copy',
+    })
+  } catch {
+    q.notify({
+      position: 'bottom-right',
+      timeout: 4000,
+      message: 'Could not write to clipboard',
+      icon: 'close',
+      iconColor: 'red',
+    })
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -57,8 +85,8 @@ const castlingRights = computed(() => {
 
 <template>
   <q-list class="afen-sidebar-list">
-    <q-item>
-      <q-item-section>
+    <q-item clickable v-ripple @click="handleAFENCopy">
+      <q-item-section class="q-mt-sm q-mb-sm">
         <q-item-label>AFEN</q-item-label>
         <q-item-label caption lines="2">{{ modelValue }}</q-item-label>
       </q-item-section>
@@ -68,49 +96,49 @@ const castlingRights = computed(() => {
       </q-item-section>
     </q-item>
 
-    <q-separator spaced inset />
+    <q-separator inset />
 
     <q-item>
-      <q-item-section>
+      <q-item-section class="q-mt-sm q-mb-sm">
         <q-item-label>Next move</q-item-label>
         <q-item-label caption lines="2">{{ activeColour }}</q-item-label>
       </q-item-section>
 
       <q-item-section side>
-        <q-icon name="edit" />
+        <q-icon name="arrow_forward_ios" />
       </q-item-section>
     </q-item>
 
-    <q-separator spaced inset />
+    <q-separator inset />
 
     <q-item>
-      <q-item-section>
+      <q-item-section class="q-mt-sm q-mb-sm">
         <q-item-label>Halfmove clock</q-item-label>
         <q-item-label caption lines="2">{{ halfmoveClock }}</q-item-label>
       </q-item-section>
 
       <q-item-section side>
-        <q-icon name="edit" />
+        <q-icon name="hourglass_bottom" />
       </q-item-section>
     </q-item>
 
-    <q-separator spaced inset />
+    <q-separator inset />
 
     <q-item>
-      <q-item-section>
+      <q-item-section class="q-mt-sm q-mb-sm">
         <q-item-label>Fullmove number</q-item-label>
         <q-item-label caption lines="2">{{ fullmoveNumber }}</q-item-label>
       </q-item-section>
 
       <q-item-section side>
-        <q-icon name="edit" />
+        <q-icon name="update" />
       </q-item-section>
     </q-item>
 
-    <q-separator spaced inset />
+    <q-separator inset />
 
     <q-item>
-      <q-item-section>
+      <q-item-section class="q-mt-sm q-mb-sm">
         <q-item-label>Castling rights</q-item-label>
         <q-item-label caption lines="2">
           <div class="row">
@@ -152,7 +180,7 @@ const castlingRights = computed(() => {
       </q-item-section>
 
       <q-item-section side>
-        <q-icon name="edit" />
+        <q-icon name="castle" />
       </q-item-section>
     </q-item>
   </q-list>
