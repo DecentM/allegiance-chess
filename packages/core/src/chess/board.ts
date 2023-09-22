@@ -74,6 +74,21 @@ export class Board {
     return this.memory.activeColour
   }
 
+  public get halfmoveClock() {
+    return this.memory.halfmoveClock
+  }
+
+  public get fullmoveNumber() {
+    return this.memory.fullmoveNumber
+  }
+
+  public get castlingRights() {
+    return {
+      black: this.memory.castlingRights('black'),
+      white: this.memory.castlingRights('white'),
+    }
+  }
+
   constructor() {
     this.memory = new BoardMemory()
   }
@@ -185,9 +200,6 @@ export class Board {
     const fromSide = allegianceSide(from.allegiance)
     const toSide = to ? allegianceSide(to.allegiance) : null
 
-    // TODO: Non-capture and non-allegiance nodes should check if their targets
-    // TODO  are empty
-
     switch (node.type) {
       case 'allegiance':
         this.executeAllegianceMoveNode({
@@ -250,7 +262,7 @@ export class Board {
         break
     }
 
-    if (this.memory.activeColour === 'white') this.memory.halfmoveClock++
+    if (this.memory.activeColour === 'black') this.memory.halfmoveClock++
 
     this.memory.fullmoveNumber++
 

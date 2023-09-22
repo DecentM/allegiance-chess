@@ -51,7 +51,7 @@ const emit = defineEmits<{ (event: 'click', e: MouseEvent): void }>()
   <div
     class="chess-piece-svg"
     @click="(event) => emit('click', event)"
-    :style="{ height: `${size}px` }"
+    :style="{ height: `${size}px`, width: `${size}px` }"
   >
     <pawn-icon
       class="piece"

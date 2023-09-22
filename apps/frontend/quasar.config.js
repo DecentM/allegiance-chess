@@ -8,9 +8,9 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
-const path = require('node:path');
-const { configure } = require('quasar/wrappers');
-const { nodePolyfills } = require('vite-plugin-node-polyfills');
+const path = require('node:path')
+const { configure } = require('quasar/wrappers')
+const { nodePolyfills } = require('vite-plugin-node-polyfills')
 
 module.exports = configure(function (/* ctx */) {
   return {
@@ -108,7 +108,7 @@ module.exports = configure(function (/* ctx */) {
       // directives: [],
 
       // Quasar plugins
-      plugins: [],
+      plugins: ['Notify'],
     },
 
     // animations: 'all', // --- includes all animations
@@ -206,5 +206,5 @@ module.exports = configure(function (/* ctx */) {
       // extendBexScriptsConf (esbuildConf) {}
       // extendBexManifestJson (json) {}
     },
-  };
-});
+  }
+})

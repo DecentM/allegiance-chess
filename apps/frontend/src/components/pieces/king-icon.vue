@@ -14,6 +14,12 @@ const colours = computed(() => {
 })
 </script>
 
+<style lang="scss" scoped>
+svg {
+  height: 100%;
+}
+</style>
+
 <template>
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46 46">
     <g
