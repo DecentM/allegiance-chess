@@ -2,6 +2,7 @@
 import { watch } from 'vue'
 import { useChessRtcConnection } from '../hooks/chess-rtc-connection'
 import { useRouter } from 'vue-router'
+import { FenPreset } from '../lib/boards'
 
 const router = useRouter()
 const chessRtcConnection = useChessRtcConnection()
@@ -22,7 +23,7 @@ watch(chessRtcConnection.open, (newValue) => {
   if (chessRtcConnection.mode.value === 'server') {
     chessRtcConnection.sendMessage({
       type: 'afen-update',
-      value: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0',
+      value: FenPreset.VanillaDefault,
     })
   }
 })

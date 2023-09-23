@@ -26,8 +26,8 @@ const routes: RouteRecordRaw[] = [
             component: () => import('pages/play/online-game.vue'),
           },
           {
-            path: 'local/:mode',
-            component: () => import('pages/play/local-game.vue'),
+            path: 'pen-pal/:state?',
+            component: () => import('pages/play/pen-pal-game.vue'),
           },
         ],
       },

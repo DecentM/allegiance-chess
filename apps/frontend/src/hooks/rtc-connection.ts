@@ -1,15 +1,7 @@
 import Peer, { DataConnection, PeerError } from 'peerjs'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-
-export class Hex {
-  static utf8ToHex(id: string) {
-    return Buffer.from(id, 'utf8').toString('hex')
-  }
-
-  static hexToUtf8(hex: string) {
-    return Buffer.from(hex, 'hex').toString('utf8')
-  }
-}
+import { Hex } from '../lib/hex'
+import { useNotify } from './notify'
 
 type RtcMessageBase = {
   value: unknown
@@ -31,11 +23,6 @@ type ErrorRtcMessage = RtcMessageBase & {
   type: 'error'
 }
 
-type CloseRtcMessage = RtcMessageBase & {
-  value: void
-  type: 'close'
-}
-
 type StateRtcMessage = RtcMessageBase & {
   value: RTCIceConnectionState
   type: 'state'
@@ -49,12 +36,12 @@ type OpenRtcMessage = RtcMessageBase & {
 type RtcMessage =
   | DataRtcMessage
   | ErrorRtcMessage
-  | CloseRtcMessage
   | StateRtcMessage
   | OpenRtcMessage
 
 export const useRtcConnection = () => {
   const peer = ref<Peer | null>()
+  const { notify } = useNotify()
 
   const peerId = ref<string | null>(null)
   const messages = ref<RtcMessage[]>([])
@@ -105,11 +92,16 @@ export const useRtcConnection = () => {
       addMessage({ type: 'error', value: error })
 
       connection.value?.close()
+
+      notify({
+        message: 'Connection error',
+        caption: error.message,
+        icon: 'link_off',
+        iconColor: 'red',
+      })
     }
 
     const handleClose = () => {
-      addMessage({ type: 'close', value: undefined })
-
       connection.value?.on('data', handleData)
       connection.value?.on('error', handleError)
       connection.value?.on('close', handleClose)
@@ -118,6 +110,10 @@ export const useRtcConnection = () => {
 
       mode.value = 'initial'
       connection.value = null
+
+      messages.value = []
+
+      notify({ message: 'Connection closed', icon: 'link_off' })
     }
 
     newConnection.on('data', handleData)
@@ -132,11 +128,18 @@ export const useRtcConnection = () => {
 
     peer.value.on('open', (id) => {
       peerId.value = Hex.utf8ToHex(id)
+
+      notify({ message: 'Connection ready', icon: 'check', iconColor: 'green' })
     })
 
     peer.value.on('connection', (newConnection) => {
       // Someone might connect after we're already connected
       if (connection.value) {
+        notify({
+          message: 'Refused secondary connection',
+          icon: 'link_off',
+          iconColor: 'red',
+        })
         newConnection.close()
         return
       }
@@ -145,6 +148,8 @@ export const useRtcConnection = () => {
       attachEventListeners(newConnection)
 
       connection.value = newConnection
+
+      notify({ message: 'Connected to guest', icon: 'link' })
     })
   })
 
@@ -167,10 +172,11 @@ export const useRtcConnection = () => {
     const newConnection = peer.value.connect(serverId)
 
     mode.value = 'client'
-
     attachEventListeners(newConnection)
 
     connection.value = newConnection
+
+    notify({ message: 'Connected to host', icon: 'link' })
   }
 
   const lastData = computed(() => {

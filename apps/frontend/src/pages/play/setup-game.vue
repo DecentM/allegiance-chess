@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { ChessRtcConnection } from '../../hooks/chess-rtc-connection'
-import { Hex } from '../../hooks/rtc-connection'
 import { useQuasar } from 'quasar'
+import { Hex } from '../../lib/hex'
 
 const props = defineProps<{
   connection: ChessRtcConnection
@@ -105,80 +105,110 @@ onMounted(() => {
 
 <template>
   <q-card flat class="full-height">
-    <q-card-section horizontal class="items-center full-height space">
-      <div class="col-6 text-center q-pa-md">
-        <q-card flat>
-          <q-card-section>
-            <q-form @submit="handleSubmit">
-              <h4 class="text-h4">Join a game</h4>
+    <q-card-section vertical>
+      <div class="row items-center full-height space">
+        <div class="col-12 text-center q-pa-md">
+          <q-card flat>
+            <q-card-section>
+              <h4 class="text-h4">Pen-pal mode</h4>
 
               <q-separator class="q-mb-md" />
 
               <span>
-                Ask your opponent to visit this page, and send you their Peer
-                ID. Paste your opponent's Peer ID in this field, and click
-                "Connect" or press enter to begin the game
+                The game will run locally, but you can send the page URL to your
+                opponent to let them make a move.
               </span>
 
               <q-separator class="q-mb-md q-mt-md" />
 
-              <q-input
-                standout
-                v-model="connectId"
-                label="Peer ID *"
-                hint="Paste your opponent's Peer ID here"
-                lazy-rules
-                :rules="[validatePeerId]"
-              />
-
               <div class="row justify-end">
                 <q-btn
-                  icon="hub"
-                  label="Connect"
-                  type="submit"
+                  to="/play/pen-pal"
+                  icon="mail"
+                  label="New game"
                   color="primary"
-                  :disable="!submittable"
                 />
               </div>
-            </q-form>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+
+      <div class="row items-center full-height space">
+        <div class="col-md-6 col-sm-12 text-center q-pa-md">
+          <q-card flat>
+            <q-card-section>
+              <q-form @submit="handleSubmit">
+                <h4 class="text-h4">Join a game</h4>
+
+                <q-separator class="q-mb-md" />
+
+                <span>
+                  Ask your opponent to visit this page, and send you their Peer
+                  ID. Paste your opponent's Peer ID in this field, and click
+                  "Connect" or press enter to begin the game
+                </span>
+
+                <q-separator class="q-mb-md q-mt-md" />
+
+                <q-input
+                  standout
+                  v-model="connectId"
+                  label="Peer ID *"
+                  hint="Paste your opponent's Peer ID here"
+                  lazy-rules
+                  :rules="[validatePeerId]"
+                />
+
+                <div class="row justify-end">
+                  <q-btn
+                    icon="hub"
+                    label="Connect"
+                    type="submit"
+                    color="primary"
+                    :disable="!submittable"
+                  />
+                </div>
+              </q-form>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <div class="col-0 divider-right" />
+
+        <q-card flat class="col-md-6 col-sm-12 text-center q-pa-md">
+          <q-card-section>
+            <h4 class="text-h4">Host a game</h4>
+
+            <q-separator class="q-mb-md" />
+
+            <span>
+              Send your opponent your Peer ID. Ask your opponent to visit this
+              page and paste your Peer ID into the field on the left on their
+              side.
+            </span>
+
+            <q-separator class="q-mb-md q-mt-md" />
+
+            <q-input
+              standout
+              :model-value="connection.peerId.value"
+              label="Peer ID *"
+              hint="Copy this Peer ID and send it to your opponent"
+              readonly
+            />
+
+            <div class="row justify-end">
+              <q-btn
+                label="Copy"
+                color="primary"
+                icon="content_copy"
+                @click="handleCopy"
+              />
+            </div>
           </q-card-section>
         </q-card>
       </div>
-
-      <div class="col-0 divider-right" />
-
-      <q-card flat class="col-6 text-center q-pa-md">
-        <q-card-section>
-          <h4 class="text-h4">Host a game</h4>
-
-          <q-separator class="q-mb-md" />
-
-          <span>
-            Send your opponent your Peer ID. Ask your opponent to visit this
-            page and paste your Peer ID into the field on the left on their
-            side.
-          </span>
-
-          <q-separator class="q-mb-md q-mt-md" />
-
-          <q-input
-            standout
-            :model-value="connection.peerId.value"
-            label="Peer ID *"
-            hint="Copy this Peer ID and send it to your opponent"
-            readonly
-          />
-
-          <div class="row justify-end">
-            <q-btn
-              label="Copy"
-              color="primary"
-              icon="content_copy"
-              @click="handleCopy"
-            />
-          </div>
-        </q-card-section>
-      </q-card>
     </q-card-section>
   </q-card>
 </template>
