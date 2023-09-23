@@ -1,25 +1,189 @@
 <script setup lang="ts">
 import background from '../assets/de-an-sun--iSZqeGuBnI-unsplash.jpg'
+
+import tutorial1 from '../assets/tutorial-1.png'
+import tutorial2 from '../assets/tutorial-2.png'
+import tutorial3 from '../assets/tutorial-3.png'
+
+import ChessPiece from '../components/chess-piece.vue'
 </script>
 
 <style lang="scss" scoped>
 .frosted-backdrop {
-  backdrop-filter: blur(10px);
+  background-color: rgba(40, 40, 40, 0.5);
+  backdrop-filter: blur(30px);
 }
 </style>
 
 <template>
   <q-page>
     <q-img :src="background" fit="cover" class="full-width full-height">
-      <div class="q-pa-md full-width">
-        <q-card flat class="bg-transparent full-width frosted-backdrop">
+      <div class="q-pa-md full-width q-gutter-md">
+        <q-card flat class="full-width frosted-backdrop">
           <q-card-section>
             <div class="text-h6">Introduction</div>
-            <q-separator class="q-ma-md" />
-            <span class="text-body1">
+
+            <q-separator class="q-mb-md" />
+
+            <p class="text-body1">
               Allegiance Chess is a Chess variant where you can essentially
-              brainwash your opponents' pieces.
-            </span>
+              brainwash your opponents' pieces. Instead of being black or white,
+              each piece has an allegiance score from zero to three. Pieces with
+              zero or one belong to black, while two and three are to white.
+            </p>
+
+            <p class="text-body1">
+              During each turn, players can choose to challenge the allegiance
+              of a piece instead of capturing it. This causes no movement, but
+              the allegiance of the challenged piece shifts by one, towards the
+              colour of the player making the move.
+            </p>
+
+            <p class="text-body1">
+              For example, if white challenges a black bishop (allegiance zero),
+              then the targeted bishop will change its allegiance to one.
+              Meaning that if it gets challenged one more time, it will switch
+              sides to white. Since players can only challenge enemy pieces,
+              once a piece leaves its "pure" allegiance, it will never go back
+              to it.
+            </p>
+
+            <p class="text-body1">
+              <q-icon size="xl" class="col-2" name="arrow_left" />
+              Click "Play" on the left sidebar to begin, or read on for more.
+            </p>
+          </q-card-section>
+        </q-card>
+
+        <q-card flat class="full-width frosted-backdrop">
+          <q-card-section>
+            <div class="text-h6">How to play</div>
+
+            <q-separator class="q-mb-md" />
+
+            <p class="text-body1">
+              All normal rules of Chess apply:
+
+              <ul>
+                <li>Castling</li>
+                <li>En-passant</li>
+                <li>Promotion</li>
+              </ul>
+            </p>
+
+            <p class="text-body1">
+              When your piece would be able to take a piece, you'll see two
+              options. If you choose to take (X) the piece, it counts as a
+              normal capture. If you choose to challenge (>) the piece, both
+              yours and the challenged piece stays in place, and the challenged
+              piece's allegiance will change towards your side.
+            </p>
+
+            <div class="row justify-center">
+              <q-img class="col-2" :src="tutorial1" />
+              <q-icon size="xl" class="col-1" name="arrow_right" />
+              <q-img class="col-2" :src="tutorial2" />
+              <q-icon size="xl" class="col-1" name="arrow_right" />
+              <q-img class="col-2" :src="tutorial3" />
+            </div>
+          </q-card-section>
+        </q-card>
+
+         <q-card flat class="full-width frosted-backdrop">
+          <q-card-section>
+            <div class="text-h6">Technical details</div>
+
+            <q-separator class="q-mb-md" />
+
+            <p class="text-body1">
+              This game is implemented in Typescript from scratch, so
+              there may be completely bame breaking bugs. You may open an issue
+              on the issue tracker if you encounter bugs like this (but not
+              limited to):
+
+              <ul>
+                <li>Ability to make illegal moves</li>
+                <li>Inability to castle, promote, challenge, or capture</li>
+                <li>Inability to move at all</li>
+              </ul>
+            </p>
+
+            <p class="text-body1">
+              FEN has been extended to support storing allegiance information.
+              The Allegiance FEN (AFEN) string is a superset of FEN, with the
+              added ">" character, which indicates that the piece before the
+              character has a non-pure allegiance. For example, "N>"
+              means that the knight has an allegiance of 2 (white minus one),
+              while "b>" means that the bishop has the allegiance of
+              1 (black plus one).
+              <br>
+              Because  AFEN is a superset, any FEN string is valid AFEN, but an
+              AFEN string might not be valid FEN.
+            </p>
+
+            <p class="text-body1">
+              Additionally, the standard Chess notation is extended in the same
+              way. The ">" character signals a challenge. For example, where
+              "Rxd2" would mean Rook takes on D2, "R>d2" means the Rook
+              challenges the piece on D2. Neither of them move, but the opposing
+              piece on D2 changes its allegiance by one, towards the challenging
+              player.
+            </p>
+          </q-card-section>
+        </q-card>
+
+        <q-card flat class="full-width frosted-backdrop">
+          <q-card-section>
+            <div class="text-h6">Recognitions</div>
+
+            <q-separator class="q-mb-md" />
+
+            <q-list>
+              <q-item
+                clickable
+                href="https://unsplash.com/photos/-iSZqeGuBnI?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText"
+                target="_blank"
+                rel="noopener"
+              >
+                <q-item-section avatar>
+                  <q-avatar rounded>
+                    <q-img fit="contain" loading="lazy" :src="background" />
+                  </q-avatar>
+                </q-item-section>
+
+                <q-item-section>
+                  <q-item-label>
+                    Background
+                  </q-item-label>
+                  <q-item-label caption>
+                    Photo by De an Sun on Unsplash
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-item
+                clickable
+                href="https://en.wikipedia.org/wiki/User:Cburnett/GFDL_images/Chess"
+                target="_blank"
+                rel="noopener"
+              >
+                <q-item-section avatar>
+                  <q-avatar rounded>
+                    <chess-piece piece="Q" :allegiance="3" :size="40" />
+                  </q-avatar>
+                </q-item-section>
+
+                <q-item-section>
+                  <q-item-label>
+                    Chess pieces
+                  </q-item-label>
+                  <q-item-label caption :lines="2">
+                    <span>Colin M.L. Burnett on Wikimedia</span><br>
+                    <span>Modified to have allegiance indications</span>
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
           </q-card-section>
         </q-card>
       </div>

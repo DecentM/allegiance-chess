@@ -106,7 +106,7 @@ const handleCopy = () => {
         <q-card flat>
           <q-card-section>
             <q-form @submit="handleSubmit">
-              <h4 class="text-h4">Host a game</h4>
+              <h4 class="text-h4">Join a game</h4>
 
               <q-separator class="q-mb-md" />
 
@@ -145,7 +145,7 @@ const handleCopy = () => {
 
       <q-card flat class="col-6 text-center q-pa-md">
         <q-card-section>
-          <h4 class="text-h4">Join a game</h4>
+          <h4 class="text-h4">Host a game</h4>
 
           <q-separator class="q-mb-md" />
 
