@@ -10,6 +10,10 @@ const props = defineProps<{
 }>()
 
 const handleUpdate = (newValue: string) => {
+  if (props.connection.mode.value === 'initial') {
+    return
+  }
+
   props.connection.sendMessage({
     type: 'afen-update',
     value: newValue,

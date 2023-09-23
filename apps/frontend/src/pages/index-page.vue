@@ -17,9 +17,9 @@ import ChessPiece from '../components/chess-piece.vue'
 
 <template>
   <q-page>
-    <q-img :src="background" fit="cover" class="full-width full-height">
-      <div class="q-pa-md full-width q-gutter-md">
-        <q-card flat class="full-width frosted-backdrop">
+    <q-img :src="background" fit="cover" height="calc(100vh - 50px)">
+      <div class="full-width full-height overflow-auto">
+        <q-card flat class="full-width frosted-backdrop q-mb-md">
           <q-card-section>
             <div class="text-h6">Introduction</div>
 
@@ -55,7 +55,7 @@ import ChessPiece from '../components/chess-piece.vue'
           </q-card-section>
         </q-card>
 
-        <q-card flat class="full-width frosted-backdrop">
+        <q-card flat class="full-width frosted-backdrop q-mb-md">
           <q-card-section>
             <div class="text-h6">How to play</div>
 
@@ -89,7 +89,7 @@ import ChessPiece from '../components/chess-piece.vue'
           </q-card-section>
         </q-card>
 
-         <q-card flat class="full-width frosted-backdrop">
+         <q-card flat class="full-width frosted-backdrop q-mb-md">
           <q-card-section>
             <div class="text-h6">Technical details</div>
 
@@ -132,7 +132,7 @@ import ChessPiece from '../components/chess-piece.vue'
           </q-card-section>
         </q-card>
 
-        <q-card flat class="full-width frosted-backdrop">
+        <q-card flat class="full-width frosted-backdrop q-mb-md">
           <q-card-section>
             <div class="text-h6">Recognitions</div>
 

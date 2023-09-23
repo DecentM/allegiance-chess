@@ -17,7 +17,7 @@ watch(chessRtcConnection.open, (newValue) => {
     return
   }
 
-  router.push(`/play/${chessRtcConnection.peerId.value}`)
+  router.push(`/play/online/${chessRtcConnection.peerId.value}`)
 
   if (chessRtcConnection.mode.value === 'server') {
     chessRtcConnection.sendMessage({

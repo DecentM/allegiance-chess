@@ -22,8 +22,12 @@ const routes: RouteRecordRaw[] = [
             },
           },
           {
-            path: ':peerId',
-            component: () => import('pages/play/in-game.vue'),
+            path: 'online/:peerId',
+            component: () => import('pages/play/online-game.vue'),
+          },
+          {
+            path: 'local/:mode',
+            component: () => import('pages/play/local-game.vue'),
           },
         ],
       },

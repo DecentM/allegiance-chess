@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 import {
   Board,
@@ -17,10 +17,36 @@ import ChessPiece from './chess-piece.vue'
 import PromotionSelector from './promotion-selector.vue'
 import CaptureSelector from './capture-selector.vue'
 
+import GameStartSound from '../assets/686544__troube__wooden-button-out.ogg'
+import GameEndSound from '../assets/686544__troube__wooden-button-in.ogg'
+import MoveSound from '../assets/270148__theriavirra__drumsticks-stagg-maple-7an-click-no3.wav'
+import CheckSound from '../assets/85590__jankoehl__hit-wood09.wav'
+import ChallengeSound from '../assets/342200__christopherderp__videogame-menu-button-click.wav'
+import CaptureSound from '../assets/321083__benjaminnelan__wooden-click.wav'
+
+const gameStartAudio = new Audio(GameStartSound)
+const gameEndAudio = new Audio(GameEndSound)
+const moveAudio = new Audio(MoveSound)
+const checkAudio = new Audio(CheckSound)
+const challengeAudio = new Audio(ChallengeSound)
+const captureAudio = new Audio(CaptureSound)
+
+moveAudio.volume = 0.2
+captureAudio.volume = 0.3
+challengeAudio.volume = 0.3
+
 const props = defineProps<{
   modelValue: string
   width: number
 }>()
+
+onMounted(async () => {
+  try {
+    await gameStartAudio.play()
+  } catch {
+    // Will not work if there was no user interaction on the page yet
+  }
+})
 
 const board = computed(() => {
   const result = new Board()
@@ -96,6 +122,8 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
       enPassantTarget.value &&
       coordinatesEqual(enPassantTarget.value, coords)
     ) {
+      captureAudio.play()
+
       board.value.executeNode({
         kind: 'move',
         type: 'en-passant',
@@ -126,6 +154,8 @@ const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
         to: coords,
       })
     } else {
+      moveAudio.play()
+
       board.value.executeNode({
         kind: 'move',
         from: pieceFocus.value,
@@ -182,6 +212,7 @@ const handleCaptureClick = (decision: 'capture' | 'challenge') => {
   }
 
   if (decision === 'capture') {
+    captureAudio.play()
     board.value.executeNode({
       kind: 'move',
       type: 'capture',
@@ -189,6 +220,7 @@ const handleCaptureClick = (decision: 'capture' | 'challenge') => {
       to: captureFocus.value,
     })
   } else {
+    challengeAudio.play()
     board.value.executeNode({
       kind: 'move',
       type: 'allegiance',

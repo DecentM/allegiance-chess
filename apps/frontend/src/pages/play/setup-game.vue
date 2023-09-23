@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { ChessRtcConnection } from '../../hooks/chess-rtc-connection'
 import { Hex } from '../../hooks/rtc-connection'
 import { useQuasar } from 'quasar'
@@ -86,6 +86,10 @@ const handleCopy = () => {
     }
   }
 }
+
+onMounted(() => {
+  props.connection.disconnect()
+})
 </script>
 
 <style lang="scss" scoped>
