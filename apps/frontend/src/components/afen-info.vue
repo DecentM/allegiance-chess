@@ -77,14 +77,8 @@ const handleAFENCopy = () => {
 }
 </script>
 
-<style lang="scss" scoped>
-.afen-sidebar-list {
-  max-width: 24rem;
-}
-</style>
-
 <template>
-  <q-list class="afen-sidebar-list">
+  <q-list>
     <q-item clickable v-ripple @click="handleAFENCopy">
       <q-item-section class="q-mt-sm q-mb-sm">
         <q-item-label>AFEN</q-item-label>

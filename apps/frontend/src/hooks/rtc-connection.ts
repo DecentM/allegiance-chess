@@ -1,5 +1,5 @@
 import Peer, { DataConnection, PeerError } from 'peerjs'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { Hex } from '../lib/hex'
 import { useNotify } from './notify'
 
@@ -179,11 +179,6 @@ export const useRtcConnection = () => {
     notify({ message: 'Connected to host', icon: 'link' })
   }
 
-  const lastData = computed(() => {
-    return messages.value.filter((message) => message.type === 'data').at(-1)
-      ?.value
-  })
-
   const sendData = (data: Buffer): boolean => {
     if (!connection.value) {
       return false
@@ -212,7 +207,6 @@ export const useRtcConnection = () => {
     mode,
     peerId,
     messages,
-    lastData,
     sendData,
     disconnect,
   }

@@ -22,6 +22,11 @@ watch(chessRtcConnection.open, (newValue) => {
 
   if (chessRtcConnection.mode.value === 'server') {
     chessRtcConnection.sendMessage({
+      type: 'side-assignment',
+      value: Math.random() > 0.5 ? 'white' : 'black',
+    })
+
+    chessRtcConnection.sendMessage({
       type: 'afen-update',
       value: FenPreset.VanillaDefault,
     })

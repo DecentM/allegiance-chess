@@ -1,46 +1,86 @@
 <script setup lang="ts">
+import { computed, onBeforeUnmount, ref } from 'vue'
+import { Board, Node } from '@decentm/allegiance-chess-core'
+
 import ChessBoard from '../../components/chess-board.vue'
-import AfenSidebar from '../../components/afen-sidebar.vue'
+import AfenInfo from '../../components/afen-info.vue'
 
 import { ChessRtcConnection } from '../../hooks/chess-rtc-connection'
-import { onBeforeUnmount } from 'vue'
+import { useQuasar } from 'quasar'
 
 const props = defineProps<{
   connection: ChessRtcConnection
 }>()
 
-const handleUpdate = (newValue: string) => {
-  if (props.connection.mode.value === 'initial') {
-    return
-  }
+onBeforeUnmount(() => {
+  props.connection.disconnect()
+})
+
+const board = computed(() => {
+  const result = new Board()
+
+  result.importAFEN(props.connection.boardAFEN.value)
+
+  return result
+})
+
+const handleExecuteNode = (node: Partial<Node>) => {
+  board.value.executeNode(node)
 
   props.connection.sendMessage({
     type: 'afen-update',
-    value: newValue,
+    value: board.value.toAFEN(),
   })
 }
 
-onBeforeUnmount(() => {
-  props.connection.disconnect()
+const size = ref(800)
+
+const q = useQuasar()
+
+const handleResize = (newSize: { height: number; width: number }) => {
+  if (q.screen.gt.md) {
+    size.value = newSize.width - newSize.width / 8 - 200
+    return
+  }
+
+  size.value = newSize.width - newSize.width / 8
+}
+
+const perspective = computed(() => {
+  if (!props.connection.serverSide.value) {
+    return null
+  }
+
+  if (props.connection.mode.value === 'server') {
+    return props.connection.serverSide.value
+  }
+
+  return props.connection.serverSide.value === 'white' ? 'black' : 'white'
 })
 </script>
 
 <template>
   <q-card flat>
-    <q-card-section horizontal>
+    <q-card-section class="row">
+      <q-resize-observer @resize="handleResize" />
+
       <chess-board
+        v-if="perspective"
         :model-value="connection.boardAFEN.value"
-        @update:model-value="handleUpdate"
-        :width="800"
+        :width="size"
+        @execute-node="handleExecuteNode"
+        :board="board"
+        :perspective="perspective"
+        :play-as="['white', 'black']"
       />
 
-      <div class="col q-ml-md">
+      <div class="col-lg col-md-12 full-width">
         <q-card flat bordered class="full-height">
           <q-card-section class="bg-primary q-mb-md">
             <q-item-label>Board information</q-item-label>
           </q-card-section>
 
-          <afen-sidebar :model-value="connection.boardAFEN.value" />
+          <afen-info :model-value="connection.boardAFEN.value" />
         </q-card>
       </div>
     </q-card-section>

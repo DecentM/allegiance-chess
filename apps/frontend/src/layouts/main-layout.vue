@@ -19,7 +19,7 @@ const route = useRoute()
       </q-toolbar>
     </q-header>
 
-    <q-drawer bordered persistent :model-value="true">
+    <q-drawer bordered persistent :model-value="true" behavior="desktop">
       <sidebar-menu />
     </q-drawer>
 

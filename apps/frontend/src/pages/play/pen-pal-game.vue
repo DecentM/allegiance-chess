@@ -3,11 +3,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { Board, Node } from '@decentm/allegiance-chess-core'
 
 import ChessBoard from '../../components/chess-board.vue'
-import AfenSidebar from '../../components/afen-sidebar.vue'
+import AfenInfo from '../../components/afen-info.vue'
 
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Hex } from '../../lib/hex'
 import { FenPreset } from '../../lib/boards'
+import { useQuasar } from 'quasar'
 
 const route = useRoute()
 const router = useRouter()
@@ -32,34 +33,48 @@ const board = computed(() => {
   return result
 })
 
-const handleExcuteNode = (node: Partial<Node>) => {
+const handleExecuteNode = (node: Partial<Node>) => {
   board.value.executeNode(node)
 
   router.push({
     path: `/play/pen-pal/${Hex.utf8ToHex(board.value.toAFEN())}`,
   })
 }
+
+const size = ref(800)
+
+const q = useQuasar()
+
+const handleResize = (newSize: { height: number; width: number }) => {
+  if (q.screen.gt.md) {
+    size.value = newSize.width - newSize.width / 8 - 200
+    return
+  }
+
+  size.value = newSize.width - newSize.width / 8
+}
 </script>
 
 <template>
   <q-card flat>
-    <q-card-section horizontal>
+    <q-card-section class="row">
+      <q-resize-observer @resize="handleResize" />
+
       <chess-board
-        @execute-node="handleExcuteNode"
+        @execute-node="handleExecuteNode"
         :board="board"
         :perspective="board.activeColour"
         :play-as="['white', 'black']"
-        :model-value="board"
-        :width="800"
+        :width="size"
       />
 
-      <div class="col q-ml-md">
+      <div class="col-lg col-md-12 full-width">
         <q-card flat bordered class="full-height">
           <q-card-section class="bg-primary q-mb-md">
             <q-item-label>Board information</q-item-label>
           </q-card-section>
 
-          <afen-sidebar :model-value="afen" />
+          <afen-info :model-value="afen" />
         </q-card>
       </div>
     </q-card-section>

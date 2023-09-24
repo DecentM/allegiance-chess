@@ -47,7 +47,7 @@ const show = (coords: Coordinates) =>
   )
 
 const coordsEmpty = (coords: Coordinates) => {
-  return !!props.board.getSquare(coords)
+  return !props.board.getSquare(coords)
 }
 
 const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
@@ -109,7 +109,19 @@ const indexToCoords = (fileIndex: number, rankIndex: number): Coordinates => {
   }
 
   &.focus {
-    background-color: rgb(255, 0, 0, 0.5);
+    border-radius: 1rem;
+
+    outline-width: 0.25rem;
+    outline-style: dashed;
+    outline-offset: -0.5rem;
+
+    &.even {
+      outline-color: $chess-black;
+    }
+
+    &:not(.even) {
+      outline-color: $chess-white;
+    }
   }
 
   &.target {
@@ -167,13 +179,14 @@ const indexToCoords = (fileIndex: number, rankIndex: number): Coordinates => {
         :key="fileIndex"
         class="full-height move-placeholder"
         :class="{
+          even: rankIndex % 2 === 0 ? fileIndex % 2 === 0 : fileIndex % 2 !== 0,
           focus: coordinatesEqual(
             pieceFocus,
             indexToCoords(fileIndex, rankIndex)
           ),
           show: show(indexToCoords(fileIndex, rankIndex)),
-          capture: coordsEmpty(indexToCoords(fileIndex, rankIndex)),
-          target: !coordsEmpty(indexToCoords(fileIndex, rankIndex)),
+          capture: !coordsEmpty(indexToCoords(fileIndex, rankIndex)),
+          target: coordsEmpty(indexToCoords(fileIndex, rankIndex)),
         }"
         @click="
           (event) =>

@@ -11,6 +11,7 @@ import {
   Node,
   File,
   Rank,
+  allegianceSide,
 } from '@decentm/allegiance-chess-core'
 
 import PromotionSelector from '../../promotion-selector.vue'
@@ -68,6 +69,16 @@ const highlightSquares = computed(() => {
   return result
 })
 
+const isOpponent = (coords: Coordinates) => {
+  const square = props.board.getSquare(coords)
+
+  if (!square) {
+    return false
+  }
+
+  return allegianceSide(square.allegiance) !== props.perspective
+}
+
 const isHighlighted = (coords: Coordinates) =>
   highlightSquares.value.some(
     (coordinate) => coordinate && coordinatesEqual(coords, coordinate)
@@ -119,6 +130,10 @@ const handleCoordsClick = (coords: Coordinates, event: MouseEvent) => {
       })
     }
 
+    return
+  }
+
+  if (isOpponent(coords)) {
     return
   }
 
@@ -196,6 +211,10 @@ const indexToCoords = (fileIndex: number, rankIndex: number): Coordinates => {
     rank: rawRank as Rank,
   }
 }
+
+const coordsEmpty = (coords: Coordinates) => {
+  return !props.board.getSquare(coords)
+}
 </script>
 
 <style lang="scss" scoped>
@@ -218,6 +237,13 @@ const indexToCoords = (fileIndex: number, rankIndex: number): Coordinates => {
             (event) =>
               handleCoordsClick(indexToCoords(fileIndex, rankIndex), event)
           "
+          :class="{
+            'cursor-pointer':
+              !coordsEmpty(indexToCoords(fileIndex, rankIndex)) ||
+              isHighlighted(indexToCoords(fileIndex, rankIndex)),
+            'cursor-not-allowed':
+              isOpponent(indexToCoords(fileIndex, rankIndex)) && !focusedSquare,
+          }"
           :style="
             perspective === 'white'
               ? {
