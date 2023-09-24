@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ComputedRef, computed, ref } from 'vue'
 
 import {
   Board,
@@ -215,6 +215,41 @@ const indexToCoords = (fileIndex: number, rankIndex: number): Coordinates => {
 const coordsEmpty = (coords: Coordinates) => {
   return !props.board.getSquare(coords)
 }
+
+const canMove = (
+  type: 'capture' | 'allegiance',
+  from: Coordinates,
+  to: Coordinates
+) => {
+  const moves = props.board.getValidMoves()
+
+  return moves.some((move) => {
+    return (
+      move.kind === 'move' &&
+      coordinatesEqual(move.to, to) &&
+      coordinatesEqual(move.from, from) &&
+      move.type === type
+    )
+  })
+}
+
+const captureMoves: ComputedRef<Array<'x' | '>'>> = computed(() => {
+  const result: Array<'x' | '>'> = []
+
+  if (!props.pieceFocus || !captureFocus.value) {
+    return result
+  }
+
+  if (canMove('allegiance', props.pieceFocus, captureFocus.value)) {
+    result.push('>')
+  }
+
+  if (canMove('capture', props.pieceFocus, captureFocus.value)) {
+    result.push('x')
+  }
+
+  return result
+})
 </script>
 
 <style lang="scss" scoped>
@@ -269,7 +304,14 @@ const coordsEmpty = (coords: Coordinates) => {
           "
         >
           <capture-selector
-            v-if="captureFocus"
+            v-if="
+              captureFocus &&
+              coordinatesEqual(
+                captureFocus,
+                indexToCoords(fileIndex, rankIndex)
+              )
+            "
+            :moves="captureMoves"
             :model-value="
               coordinatesEqual(
                 captureFocus,

@@ -306,3 +306,62 @@ test('does not castle onto a knight while checking for valid moves', (t) => {
     b.getValidMoves()
   })
 })
+
+test('forces capture if allegiance change is not enough', (t) => {
+  const b = new Board()
+
+  b.importAFEN(
+    'rnb1kbnr/pppp1ppp/8/4p3/3P3P>/6P1/PPPqPP2/RNB1KBNR w kqKQ - 7 14'
+  )
+
+  const result = b.getValidMoves()
+
+  t.assert(
+    result.every(
+      (move) =>
+        move.kind === 'move' &&
+        move.type === 'capture' &&
+        coordinatesEqual(move.to, { file: 4, rank: 2 })
+    )
+  )
+})
+
+test('finds possible allegiance moves', (t) => {
+  const b = new Board()
+
+  b.importAFEN('8/8/8/4p3/8/5N2/8/8 w kqKQ e6 1 2')
+
+  const result = b.getValidMoves()
+
+  t.assert(
+    result.some((move) => {
+      return (
+        move.kind === 'move' &&
+        move.type === 'allegiance' &&
+        coordinatesEqual(move.from, { file: 6, rank: 3 }) &&
+        coordinatesEqual(move.to, { file: 5, rank: 5 })
+      )
+    })
+  )
+})
+
+test('executes possible allegiance move', (t) => {
+  const b = new Board()
+
+  b.importAFEN('8/8/8/4p3/8/5N2/8/8 w kqKQ e6 1 2')
+
+  t.notThrows(() => {
+    b.executeNode({
+      kind: 'move',
+      type: 'allegiance',
+      from: {
+        file: 6,
+        rank: 3,
+      },
+      to: {
+        file: 5,
+        rank: 5,
+      },
+    })
+  })
+})

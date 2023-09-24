@@ -47,7 +47,7 @@ const q = useQuasar()
 
 const handleResize = (newSize: { height: number; width: number }) => {
   if (q.screen.gt.md) {
-    size.value = newSize.width - newSize.width / 8 - 200
+    size.value = Math.min(newSize.width - newSize.width / 8 - 200, 1200)
     return
   }
 

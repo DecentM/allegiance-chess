@@ -341,7 +341,7 @@ export class Board {
 
     const result: Partial<Node> = { ...node }
 
-    const possibleMoves: MoveNode[] = (
+    const possibleMoves: MoveNode<unknown>[] = (
       this.getPossibleMoves().filter(
         (move) => move.kind === 'move'
       ) as MoveNode[]
@@ -363,6 +363,10 @@ export class Board {
       moves = moves.filter((validMove) =>
         coordinatesEqual(validMove.from, node.from)
       )
+    }
+
+    if (node.type) {
+      moves = moves.filter((move) => 'type' in move && move.type === node.type)
     }
 
     if (node.piece || node.piece === null) {
@@ -599,13 +603,22 @@ export class Board {
             if (isPromotion(diagLeft, side)) {
               result.push(...generatePossiblePromotionNodes(diagLeft))
             } else {
-              result.push({
-                kind: 'move',
-                type: 'capture',
-                from: square,
-                to: diagLeft,
-                piece: this.memory.getSquare(square).piece,
-              })
+              result.push(
+                {
+                  kind: 'move',
+                  type: 'capture',
+                  from: square,
+                  to: diagLeft,
+                  piece: this.memory.getSquare(square).piece,
+                },
+                {
+                  kind: 'move',
+                  type: 'allegiance',
+                  from: square,
+                  to: diagLeft,
+                  piece: this.memory.getSquare(square).piece,
+                }
+              )
             }
           }
         }
@@ -620,13 +633,22 @@ export class Board {
             if (isPromotion(diagRight, side)) {
               result.push(...generatePossiblePromotionNodes(diagRight))
             } else {
-              result.push({
-                kind: 'move',
-                type: 'capture',
-                from: square,
-                to: diagRight,
-                piece: this.memory.getSquare(square).piece,
-              })
+              result.push(
+                {
+                  kind: 'move',
+                  type: 'capture',
+                  from: square,
+                  to: diagRight,
+                  piece: this.memory.getSquare(square).piece,
+                },
+                {
+                  kind: 'move',
+                  type: 'allegiance',
+                  from: square,
+                  to: diagRight,
+                  piece: this.memory.getSquare(square).piece,
+                }
+              )
             }
           }
         }
@@ -687,7 +709,25 @@ export class Board {
               to: step,
               piece: square.piece,
             } as const
-          })
+          }),
+
+          ...steps
+            .map((step) => {
+              const target = this.memory.getSquare(step)
+
+              if (!target) {
+                return null
+              }
+
+              return {
+                kind: 'move',
+                type: 'allegiance',
+                from: square,
+                to: step,
+                piece: square.piece,
+              } as const
+            })
+            .filter(Boolean)
         )
       }
 
@@ -723,6 +763,16 @@ export class Board {
             to: target,
             piece: square.piece,
           })
+
+          if (targetSquare) {
+            result.push({
+              kind: 'move',
+              type: 'allegiance',
+              from: square,
+              to: target,
+              piece: square.piece,
+            })
+          }
         })
       }
 
@@ -752,7 +802,25 @@ export class Board {
               to: step,
               piece: square.piece,
             } as const
-          })
+          }),
+
+          ...steps
+            .map((step) => {
+              const target = this.memory.getSquare(step)
+
+              if (!target) {
+                return null
+              }
+
+              return {
+                kind: 'move',
+                type: 'allegiance',
+                from: square,
+                to: step,
+                piece: square.piece,
+              } as const
+            })
+            .filter(Boolean)
         )
       }
 
@@ -790,7 +858,24 @@ export class Board {
               to: step,
               piece: square.piece,
             } as const
-          })
+          }),
+          ...steps
+            .map((step) => {
+              const target = this.memory.getSquare(step)
+
+              if (!target) {
+                return null
+              }
+
+              return {
+                kind: 'move',
+                type: 'allegiance',
+                from: square,
+                to: step,
+                piece: square.piece,
+              } as const
+            })
+            .filter(Boolean)
         )
       }
 
@@ -823,6 +908,16 @@ export class Board {
             to: possibleMove,
             piece: square.piece,
           })
+
+          if (toSquare) {
+            result.push({
+              kind: 'move',
+              type: 'allegiance',
+              from: square,
+              to: possibleMove,
+              piece: square.piece,
+            })
+          }
         })
 
         const whiteCastling = this.memory.castlingRights('white')
