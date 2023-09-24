@@ -923,14 +923,23 @@ export class Board {
         const whiteCastling = this.memory.castlingRights('white')
 
         if (this.activeColour === 'white' && whiteCastling.length > 0) {
+          const a1 = this.memory.getSquare({ file: 1, rank: 1 })
           const b1 = this.memory.getSquare({ file: 2, rank: 1 })
           const c1 = this.memory.getSquare({ file: 3, rank: 1 })
           const d1 = this.memory.getSquare({ file: 4, rank: 1 })
           const f1 = this.memory.getSquare({ file: 6, rank: 1 })
           const g1 = this.memory.getSquare({ file: 7, rank: 1 })
+          const h1 = this.memory.getSquare({ file: 8, rank: 1 })
 
           whiteCastling.forEach((castling) => {
-            if (castling === 'king' && !f1 && !g1) {
+            if (
+              castling === 'king' &&
+              !f1 &&
+              !g1 &&
+              h1 &&
+              h1.piece === 'R' &&
+              allegianceSide(h1.allegiance) === 'white'
+            ) {
               result.push({
                 kind: 'move',
                 type: 'castle',
@@ -941,7 +950,15 @@ export class Board {
               })
             }
 
-            if (castling === 'queen' && !b1 && !c1 && !d1) {
+            if (
+              castling === 'queen' &&
+              !b1 &&
+              !c1 &&
+              !d1 &&
+              a1 &&
+              a1.piece === 'R' &&
+              allegianceSide(a1.allegiance) === 'white'
+            ) {
               result.push({
                 kind: 'move',
                 type: 'castle',
@@ -957,14 +974,23 @@ export class Board {
         const blackCastling = this.memory.castlingRights('black')
 
         if (this.activeColour === 'black' && blackCastling.length > 0) {
+          const a8 = this.memory.getSquare({ file: 1, rank: 8 })
           const b8 = this.memory.getSquare({ file: 2, rank: 8 })
           const c8 = this.memory.getSquare({ file: 3, rank: 8 })
           const d8 = this.memory.getSquare({ file: 4, rank: 8 })
           const f8 = this.memory.getSquare({ file: 6, rank: 8 })
           const g8 = this.memory.getSquare({ file: 7, rank: 8 })
+          const h8 = this.memory.getSquare({ file: 8, rank: 8 })
 
           blackCastling.forEach((castling) => {
-            if (castling === 'king' && !f8 && !g8) {
+            if (
+              castling === 'king' &&
+              !f8 &&
+              !g8 &&
+              h8 &&
+              h8.piece === 'R' &&
+              allegianceSide(h8.allegiance) === 'black'
+            ) {
               result.push({
                 kind: 'move',
                 type: 'castle',
@@ -975,7 +1001,15 @@ export class Board {
               })
             }
 
-            if (castling === 'queen' && !b8 && !c8 && !d8) {
+            if (
+              castling === 'queen' &&
+              !b8 &&
+              !c8 &&
+              !d8 &&
+              a8 &&
+              a8.piece === 'R' &&
+              allegianceSide(a8.allegiance) === 'black'
+            ) {
               result.push({
                 kind: 'move',
                 type: 'castle',
@@ -996,7 +1030,7 @@ export class Board {
   /**
    * @returns Moves that check a king
    */
-  private getCheckMoves(): Node[] {
+  public getCheckMoves(): Node[] {
     const moves = this.getPossibleMoves()
 
     return moves.filter((node) => {

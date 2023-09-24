@@ -365,3 +365,55 @@ test('executes possible allegiance move', (t) => {
     })
   })
 })
+
+test('challenging a piece is allowed even if the piece is pinned', (t) => {
+  const b = new Board()
+
+  b.importAFEN('4k4/8/2n5/1B6/3P>4/8/8/8 b kqKQ - 6 13')
+
+  const result = b.getValidMoves()
+
+  const canChallenge = result.some((move) => {
+    return (
+      move.kind === 'move' &&
+      coordinatesEqual(move.from, { file: 3, rank: 6 }) &&
+      coordinatesEqual(move.to, { file: 4, rank: 4 }) &&
+      move.type === 'allegiance'
+    )
+  })
+
+  const canCapture = result.some((move) => {
+    return (
+      move.kind === 'move' &&
+      coordinatesEqual(move.from, { file: 3, rank: 6 }) &&
+      coordinatesEqual(move.to, { file: 4, rank: 4 }) &&
+      move.type === 'capture'
+    )
+  })
+
+  t.true(canChallenge)
+  t.false(canCapture)
+})
+
+test('does not allow castling without rooks', (t) => {
+  const b = new Board()
+
+  b.importAFEN('4k4/8/2n5/1B6/3P>4/8/8/8 b kqKQ - 6 13')
+
+  const result = b.getValidMoves()
+
+  const canCastleKingSide = result.some((move) => {
+    return (
+      move.kind === 'move' && move.type === 'castle' && move.side === 'king'
+    )
+  })
+
+  const canCastleQueenSide = result.some((move) => {
+    return (
+      move.kind === 'move' && move.type === 'castle' && move.side === 'queen'
+    )
+  })
+
+  t.false(canCastleKingSide)
+  t.false(canCastleQueenSide)
+})

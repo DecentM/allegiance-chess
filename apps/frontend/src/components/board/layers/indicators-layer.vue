@@ -17,10 +17,6 @@ const props = defineProps<{
   pieceFocus: Coordinates | null
 }>()
 
-const emit = defineEmits<{
-  (event: 'click', coords: Coordinates): void
-}>()
-
 const highlightSquares = computed(() => {
   if (!props.pieceFocus) {
     return []
@@ -50,20 +46,6 @@ const coordsEmpty = (coords: Coordinates) => {
   return !props.board.getSquare(coords)
 }
 
-const handlePieceClick = (coords: Coordinates, event: MouseEvent) => {
-  event.stopPropagation()
-  event.preventDefault()
-
-  if (props.perspective === 'black') {
-    emit('click', coords)
-  } else {
-    emit('click', {
-      file: (props.files + 1 - coords.file) as File,
-      rank: (props.ranks + 1 - coords.rank) as Rank,
-    })
-  }
-}
-
 const indexToCoords = (fileIndex: number, rankIndex: number): Coordinates => {
   const rawFile = fileIndex + 1
   const rawRank = rankIndex + 1
@@ -80,6 +62,16 @@ const indexToCoords = (fileIndex: number, rankIndex: number): Coordinates => {
     rank: rawRank as Rank,
   }
 }
+
+const checkMoves = computed(() => {
+  return props.board.getCheckMoves()
+})
+
+const isChecked = (coords: Coordinates) => {
+  return checkMoves.value.some(
+    (move) => move.kind === 'move' && coordinatesEqual(move.to, coords)
+  )
+}
 </script>
 
 <style lang="scss" scoped>
@@ -89,6 +81,13 @@ const indexToCoords = (fileIndex: number, rankIndex: number): Coordinates => {
 
 .move-placeholder {
   position: relative;
+
+  transition-property: outline-color;
+  transition-duration: 0.1s;
+  transition-timing-function: linear;
+  transition-delay: inherit;
+
+  outline-color: transparent;
 
   &::before {
     filter: blur(1px);
@@ -103,9 +102,17 @@ const indexToCoords = (fileIndex: number, rankIndex: number): Coordinates => {
     border-color: rgba(0, 0, 0, 0);
 
     transition-property: background-color, border-color;
-    transition-duration: 0.1s;
-    transition-timing-function: linear;
+    transition-duration: inherit;
+    transition-timing-function: inherit;
     transition-delay: inherit;
+  }
+
+  &.checked {
+    &::before {
+      background-color: $negative;
+      opacity: 0.8;
+      filter: blur(15px);
+    }
   }
 
   &.focus {
@@ -187,11 +194,8 @@ const indexToCoords = (fileIndex: number, rankIndex: number): Coordinates => {
           show: show(indexToCoords(fileIndex, rankIndex)),
           capture: !coordsEmpty(indexToCoords(fileIndex, rankIndex)),
           target: coordsEmpty(indexToCoords(fileIndex, rankIndex)),
+          checked: isChecked(indexToCoords(fileIndex, rankIndex)),
         }"
-        @click="
-          (event) =>
-            handlePieceClick(indexToCoords(fileIndex, rankIndex), event)
-        "
       />
     </div>
   </div>
