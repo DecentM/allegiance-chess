@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
+import { Board, Node } from '@decentm/allegiance-chess-core'
 
 import ChessBoard from '../../components/chess-board.vue'
 import AfenSidebar from '../../components/afen-sidebar.vue'
@@ -23,9 +24,19 @@ const afen = computed(() => {
   return Hex.hexToUtf8(hex)
 })
 
-const handleStateUpdate = (afen: string) => {
+const board = computed(() => {
+  const result = new Board()
+
+  result.importAFEN(afen.value)
+
+  return result
+})
+
+const handleExcuteNode = (node: Partial<Node>) => {
+  board.value.executeNode(node)
+
   router.push({
-    path: `/play/pen-pal/${Hex.utf8ToHex(afen)}`,
+    path: `/play/pen-pal/${Hex.utf8ToHex(board.value.toAFEN())}`,
   })
 }
 </script>
@@ -34,8 +45,11 @@ const handleStateUpdate = (afen: string) => {
   <q-card flat>
     <q-card-section horizontal>
       <chess-board
-        :model-value="afen"
-        @update:model-value="handleStateUpdate"
+        @execute-node="handleExcuteNode"
+        :board="board"
+        :perspective="board.activeColour"
+        :play-as="['white', 'black']"
+        :model-value="board"
         :width="800"
       />
 

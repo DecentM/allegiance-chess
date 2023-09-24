@@ -6,5 +6,5 @@ export { getCoordsForIndex, isPromotion } from './lib/board'
 
 export type { MoveNode } from './notation/parser'
 export type { BoardSquare } from './chess/board-memory'
-export type { Coordinates } from './notation/parser'
+export type { Coordinates, Node } from './notation/parser'
 export type { Piece, Rank, File } from './notation/declarations'

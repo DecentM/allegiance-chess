@@ -915,11 +915,15 @@ export class Board {
     })
   }
 
-  public getValidMoves(): Node[] {
+  public getValidMoves(from?: Coordinates | null): Node[] {
     const moveNodes = this.getPossibleMoves()
 
     return moveNodes.filter((moveNode) => {
       if (moveNode.kind !== 'move') {
+        return false
+      }
+
+      if (from && !coordinatesEqual(from, moveNode.from)) {
         return false
       }
 
