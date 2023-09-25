@@ -1,6 +1,6 @@
 import VError from 'verror'
 
-import { Piece, Rank } from '../notation/declarations'
+import { GameOutcome, Piece, Rank } from '../notation/declarations'
 import {
   AllegianceNode,
   AnyMoveNode,
@@ -283,7 +283,7 @@ export class Board {
       this.memory.activeColour === 'white' ? 'black' : 'white'
   }
 
-  public executeInferredNode(node: Node) {
+  private executeNode(node: Node) {
     switch (node.kind) {
       case 'move': {
         this.executeMoveNode(node)
@@ -291,133 +291,95 @@ export class Board {
         break
       }
     }
+
+    this.memory.moveHistory.push(node)
   }
 
-  public executeNode(node: Partial<Node>) {
-    const fullNode = this.inferNode(node)
+  public executeMoveIndex(moveIndex: number) {
+    if (moveIndex < 0) {
+      throw new VError(`Move index must be positive, got ${moveIndex}`)
+    }
 
-    this.executeInferredNode(fullNode)
-  }
+    const moves = this.getValidMoves()
+    const move = moves.at(moveIndex)
 
-  public executeNodes(nodes: Node[]) {
-    nodes.forEach((node) => {
-      this.executeNode(node)
-    })
+    if (!move) {
+      throw new VError(`Move with index ${moveIndex} does not exist`)
+    }
+
+    this.executeNode(move)
   }
 
   public getSquare(coords: Coordinates) {
     return this.memory.getSquare(coords)
   }
 
-  public inferNode(node: Partial<Node>): Node {
-    if (node.kind !== 'move') {
-      return node as Node
+  public findMoveIndex(node: Partial<Node>): number {
+    const validMoves = this.getValidMoves()
+
+    let moves = validMoves
+
+    if (node.kind === 'draw-offer') {
+      moves = moves.filter((move) => move.kind === 'draw-offer')
     }
 
-    // No inferrence needed on fully qualified nodes
-    if (
-      node.from &&
-      Object.keys(node.from).length === 2 &&
-      node.to &&
-      Object.keys(node.to).length === 2 &&
-      (node.piece || node.piece === null)
-    ) {
-      return node as Node
+    if (node.kind === 'game-over') {
+      moves = moves.filter(
+        (move) => move.kind === 'game-over' && move.outcome === node.outcome
+      )
     }
 
-    if (node.type === 'castle') {
-      const side = this.memory.activeColour
-      const rank = side === 'white' ? 1 : 8
+    if (node.kind === 'move') {
+      if (node.to && Object.keys(node.to).length === 2) {
+        moves = moves.filter(
+          (validMove) =>
+            validMove.kind === 'move' && coordinatesEqual(validMove.to, node.to)
+        )
+      }
 
-      return {
-        kind: 'move',
-        type: 'castle',
-        side: node.side,
-        piece: 'K',
-        from: side === 'white' ? { rank, file: 5 } : { rank, file: 5 },
-        to: node.side === 'king' ? { rank, file: 7 } : { rank, file: 3 },
+      if (node.from && Object.keys(node.from).length === 2) {
+        moves = moves.filter(
+          (validMove) =>
+            validMove.kind === 'move' &&
+            coordinatesEqual(validMove.from, node.from)
+        )
+      }
+
+      if (node.type) {
+        moves = moves.filter(
+          (move) => 'type' in move && move.type === node.type
+        )
+      }
+
+      if (node.piece || node.piece === null) {
+        moves = moves.filter(
+          (validMove) =>
+            validMove.kind === 'move' && validMove.piece === node.piece
+        )
+      } else if (moves.length > 1 && !node.piece) {
+        // If there are multiple valid moves for this node but the node has no
+        // piece defined, we can assume it's a pawn
+        moves = moves.filter(
+          (validMove) => validMove.kind === 'move' && validMove.piece === null
+        )
+      }
+
+      if (node.type === 'promotion') {
+        moves = moves.filter(
+          (validMove) =>
+            'promotionTo' in validMove &&
+            validMove.promotionTo === node.promotionTo &&
+            coordinatesEqual(validMove.to, node.to) &&
+            coordinatesEqual(validMove.from, node.from)
+        )
       }
     }
 
-    const result: Partial<Node> = { ...node }
-
-    const possibleMoves: MoveNode<unknown>[] = (
-      this.getPossibleMoves().filter(
-        (move) => move.kind === 'move'
-      ) as MoveNode[]
-    ).filter((moveNode) => {
-      const square = this.memory.getSquare(moveNode.from)
-
-      return allegianceSide(square.allegiance) === this.memory.activeColour
-    })
-
-    let moves = possibleMoves
-
-    if (node.to && Object.keys(node.to).length === 2) {
-      moves = moves.filter((validMove) =>
-        coordinatesEqual(validMove.to, node.to)
-      )
-    }
-
-    if (node.from && Object.keys(node.from).length === 2) {
-      moves = moves.filter((validMove) =>
-        coordinatesEqual(validMove.from, node.from)
-      )
-    }
-
-    if (node.type) {
-      moves = moves.filter((move) => 'type' in move && move.type === node.type)
-    }
-
-    if (node.piece || node.piece === null) {
-      moves = moves.filter((validMove) => validMove.piece === node.piece)
-    } else if (moves.length > 1 && !node.piece) {
-      // If there are multiple valid moves for this node but the node has no
-      // piece defined, we can assume it's a pawn
-      moves = moves.filter((validMove) => validMove.piece === null)
-    }
-
-    if (node.type === 'promotion') {
-      moves = moves.filter(
-        (validMove) =>
-          'promotionTo' in validMove &&
-          validMove.promotionTo === node.promotionTo &&
-          coordinatesEqual(validMove.to, node.to) &&
-          coordinatesEqual(validMove.from, node.from)
-      )
-    }
-
-    if (moves.length > 1) {
-      throw new VError(
-        `Move node is not qualified enough for this board. Matching valid moves: ${
-          moves.length
-        }. Node: ${JSON.stringify({
-          from: node.from,
-          to: node.to,
-          piece: node.piece,
-        })}`
-      )
-    }
-
     if (moves.length === 1) {
-      const move = moves[0]
-
-      result.from = move.from
-      result.to = move.to
-      result.piece = move.piece
+      return validMoves.indexOf(moves[0])
     }
 
-    if (moves.length === 0) {
-      throw new VError(
-        `Move node does not qualify a valid move: ${JSON.stringify({
-          from: node.from,
-          to: node.to,
-          piece: node.piece,
-        })}`
-      )
-    }
-
-    return result as Node
+    return -1
   }
 
   private getCoordsRelative(
@@ -510,6 +472,56 @@ export class Board {
   private getPossibleMoves(): Node[] {
     const result: Node[] = []
     const squares = this.memory.getSquares()
+
+    const hasGameOver = this.memory.moveHistory.some(
+      (move) => move.kind === 'game-over'
+    )
+
+    if (!hasGameOver) {
+      if (this.memory.activeColour === 'black') {
+        result.push(
+          {
+            kind: 'game-over',
+            outcome: GameOutcome.White,
+          },
+          {
+            kind: 'game-over',
+            outcome: GameOutcome.Draw,
+          },
+          {
+            kind: 'game-over',
+            outcome: GameOutcome.Forfeit,
+          },
+          {
+            kind: 'game-over',
+            outcome: GameOutcome.ForfeitWhite,
+          }
+        )
+      }
+
+      if (this.memory.activeColour === 'white') {
+        result.push(
+          {
+            kind: 'game-over',
+            outcome: GameOutcome.Black,
+          },
+          {
+            kind: 'game-over',
+            outcome: GameOutcome.Draw,
+          },
+          {
+            kind: 'game-over',
+            outcome: GameOutcome.Forfeit,
+          },
+          {
+            kind: 'game-over',
+            outcome: GameOutcome.ForfeitBlack,
+          }
+        )
+      }
+
+      result.push({ kind: 'draw-offer' })
+    }
 
     squares.forEach((square) => {
       // No piece on square
@@ -1049,7 +1061,7 @@ export class Board {
 
     return moveNodes.filter((moveNode) => {
       if (moveNode.kind !== 'move') {
-        return false
+        return true
       }
 
       if (from && !coordinatesEqual(from, moveNode.from)) {
@@ -1066,7 +1078,7 @@ export class Board {
       // Sets up a clone of the board with this move applied so wee can scan for
       // checks
       const virtualBoard = this.clone()
-      virtualBoard.executeInferredNode(moveNode)
+      virtualBoard.executeNode(moveNode)
 
       const checkMoveNodes = virtualBoard.getCheckMoves()
 

@@ -2,7 +2,7 @@ import { VError } from 'verror'
 import cloneDeep from 'lodash.clonedeep'
 
 import { File, Piece, Rank } from '../notation/declarations'
-import { Coordinates } from '../notation/parser'
+import { Coordinates, Node } from '../notation/parser'
 
 import { PieceAllegiance } from './board'
 import { tokenize } from '../afen/tokenizer'
@@ -36,6 +36,8 @@ export class BoardMemory {
 
   public fullmoveNumber: number
 
+  public moveHistory: Node[]
+
   public clone() {
     const memory = new BoardMemory()
 
@@ -45,6 +47,7 @@ export class BoardMemory {
     memory._castlingRights = cloneDeep(this._castlingRights)
     memory.halfmoveClock = this.halfmoveClock
     memory.fullmoveNumber = this.fullmoveNumber
+    memory.moveHistory = cloneDeep(this.moveHistory)
 
     return memory
   }
@@ -77,6 +80,7 @@ export class BoardMemory {
     this._castlingRights = []
     this.halfmoveClock = 0
     this.fullmoveNumber = 0
+    this.moveHistory = []
 
     for (let rank = 0; rank < 8; rank++) {
       this.memory[rank] = []

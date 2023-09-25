@@ -201,7 +201,7 @@ export const parse = (tokens: Token[]): RootNode => {
   const noSourceTokens: Token['kind'][] = ['step-number', 'move-separator']
 
   // List of moves that are acceptable. On a clean slate, these things are
-  // epected
+  // expected
   const expectedTokens: Set<Token['kind']> = new Set(moveBeginning)
 
   const expect = (...tokens: Token['kind'][]) => {

@@ -34,13 +34,14 @@ test('finds 20 moves on a starting board for white', (t) => {
 
   const moves = b.getValidMoves()
 
-  t.is(moves.length, 20)
+  // 1 is draw offer, 4 are resignations
+  t.is(moves.length, 25)
 })
 
 test('finds 20 moves for black after a move', (t) => {
   const b = createDefaultBoard()
 
-  b.executeNode({
+  const move = b.findMoveIndex({
     kind: 'move',
     to: {
       rank: 4,
@@ -48,29 +49,32 @@ test('finds 20 moves for black after a move', (t) => {
     },
   })
 
+  b.executeMoveIndex(move)
+
   const moves = b.getValidMoves()
 
-  t.is(moves.length, 20)
+  // 1 is draw offer, 4 are resignations
+  t.is(moves.length, 25)
 })
 
 test('executes single move', (t) => {
   const b = createDefaultBoard()
 
-  b.executeNodes([
-    {
-      kind: 'move',
-      type: null,
-      from: {
-        file: 1,
-        rank: 2,
-      },
-      to: {
-        file: 1,
-        rank: 3,
-      },
-      piece: null,
+  const move = b.findMoveIndex({
+    kind: 'move',
+    type: null,
+    from: {
+      file: 1,
+      rank: 2,
     },
-  ])
+    to: {
+      file: 1,
+      rank: 3,
+    },
+    piece: null,
+  })
+
+  b.executeMoveIndex(move)
 
   t.log(b.dump())
 
@@ -153,16 +157,20 @@ test('executes moves', (t) => {
 
   const moveNodes = parse(moveTokens)
 
-  b.executeNodes(moveNodes.children)
+  moveNodes.children.forEach((node) => {
+    const index = b.findMoveIndex(node)
+
+    b.executeMoveIndex(index)
+  })
 
   t.log(b.dump())
   t.snapshot(b.dump())
 })
 
-test('infers single node', (t) => {
+test('finds single node', (t) => {
   const b = createDefaultBoard()
 
-  const node = b.inferNode({
+  const node = b.findMoveIndex({
     kind: 'move',
     type: null,
     to: {
@@ -171,27 +179,13 @@ test('infers single node', (t) => {
     },
   })
 
-  t.deepEqual(node, {
-    from: {
-      allegiance: 3,
-      file: 1,
-      piece: null,
-      rank: 2,
-    },
-    kind: 'move',
-    piece: null,
-    to: {
-      file: 1,
-      rank: 4,
-    },
-    type: null,
-  })
+  t.is(node, 10)
 })
 
 test('infers two nodes', (t) => {
   const b = createDefaultBoard()
 
-  const node1 = b.inferNode({
+  const node1 = b.findMoveIndex({
     kind: 'move',
     to: {
       file: 5,
@@ -199,9 +193,9 @@ test('infers two nodes', (t) => {
     },
   })
 
-  b.executeNode(node1)
+  b.executeMoveIndex(node1)
 
-  const node2 = b.inferNode({
+  const node2 = b.findMoveIndex({
     kind: 'move',
     to: {
       file: 5,
@@ -209,7 +203,7 @@ test('infers two nodes', (t) => {
     },
   })
 
-  b.executeNode(node2)
+  b.executeMoveIndex(node2)
 
   t.log(b.dump())
   t.snapshot(b.dump())
@@ -223,7 +217,7 @@ test('finds promotion move', (t) => {
   const moves = b.getValidMoves()
 
   t.deepEqual(
-    moves,
+    moves.filter((move) => move.kind === 'move'),
     PROMOTION_PIECES.map((piece) => ({
       kind: 'move',
       type: 'promotion',
@@ -280,8 +274,8 @@ test('makes a move with castling available', (t) => {
     'rnbqkb>n>r>/pppp3p>/5p2/4p1p1/6P1/5N>1B>/PPPPPP1P>/RNBQK2R> b kqKQ e6 3 6'
   )
 
-  t.notThrows(() => {
-    b.executeNode({
+  t.not(
+    b.findMoveIndex({
       kind: 'move',
       from: {
         file: 4,
@@ -291,8 +285,9 @@ test('makes a move with castling available', (t) => {
         file: 4,
         rank: 5,
       },
-    })
-  })
+    }),
+    -1
+  )
 })
 
 test('does not castle onto a knight while checking for valid moves', (t) => {
@@ -317,12 +312,14 @@ test('forces capture if allegiance change is not enough', (t) => {
   const result = b.getValidMoves()
 
   t.assert(
-    result.every(
-      (move) =>
-        move.kind === 'move' &&
-        move.type === 'capture' &&
-        coordinatesEqual(move.to, { file: 4, rank: 2 })
-    )
+    result
+      .filter((move) => move.kind === 'move')
+      .every(
+        (move) =>
+          move.kind === 'move' &&
+          move.type === 'capture' &&
+          coordinatesEqual(move.to, { file: 4, rank: 2 })
+      )
   )
 })
 
@@ -350,8 +347,8 @@ test('executes possible allegiance move', (t) => {
 
   b.importAFEN('8/8/8/4p3/8/5N2/8/8 w kqKQ e6 1 2')
 
-  t.notThrows(() => {
-    b.executeNode({
+  t.not(
+    b.findMoveIndex({
       kind: 'move',
       type: 'allegiance',
       from: {
@@ -362,8 +359,9 @@ test('executes possible allegiance move', (t) => {
         file: 5,
         rank: 5,
       },
-    })
-  })
+    }),
+    -1
+  )
 })
 
 test('challenging a piece is allowed even if the piece is pinned', (t) => {
