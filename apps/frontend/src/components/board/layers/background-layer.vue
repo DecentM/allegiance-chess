@@ -8,6 +8,8 @@ defineProps<{
 <style lang="scss" scoped>
 .background-layer {
   z-index: 1;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .rank {

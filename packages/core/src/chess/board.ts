@@ -932,6 +932,8 @@ export class Board {
           }
         })
 
+        // TODO: No castling through check!
+
         const whiteCastling = this.memory.castlingRights('white')
 
         if (this.activeColour === 'white' && whiteCastling.length > 0) {
