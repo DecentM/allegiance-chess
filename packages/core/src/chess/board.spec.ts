@@ -415,3 +415,16 @@ test('does not allow castling without rooks', (t) => {
   t.false(canCastleKingSide)
   t.false(canCastleQueenSide)
 })
+
+test('does not allow castling through checks', (t) => {
+  const b = new Board()
+
+  b.importAFEN('8/8/b7/8/8/8/8/4K2R w KQkq 1 1')
+
+  const validMoves = b.getValidMoves()
+
+  t.is(
+    validMoves.find((move) => move.kind === 'move' && move.type === 'castle'),
+    undefined
+  )
+})

@@ -469,9 +469,126 @@ export class Board {
     return steps
   }
 
+  private getAttackedCoordsBySide(bySide: 'white' | 'black') {
+    const pieces = this.memory.getSquares().filter((square) => {
+      return square && allegianceSide(square.allegiance) === bySide
+    })
+
+    const result: Coordinates[] = []
+
+    pieces.forEach((piece) => {
+      result.push(...this.getAttackedCoordsByCoords(piece))
+    })
+
+    return result
+  }
+
+  private getAttackedCoordsByCoords(byCoords: Coordinates): Coordinates[] {
+    const result: Coordinates[] = []
+    const bySquare = this.memory.getSquare(byCoords)
+
+    if (!bySquare) {
+      return result
+    }
+
+    const side = allegianceSide(bySquare.allegiance)
+
+    if (bySquare.piece === null) {
+      const diagLeft = this.getCoordsRelative(
+        byCoords,
+        new Vector2(side === 'white' ? -1 : 1, side === 'white' ? 1 : -1)
+      )
+
+      const diagRight = this.getCoordsRelative(
+        byCoords,
+        new Vector2(side === 'white' ? 1 : -1, side === 'white' ? 1 : -1)
+      )
+
+      return [diagLeft, diagRight]
+    }
+
+    if (bySquare.piece === 'R') {
+      return [
+        // X pos
+        ...this.traceCaptureSteps(byCoords, new Vector2(1, 0)),
+        // X neg
+        ...this.traceCaptureSteps(byCoords, new Vector2(-1, 0)),
+        // Y pos
+        ...this.traceCaptureSteps(byCoords, new Vector2(0, 1)),
+        // Y neg
+        ...this.traceCaptureSteps(byCoords, new Vector2(0, -1)),
+      ].filter(Boolean)
+    }
+
+    if (bySquare.piece === 'N') {
+      return [
+        this.getCoordsRelative(byCoords, new Vector2(1, 2)),
+        this.getCoordsRelative(byCoords, new Vector2(2, 1)),
+        this.getCoordsRelative(byCoords, new Vector2(2, -1)),
+        this.getCoordsRelative(byCoords, new Vector2(1, -2)),
+        this.getCoordsRelative(byCoords, new Vector2(-1, -2)),
+        this.getCoordsRelative(byCoords, new Vector2(-2, -1)),
+        this.getCoordsRelative(byCoords, new Vector2(-2, 1)),
+        this.getCoordsRelative(byCoords, new Vector2(-1, 2)),
+      ].filter(Boolean)
+    }
+
+    if (bySquare.piece === 'B') {
+      return [
+        // NE
+        ...this.traceCaptureSteps(byCoords, new Vector2(1, 1)),
+        // SE
+        ...this.traceCaptureSteps(byCoords, new Vector2(1, -1)),
+        // SW
+        ...this.traceCaptureSteps(byCoords, new Vector2(-1, -1)),
+        // NW
+        ...this.traceCaptureSteps(byCoords, new Vector2(-1, 1)),
+      ].filter(Boolean)
+    }
+
+    if (bySquare.piece === 'Q') {
+      return [
+        // X pos
+        ...this.traceCaptureSteps(byCoords, new Vector2(1, 0)),
+        // X neg
+        ...this.traceCaptureSteps(byCoords, new Vector2(-1, 0)),
+        // Y pos
+        ...this.traceCaptureSteps(byCoords, new Vector2(0, 1)),
+        // Y neg
+        ...this.traceCaptureSteps(byCoords, new Vector2(0, -1)),
+        // NE
+        ...this.traceCaptureSteps(byCoords, new Vector2(1, 1)),
+        // SE
+        ...this.traceCaptureSteps(byCoords, new Vector2(1, -1)),
+        // SW
+        ...this.traceCaptureSteps(byCoords, new Vector2(-1, -1)),
+        // NW
+        ...this.traceCaptureSteps(byCoords, new Vector2(-1, 1)),
+      ].filter(Boolean)
+    }
+
+    if (bySquare.piece === 'K') {
+      return [
+        this.getCoordsRelative(byCoords, new Vector2(0, 1)),
+        this.getCoordsRelative(byCoords, new Vector2(1, 1)),
+        this.getCoordsRelative(byCoords, new Vector2(1, 0)),
+        this.getCoordsRelative(byCoords, new Vector2(1, -1)),
+        this.getCoordsRelative(byCoords, new Vector2(0, -1)),
+        this.getCoordsRelative(byCoords, new Vector2(-1, -1)),
+        this.getCoordsRelative(byCoords, new Vector2(-1, 0)),
+        this.getCoordsRelative(byCoords, new Vector2(-1, 1)),
+      ].filter(Boolean)
+    }
+
+    return result
+  }
+
   private getPossibleMoves(): Node[] {
     const result: Node[] = []
     const squares = this.memory.getSquares()
+    const coordsAttackedByOpponent = this.getAttackedCoordsBySide(
+      this.activeColour === 'white' ? 'black' : 'white'
+    )
 
     const hasGameOver = this.memory.moveHistory.some(
       (move) => move.kind === 'game-over'
@@ -932,9 +1049,10 @@ export class Board {
           }
         })
 
-        // TODO: No castling through check!
-
         const whiteCastling = this.memory.castlingRights('white')
+        const checked = coordsAttackedByOpponent.some((attackedCoord) =>
+          coordinatesEqual(square, attackedCoord)
+        )
 
         if (this.activeColour === 'white' && whiteCastling.length > 0) {
           const a1 = this.memory.getSquare({ file: 1, rank: 1 })
@@ -945,14 +1063,52 @@ export class Board {
           const g1 = this.memory.getSquare({ file: 7, rank: 1 })
           const h1 = this.memory.getSquare({ file: 8, rank: 1 })
 
+          const b1Attacked = coordsAttackedByOpponent.some((attackedCoord) =>
+            coordinatesEqual(attackedCoord, {
+              file: 2,
+              rank: 1,
+            })
+          )
+
+          const c1Attacked = coordsAttackedByOpponent.some((attackedCoord) =>
+            coordinatesEqual(attackedCoord, {
+              file: 3,
+              rank: 1,
+            })
+          )
+
+          const d1Attacked = coordsAttackedByOpponent.some((attackedCoord) =>
+            coordinatesEqual(attackedCoord, {
+              file: 4,
+              rank: 1,
+            })
+          )
+
+          const f1Attacked = coordsAttackedByOpponent.some((attackedCoord) =>
+            coordinatesEqual(attackedCoord, {
+              file: 6,
+              rank: 1,
+            })
+          )
+
+          const g1Attacked = coordsAttackedByOpponent.some((attackedCoord) =>
+            coordinatesEqual(attackedCoord, {
+              file: 7,
+              rank: 1,
+            })
+          )
+
           whiteCastling.forEach((castling) => {
             if (
               castling === 'king' &&
+              !checked &&
               !f1 &&
               !g1 &&
               h1 &&
               h1.piece === 'R' &&
-              allegianceSide(h1.allegiance) === 'white'
+              allegianceSide(h1.allegiance) === 'white' &&
+              !f1Attacked &&
+              !g1Attacked
             ) {
               result.push({
                 kind: 'move',
@@ -966,12 +1122,16 @@ export class Board {
 
             if (
               castling === 'queen' &&
+              !checked &&
               !b1 &&
               !c1 &&
               !d1 &&
               a1 &&
               a1.piece === 'R' &&
-              allegianceSide(a1.allegiance) === 'white'
+              allegianceSide(a1.allegiance) === 'white' &&
+              !b1Attacked &&
+              !c1Attacked &&
+              !d1Attacked
             ) {
               result.push({
                 kind: 'move',
@@ -996,14 +1156,52 @@ export class Board {
           const g8 = this.memory.getSquare({ file: 7, rank: 8 })
           const h8 = this.memory.getSquare({ file: 8, rank: 8 })
 
+          const b8Attacked = coordsAttackedByOpponent.some((attackedCoord) =>
+            coordinatesEqual(attackedCoord, {
+              file: 2,
+              rank: 8,
+            })
+          )
+
+          const c8Attacked = coordsAttackedByOpponent.some((attackedCoord) =>
+            coordinatesEqual(attackedCoord, {
+              file: 3,
+              rank: 8,
+            })
+          )
+
+          const d8Attacked = coordsAttackedByOpponent.some((attackedCoord) =>
+            coordinatesEqual(attackedCoord, {
+              file: 4,
+              rank: 8,
+            })
+          )
+
+          const f8Attacked = coordsAttackedByOpponent.some((attackedCoord) =>
+            coordinatesEqual(attackedCoord, {
+              file: 6,
+              rank: 8,
+            })
+          )
+
+          const g8Attacked = coordsAttackedByOpponent.some((attackedCoord) =>
+            coordinatesEqual(attackedCoord, {
+              file: 7,
+              rank: 8,
+            })
+          )
+
           blackCastling.forEach((castling) => {
             if (
               castling === 'king' &&
+              !checked &&
               !f8 &&
               !g8 &&
               h8 &&
               h8.piece === 'R' &&
-              allegianceSide(h8.allegiance) === 'black'
+              allegianceSide(h8.allegiance) === 'black' &&
+              !f8Attacked &&
+              !g8Attacked
             ) {
               result.push({
                 kind: 'move',
@@ -1017,12 +1215,16 @@ export class Board {
 
             if (
               castling === 'queen' &&
+              !checked &&
               !b8 &&
               !c8 &&
               !d8 &&
               a8 &&
               a8.piece === 'R' &&
-              allegianceSide(a8.allegiance) === 'black'
+              allegianceSide(a8.allegiance) === 'black' &&
+              !b8Attacked &&
+              !c8Attacked &&
+              !d8Attacked
             ) {
               result.push({
                 kind: 'move',
