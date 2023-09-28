@@ -77,7 +77,7 @@ module.exports = configure(function (/* ctx */) {
       // ignorePublicFolder: true,
       // minify: false,
       // polyfillModulePreload: true,
-      // distDir
+      distDir: path.join(__dirname, '../../dist/apps/frontend'),
 
       // extendViteConf (viteConf) {},
       // viteVuePluginOptions: {},
