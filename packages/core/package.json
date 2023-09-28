@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "t": "ava"
+    "t": "c8 ava"
   },
   "ava": {
     "extensions": [

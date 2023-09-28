@@ -1,0 +1,138 @@
+name: pages
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: lint-packages
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        id: cache-node-modules
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: lock-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            lock-
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.5.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: |
+          set -exu
+          yarn --frozen-lockfile --non-interactive
+
+      - uses: nrwl/nx-set-shas@v3
+
+      - run: yarn nx affected --target=lint
+
+  tests:
+    name: test-packages
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        id: cache-node-modules
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            apps/*/node_modules
+          key: lock-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            lock-
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.5.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: |
+          set -exu
+          yarn --frozen-lockfile --non-interactive
+
+      - uses: nrwl/nx-set-shas@v3
+
+      - run: yarn nx affected --target=test
+
+  build:
+    name: build-packages
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Cache
+        uses: actions/cache@v3
+        id: cache-node-modules
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            apps/*/node_modules
+          key: lock-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            lock-
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.5.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: |
+          set -exu
+          yarn --frozen-lockfile --non-interactive
+
+      - uses: nrwl/nx-set-shas@v3
+
+      - name: Build packages
+        run: yarn nx affected --target=build
+
+      - name: Upload build result
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: |
+            dist/packages/*
+            dist/apps/*

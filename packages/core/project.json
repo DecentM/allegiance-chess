@@ -6,18 +6,24 @@
   "targets": {
     "build": {
       "executor": "@nx/js:tsc",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "options": {
         "outputPath": "dist/packages/core",
         "tsConfig": "packages/core/tsconfig.lib.json",
         "packageJson": "packages/core/package.json",
         "main": "packages/core/src/index.ts",
-        "assets": ["packages/core/*.md"]
+        "assets": [
+          "packages/core/*.md"
+        ]
       }
     },
     "lint": {
       "executor": "@nx/linter:eslint",
-      "outputs": ["{options.outputFile}"],
+      "outputs": [
+        "{options.outputFile}"
+      ],
       "options": {
         "lintFilePatterns": [
           "packages/core/**/*.ts",
@@ -26,17 +32,12 @@
       }
     },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "executor": "nx:run-script",
+      "outputs": [
+        "{workspaceRoot}/{projectRoot}/coverage"
+      ],
       "options": {
-        "jestConfig": "packages/core/jest.config.ts",
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "codeCoverage": true
-        }
+        "script": "t"
       }
     }
   },
