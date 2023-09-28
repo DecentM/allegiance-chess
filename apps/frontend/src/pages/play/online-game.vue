@@ -25,7 +25,13 @@ const board = computed(() => {
 })
 
 const handleExecuteNode = (node: Partial<Node>) => {
-  board.value.executeNode(node)
+  const index = board.value.findMoveIndex(node)
+
+  if (index === -1) {
+    return
+  }
+
+  board.value.executeMoveIndex(index)
 
   props.connection.sendMessage({
     type: 'afen-update',

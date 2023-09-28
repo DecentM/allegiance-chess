@@ -34,7 +34,13 @@ const board = computed(() => {
 })
 
 const handleExecuteNode = (node: Partial<Node>) => {
-  board.value.executeNode(node)
+  const index = board.value.findMoveIndex(node)
+
+  if (index === -1) {
+    return
+  }
+
+  board.value.executeMoveIndex(index)
 
   router.push({
     path: `/play/pen-pal/${Hex.utf8ToHex(board.value.toAFEN())}`,
