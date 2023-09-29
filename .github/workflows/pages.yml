@@ -43,9 +43,7 @@ jobs:
           set -exu
           yarn --frozen-lockfile --non-interactive
 
-      - uses: nrwl/nx-set-shas@v3
-
-      - run: yarn nx affected --target=lint
+      - run: yarn nx run-many --target=lint
 
   test:
     name: test
@@ -82,9 +80,7 @@ jobs:
           set -exu
           yarn --frozen-lockfile --non-interactive
 
-      - uses: nrwl/nx-set-shas@v3
-
-      - run: yarn nx affected --target=test
+      - run: yarn nx run-many --target=test
 
   build:
     name: build
@@ -125,10 +121,8 @@ jobs:
           set -exu
           yarn --frozen-lockfile --non-interactive
 
-      - uses: nrwl/nx-set-shas@v3
-
       - name: Build packages
-        run: yarn nx affected --target=build
+        run: yarn nx run-many --target=build
 
       - name: Upload build result
         uses: actions/upload-artifact@v3
@@ -149,6 +143,11 @@ jobs:
     defaults:
       run:
         shell: bash
+
+    permissions:
+      repository-projects: write
+      pages: write
+      contents: write
 
     steps:
       - uses: actions/download-artifact@v3
