@@ -122,6 +122,8 @@ jobs:
           yarn --frozen-lockfile --non-interactive
 
       - name: Build packages
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: yarn nx run-many --target=build
 
       - name: Upload build result
