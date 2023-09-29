@@ -9,7 +9,7 @@ on:
 
 jobs:
   lint:
-    name: lint-packages
+    name: lint
 
     runs-on: ubuntu-latest
 
@@ -47,8 +47,8 @@ jobs:
 
       - run: yarn nx affected --target=lint
 
-  tests:
-    name: test-packages
+  test:
+    name: test
 
     runs-on: ubuntu-latest
 
@@ -87,7 +87,7 @@ jobs:
       - run: yarn nx affected --target=test
 
   build:
-    name: build-packages
+    name: build
 
     runs-on: ubuntu-latest
 
@@ -135,3 +135,28 @@ jobs:
         with:
           name: dist
           path: dist/*
+
+  deploy:
+    name: deploy
+
+    needs:
+      - lint
+      - test
+      - build
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist
+
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist/apps/frontend
