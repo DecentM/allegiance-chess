@@ -1,4 +1,4 @@
-import Peer, { DataConnection, PeerError } from 'peerjs'
+import type { DataConnection, PeerError, Peer } from 'peerjs'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { Hex } from '../lib/hex'
 import { useNotify } from './notify'
@@ -40,7 +40,7 @@ type RtcMessage =
   | OpenRtcMessage
 
 export const useRtcConnection = () => {
-  const peer = ref<Peer | null>()
+  const peer = ref<Peer | null>(null)
   const { notify } = useNotify()
 
   const peerId = ref<string | null>(null)
@@ -124,7 +124,8 @@ export const useRtcConnection = () => {
   }
 
   onMounted(() => {
-    peer.value = new Peer()
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    peer.value = new (require('peerjs'))() as Peer
 
     peer.value.on('open', (id) => {
       peerId.value = Hex.utf8ToHex(id)

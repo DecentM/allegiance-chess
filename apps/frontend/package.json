@@ -8,7 +8,7 @@
     "lint": "eslint --ext .js,.ts,.vue ./",
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
-    "build": "quasar build"
+    "build": "quasar ssg generate"
   },
   "dependencies": {
     "@decentm/allegiance-chess-core": "0.x",
@@ -35,6 +35,7 @@
     "eslint-plugin-n": "^15.0.0",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-vue": "^9.0.0",
+    "quasar-app-extension-ssg": "^5.0.2",
     "typescript": "^4.5.4",
     "vite-tsconfig-paths": "^4.2.1"
   }

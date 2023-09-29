@@ -71,12 +71,11 @@ const perspective = computed(() => {
       <q-resize-observer @resize="handleResize" />
 
       <chess-board
-        v-if="perspective"
         :model-value="connection.boardAFEN.value"
         :width="size"
         @execute-node="handleExecuteNode"
         :board="board"
-        :perspective="perspective"
+        :perspective="perspective ?? 'white'"
         :play-as="['white', 'black']"
       />
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import { Board, Coordinates, Node } from '@decentm/allegiance-chess-core'
 
@@ -8,38 +8,12 @@ import InteractionLayer from './layers/interaction-layer.vue'
 import IndicatorsLayer from './layers/indicators-layer.vue'
 import PiecesLayer from './layers/pieces-layer.vue'
 
-import GameStartSound from '../../assets/686544__troube__wooden-button-out.ogg'
-// import GameEndSound from '../../assets/686544__troube__wooden-button-in.ogg'
-import MoveSound from '../../assets/270148__theriavirra__drumsticks-stagg-maple-7an-click-no3.wav'
-// import CheckSound from '../../assets/85590__jankoehl__hit-wood09.wav'
-import ChallengeSound from '../../assets/342200__christopherderp__videogame-menu-button-click.wav'
-import CaptureSound from '../../assets/321083__benjaminnelan__wooden-click.wav'
-
-const gameStartAudio = new Audio(GameStartSound)
-// const gameEndAudio = new Audio(GameEndSound)
-const moveAudio = new Audio(MoveSound)
-// const checkAudio = new Audio(CheckSound)
-const challengeAudio = new Audio(ChallengeSound)
-const captureAudio = new Audio(CaptureSound)
-
-moveAudio.volume = 0.2
-captureAudio.volume = 0.3
-challengeAudio.volume = 0.3
-
 const props = defineProps<{
   board: Board
   width: number
   perspective: 'black' | 'white'
   playAs: Array<'black' | 'white'>
 }>()
-
-onMounted(async () => {
-  try {
-    await gameStartAudio.play()
-  } catch {
-    // Will not work if there was no user interaction on the page yet
-  }
-})
 
 const emit = defineEmits<{
   (event: 'execute-node', value: Partial<Node>): void

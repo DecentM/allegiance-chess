@@ -47,7 +47,6 @@ const routes: RouteRecordRaw[] = [
           },
         ],
       },
-      { path: '/peer', component: () => import('pages/peer-test.vue') },
     ],
   },
 

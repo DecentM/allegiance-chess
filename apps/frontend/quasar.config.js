@@ -127,6 +127,42 @@ module.exports = configure(function (/* ctx */) {
     //   electronPreload: 'src-electron/electron-preload'
     // },
 
+    ssg: {
+      target: {
+        browser: ['es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1'],
+        node: 'node16',
+      },
+
+      alias: {
+        // Add your own alias like this
+        '@decentm/allegiance-chess-core': path.resolve(
+          __dirname,
+          '../../packages/core/src/index.ts'
+        ),
+      },
+
+      vueRouterMode: 'history', // available values: 'hash', 'history'
+      // vueRouterBase,
+      // vueDevtools,
+      // vueOptionsAPI: false,
+
+      // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
+
+      publicPath: '/allegiance-chess/',
+      // analyze: true,
+      env: process.env,
+      // rawDefine: {}
+      // ignorePublicFolder: true,
+      // minify: false,
+      // polyfillModulePreload: true,
+      distDir: path.join(__dirname, '../../dist/apps/frontend'),
+
+      // extendViteConf (viteConf) {},
+      // viteVuePluginOptions: {},
+
+      vitePlugins: [[nodePolyfills()]],
+    },
+
     // https://v2.quasar.dev/quasar-cli-vite/developing-ssr/configuring-ssr
     ssr: {
       // ssrPwaHtmlFilename: 'offline.html', // do NOT use index.html as name!
