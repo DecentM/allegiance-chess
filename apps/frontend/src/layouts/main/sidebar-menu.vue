@@ -16,6 +16,11 @@ const items: Item[] = [
     icon: 'sports_esports',
     label: 'Play',
   },
+  {
+    to: '/privacy',
+    icon: 'shield',
+    label: 'Privacy',
+  },
 ]
 </script>
 

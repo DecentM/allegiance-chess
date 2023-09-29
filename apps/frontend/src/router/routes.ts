@@ -8,6 +8,18 @@ const routes: RouteRecordRaw[] = [
       {
         path: '',
         component: () => import('pages/index-page.vue'),
+        meta: {
+          title: 'Welcome',
+          icon: 'home',
+        },
+      },
+      {
+        path: 'privacy',
+        component: () => import('pages/privacy-page.vue'),
+        meta: {
+          title: 'Privacy',
+          icon: 'shield',
+        },
       },
       {
         path: 'play',
@@ -28,6 +40,10 @@ const routes: RouteRecordRaw[] = [
           {
             path: 'pen-pal/:state?',
             component: () => import('pages/play/pen-pal-game.vue'),
+            meta: {
+              title: 'Pen-pal mode',
+              icon: 'settings',
+            },
           },
         ],
       },
