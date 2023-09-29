@@ -26,6 +26,7 @@ jobs:
           path: |
             node_modules
             packages/*/node_modules
+            apps/*/node_modules
           key: lock-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             lock-
