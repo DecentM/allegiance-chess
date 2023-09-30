@@ -1,9 +1,8 @@
-import type { DataConnection, PeerError, Peer } from 'peerjs'
+import { DataConnection, PeerError, Peer } from 'peerjs'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
 import { Hex } from '../lib/hex'
 import { useNotify } from './notify'
-import { getPeerjs } from '../lib/peer'
 
 type RtcMessageBase = {
   value: unknown
@@ -41,9 +40,7 @@ type RtcMessage =
   | StateRtcMessage
   | OpenRtcMessage
 
-export const useRtcConnection = async () => {
-  const Peer = await getPeerjs()
-
+export const useRtcConnection = () => {
   const peer = ref<Peer | null>(null)
   const { notify } = useNotify()
 

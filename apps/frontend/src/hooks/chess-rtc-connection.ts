@@ -24,9 +24,9 @@ export type ChessRtcConnection = {
   serverSide: ComputedRef<'white' | 'black' | null>
 }
 
-export const useChessRtcConnection = async (): Promise<ChessRtcConnection> => {
+export const useChessRtcConnection = (): ChessRtcConnection => {
   const { connect, mode, peerId, sendData, messages, disconnect } =
-    await useRtcConnection()
+    useRtcConnection()
 
   const sendMessage = (message: ChessMessage) => {
     sendData(Buffer.from(JSON.stringify(message), 'utf8'))

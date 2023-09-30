@@ -5,6 +5,9 @@
     "packages/*",
     "apps/*"
   ],
+  "scripts": {
+    "postinstall": "patch-package"
+  },
   "devDependencies": {
     "@nx/cypress": "16.9.1",
     "@nx/eslint-plugin": "16.9.1",
@@ -23,6 +26,8 @@
     "eslint-config-prettier": "8.1.0",
     "eslint-plugin-cypress": "^2.13.4",
     "nx": "16.9.1",
+    "patch-package": "^8.0.0",
+    "postinstall-postinstall": "^2.1.0",
     "prettier": "^2.6.2",
     "swc-loader": "0.1.15",
     "ts-node": "10.9.1",

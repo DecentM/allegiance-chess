@@ -1,0 +1,13 @@
+diff --git a/node_modules/peerjs/dist/bundler.cjs b/node_modules/peerjs/dist/bundler.cjs
+index c40338f..3b01e61 100644
+--- a/node_modules/peerjs/dist/bundler.cjs
++++ b/node_modules/peerjs/dist/bundler.cjs
+@@ -136,7 +136,7 @@ const $07e4f6a369d1179a$export$25be9502477c137d = new class {
+     isUnifiedPlanSupported:${this.isUnifiedPlanSupported()}`;
+     }
+     constructor(){
+-        this.isIOS = [
++        this.isIOS = typeof navigator === 'undefined' ? false : [
+             "iPad",
+             "iPhone",
+             "iPod"

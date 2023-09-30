@@ -25,33 +25,33 @@ import ChessPiece from '../components/chess-piece.vue'
 
             <q-separator class="q-mb-md" />
 
-            <p class="text-body1">
+            <div class="text-body1 q-mb-md">
               Allegiance Chess is a Chess variant where you can essentially
               brainwash your opponents' pieces. Instead of being black or white,
               each piece has an allegiance score from zero to three. Pieces with
               zero or one belong to black, while two and three are to white.
-            </p>
+            </div>
 
-            <p class="text-body1">
+            <div class="text-body1 q-mb-md">
               During each turn, players can choose to challenge the allegiance
               of a piece instead of capturing it. This causes no movement, but
               the allegiance of the challenged piece shifts by one, towards the
               colour of the player making the move.
-            </p>
+            </div>
 
-            <p class="text-body1">
+            <div class="text-body1 q-mb-md">
               For example, if white challenges a black bishop (allegiance zero),
               then the targeted bishop will change its allegiance to one.
               Meaning that if it gets challenged one more time, it will switch
               sides to white. Since players can only challenge enemy pieces,
               once a piece leaves its "pure" allegiance, it will never go back
               to it.
-            </p>
+            </div>
 
-            <p class="text-body1">
+            <div class="text-body1 q-mb-md">
               <q-icon size="xl" class="col-2" name="arrow_left" />
               Click "Play" on the left sidebar to begin, or read on for more.
-            </p>
+            </div>
           </q-card-section>
         </q-card>
 
@@ -61,7 +61,7 @@ import ChessPiece from '../components/chess-piece.vue'
 
             <q-separator class="q-mb-md" />
 
-            <p class="text-body1">
+            <div class="text-body1 q-mb-md">
               All normal rules of Chess apply:
 
               <ul>
@@ -69,15 +69,15 @@ import ChessPiece from '../components/chess-piece.vue'
                 <li>En-passant</li>
                 <li>Promotion</li>
               </ul>
-            </p>
+            </div>
 
-            <p class="text-body1">
+            <div class="text-body1 q-mb-md">
               When your piece would be able to take a piece, you'll see two
               options. If you choose to take (X) the piece, it counts as a
               normal capture. If you choose to challenge (>) the piece, both
               yours and the challenged piece stays in place, and the challenged
               piece's allegiance will change towards your side.
-            </p>
+            </div>
 
             <div class="row justify-center">
               <q-img class="col-2" :src="tutorial1" />
@@ -89,46 +89,45 @@ import ChessPiece from '../components/chess-piece.vue'
           </q-card-section>
         </q-card>
 
-         <q-card flat class="full-width frosted-backdrop q-mb-md">
+        <q-card flat class="full-width frosted-backdrop q-mb-md">
           <q-card-section>
             <div class="text-h6">Technical details</div>
 
             <q-separator class="q-mb-md" />
 
-            <p class="text-body1">
-              This game is implemented in Typescript from scratch, so
-              there may be completely bame breaking bugs. You may open an issue
-              on the issue tracker if you encounter bugs like this (but not
-              limited to):
+            <div class="text-body1 q-mb-md">
+              This game is implemented in Typescript from scratch, so there may
+              be completely bame breaking bugs. You may open an issue on the
+              issue tracker if you encounter bugs like this (but not limited
+              to):
 
               <ul>
                 <li>Ability to make illegal moves</li>
                 <li>Inability to castle, promote, challenge, or capture</li>
                 <li>Inability to move at all</li>
               </ul>
-            </p>
+            </div>
 
-            <p class="text-body1">
+            <div class="text-body1 q-mb-md">
               FEN has been extended to support storing allegiance information.
               The Allegiance FEN (AFEN) string is a superset of FEN, with the
               added ">" character, which indicates that the piece before the
-              character has a non-pure allegiance. For example, "N>"
-              means that the knight has an allegiance of 2 (white minus one),
-              while "b>" means that the bishop has the allegiance of
-              1 (black plus one).
-              <br>
-              Because  AFEN is a superset, any FEN string is valid AFEN, but an
+              character has a non-pure allegiance. For example, "N>" means that
+              the knight has an allegiance of 2 (white minus one), while "b>"
+              means that the bishop has the allegiance of 1 (black plus one).
+              <br />
+              Because AFEN is a superset, any FEN string is valid AFEN, but an
               AFEN string might not be valid FEN.
-            </p>
+            </div>
 
-            <p class="text-body1">
+            <div class="text-body1 q-mb-md">
               Additionally, the standard Chess notation is extended in the same
               way. The ">" character signals a challenge. For example, where
               "Rxd2" would mean Rook takes on D2, "R>d2" means the Rook
               challenges the piece on D2. Neither of them move, but the opposing
               piece on D2 changes its allegiance by one, towards the challenging
               player.
-            </p>
+            </div>
           </q-card-section>
         </q-card>
 
@@ -152,9 +151,7 @@ import ChessPiece from '../components/chess-piece.vue'
                 </q-item-section>
 
                 <q-item-section>
-                  <q-item-label>
-                    Background
-                  </q-item-label>
+                  <q-item-label> Background </q-item-label>
                   <q-item-label caption>
                     Photo by De an Sun on Unsplash
                   </q-item-label>
@@ -174,11 +171,9 @@ import ChessPiece from '../components/chess-piece.vue'
                 </q-item-section>
 
                 <q-item-section>
-                  <q-item-label>
-                    Chess pieces
-                  </q-item-label>
+                  <q-item-label> Chess pieces </q-item-label>
                   <q-item-label caption :lines="2">
-                    <span>Colin M.L. Burnett on Wikimedia</span><br>
+                    <span>Colin M.L. Burnett on Wikimedia</span><br />
                     <span>Modified to have allegiance indications</span>
                   </q-item-label>
                 </q-item-section>
