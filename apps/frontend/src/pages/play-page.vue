@@ -1,42 +1,15 @@
 <script setup lang="ts">
-import { watch } from 'vue'
-import { useRouter } from 'vue-router'
-
-import { useChessRtcConnection } from '../hooks/chess-rtc-connection'
-import { FenPreset } from '../lib/boards'
-
-const router = useRouter()
-const chessRtcConnection = await useChessRtcConnection()
-
-watch(chessRtcConnection.mode, (newValue) => {
-  if (newValue === 'initial') {
-    router.push('/play')
-  }
-})
-
-watch(chessRtcConnection.open, (newValue) => {
-  if (!newValue) {
-    return
-  }
-
-  router.push(`/play/online/${chessRtcConnection.peerId.value}`)
-
-  if (chessRtcConnection.mode.value === 'server') {
-    chessRtcConnection.sendMessage({
-      type: 'side-assignment',
-      value: Math.random() > 0.5 ? 'white' : 'black',
-    })
-
-    chessRtcConnection.sendMessage({
-      type: 'afen-update',
-      value: FenPreset.VanillaDefault,
-    })
-  }
-})
+import PlayWrapper from './play/play-wrapper.vue'
 </script>
 
 <template>
   <q-no-ssr>
-    <router-view :connection="chessRtcConnection" />
+    <suspense>
+      <play-wrapper />
+
+      <template #fallback>
+        <q-linear-progress indeterminate color="primary" />
+      </template>
+    </suspense>
   </q-no-ssr>
 </template>
