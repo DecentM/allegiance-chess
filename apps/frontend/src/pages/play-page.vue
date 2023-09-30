@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router'
 import { FenPreset } from '../lib/boards'
 
 const router = useRouter()
-const chessRtcConnection = useChessRtcConnection()
+const chessRtcConnection = await useChessRtcConnection()
 
 watch(chessRtcConnection.mode, (newValue) => {
   if (newValue === 'initial') {
