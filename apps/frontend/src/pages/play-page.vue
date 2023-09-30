@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { watch } from 'vue'
-import { useChessRtcConnection } from '../hooks/chess-rtc-connection'
 import { useRouter } from 'vue-router'
+
+import { useChessRtcConnection } from '../hooks/chess-rtc-connection'
 import { FenPreset } from '../lib/boards'
 
 const router = useRouter()
@@ -35,5 +36,7 @@ watch(chessRtcConnection.open, (newValue) => {
 </script>
 
 <template>
-  <router-view :connection="chessRtcConnection" />
+  <q-no-ssr>
+    <router-view :connection="chessRtcConnection" />
+  </q-no-ssr>
 </template>
