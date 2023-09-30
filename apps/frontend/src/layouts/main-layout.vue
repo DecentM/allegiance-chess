@@ -6,11 +6,25 @@ import SidebarMenu from './main/sidebar-menu.vue'
 const route = useRoute()
 </script>
 
+<style lang="scss" scoped>
+.route-title {
+  z-index: 4;
+}
+
+.main-layout {
+  height: 100vh;
+
+  .layout-page {
+    max-width: 1400px;
+  }
+}
+</style>
+
 <template>
   <q-layout
     view="lhh LpR lff"
     container
-    style="height: 100vh"
+    class="main-layout"
     :class="$q.dark.isActive ? 'bg-grey-9' : 'bg-grey-3'"
   >
     <q-header reveal class="bg-primary">
@@ -23,20 +37,15 @@ const route = useRoute()
       <sidebar-menu />
     </q-drawer>
 
-    <q-page-container>
-      <q-page
-        :style="{
-          paddingTop: route.meta.title ? '50px' : '',
-          height: 'calc(100vh - 100px)',
-        }"
-      >
+    <q-page-container class="column items-center">
+      <q-page :class="{ 'q-pt-xl': route.meta.title }" class="layout-page">
         <router-view />
 
         <q-page-sticky
           v-if="route.meta.title"
           position="top"
           expand
-          class="bg-secondary text-black"
+          class="bg-secondary text-black route-title"
         >
           <q-toolbar>
             <q-icon
@@ -51,5 +60,3 @@ const route = useRoute()
     </q-page-container>
   </q-layout>
 </template>
-
-<script setup lang="ts"></script>
