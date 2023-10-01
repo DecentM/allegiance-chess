@@ -1,85 +1,113 @@
-import { ComputedRef, Ref, computed } from 'vue'
-import { useRtcConnection } from './rtc-connection'
+import { Ref, ref } from 'vue'
+import * as Sentry from '@sentry/vue'
+import { Board, Node } from '@decentm/allegiance-chess-core'
 
-type AFENUpdateMessage = {
-  type: 'afen-update'
-  value: string
+import { DataRtcMessage, RtcMessage, useRtcConnection } from './rtc-connection'
+import { FenPreset } from '../lib/boards'
+
+type ExecuteNodeIndexMessage = {
+  type: 'execute-node-index'
+  value: number
 }
 
-type BeginGameMessage = {
+type SideAssignmentMessage = {
   type: 'side-assignment'
   value: 'white' | 'black'
 }
 
-type ChessMessage = AFENUpdateMessage | BeginGameMessage
+type ChessMessage = ExecuteNodeIndexMessage | SideAssignmentMessage
 
 export type ChessRtcConnection = {
   connect: (connectId: string) => void
   mode: Ref<'initial' | 'client' | 'server'>
   peerId: Ref<string | null>
-  boardAFEN: ComputedRef<string>
   sendMessage: (message: ChessMessage) => void
-  open: ComputedRef<boolean>
+  open: Ref<boolean>
   disconnect: () => void
-  serverSide: ComputedRef<'white' | 'black' | null>
+  serverSide: Ref<'white' | 'black' | null>
+
+  boardAFEN: Ref<string>
+  moveHistory: Ref<Node[]>
 }
 
 export const useChessRtcConnection = (): ChessRtcConnection => {
-  const { connect, mode, peerId, sendData, messages, disconnect } =
-    useRtcConnection()
+  const board = ref(new Board())
 
   const sendMessage = (message: ChessMessage) => {
     sendData(Buffer.from(JSON.stringify(message), 'utf8'))
   }
 
-  const chessMessages: ComputedRef<ChessMessage[]> = computed(() => {
-    return messages.value
-      .filter((message) => message.type === 'data')
-      .map((message) => {
-        if (!Buffer.isBuffer(message.value)) {
-          return null
-        }
+  const boardAFEN = ref('')
 
-        return JSON.parse(message.value.toString('utf8'))
-      })
-  })
+  const serverSide: Ref<'white' | 'black'> = ref('white')
 
-  const boardAFEN: ComputedRef<string> = computed(() => {
-    const lastAFENMessage = chessMessages.value.findLast(
-      (message) => message.type === 'afen-update'
-    )
+  const open = ref(false)
 
-    if (!lastAFENMessage) {
-      return ''
+  const moveHistory: Ref<Node[]> = ref([])
+
+  const receiveOpenMessage = () => {
+    open.value = true
+
+    board.value.importAFEN(FenPreset.VanillaDefault)
+    boardAFEN.value = FenPreset.VanillaDefault
+  }
+
+  const receiveDataMessage = (rtcMessage: DataRtcMessage) => {
+    let message: ChessMessage | null = null
+
+    try {
+      message = JSON.parse(rtcMessage.value.toString('utf8')) as ChessMessage
+    } catch (error) {
+      if (error instanceof Error) {
+        Sentry.captureException(error, {
+          extra: {
+            message: rtcMessage.value?.toString('utf8'),
+          },
+        })
+      } else {
+        console.error(error)
+      }
     }
 
-    return lastAFENMessage.value || ''
-  })
-
-  const open = computed(() => {
-    return messages.value.some((message) => message.type === 'open')
-  })
-
-  const serverSide: ComputedRef<'white' | 'black' | null> = computed(() => {
-    const sideAssignmentMessage = chessMessages.value.find(
-      (message) => message.type === 'side-assignment'
-    )
-
-    if (!sideAssignmentMessage) {
-      return null
+    if (!message) {
+      return
     }
 
-    return sideAssignmentMessage.value as 'white' | 'black'
-  })
+    switch (message.type) {
+      case 'side-assignment':
+        serverSide.value = message.value
+        break
+
+      case 'execute-node-index':
+        board.value.executeMoveIndex(message.value)
+        boardAFEN.value = board.value.toAFEN()
+        moveHistory.value = board.value.moveHistory
+        break
+    }
+  }
+
+  const receiveMessage = (rtcMessage: RtcMessage) => {
+    switch (rtcMessage.type) {
+      case 'data':
+        return receiveDataMessage(rtcMessage)
+
+      case 'open':
+        return receiveOpenMessage()
+    }
+  }
+
+  const { connect, mode, peerId, sendData, disconnect } =
+    useRtcConnection(receiveMessage)
 
   return {
     connect,
     mode,
     peerId,
-    boardAFEN,
     sendMessage,
     open,
     disconnect,
     serverSide,
+    boardAFEN,
+    moveHistory,
   }
 }

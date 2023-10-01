@@ -1,6 +1,5 @@
 import VError from 'verror'
 
-import { GameOutcome, Piece, Rank } from '../notation/declarations'
 import {
   AllegianceNode,
   AnyMoveNode,
@@ -13,11 +12,18 @@ import {
   Node,
   PromotionNode,
 } from '../notation/parser'
+
 import { Vector2 } from '../lib/vector2'
-import { BoardMemory, BoardSquare } from './board-memory'
 import { coordinatesEqual } from '../lib/coordinate'
 import { allegianceSide } from '../lib/allegiance'
 import { isPromotion } from '../lib/board'
+
+import { GameOutcome, Piece, Rank } from '../notation/declarations'
+import { tokenize } from '../afen/tokenizer'
+import { parse } from '../afen/parser'
+
+import { BoardMemory, BoardSquare } from './board-memory'
+import { write } from '../afen/writer'
 
 export const PieceAllegiance = {
   Black: 0,
@@ -55,11 +61,11 @@ export class Board {
   }
 
   public importAFEN(afen: string) {
-    this.memory.importAFEN(afen)
+    this.memory.fromAFEN(parse(tokenize(afen)))
   }
 
   public toAFEN() {
-    return this.memory.toAFEN()
+    return write(this.memory.toAFEN())
   }
 
   public getSquares() {
@@ -87,6 +93,10 @@ export class Board {
       black: this.memory.castlingRights('black'),
       white: this.memory.castlingRights('white'),
     }
+  }
+
+  public get moveHistory() {
+    return this.memory.moveHistory
   }
 
   constructor() {

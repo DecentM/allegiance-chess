@@ -31,11 +31,9 @@ const handleExecuteNode = (node: Partial<Node>) => {
     return
   }
 
-  board.value.executeMoveIndex(index)
-
   props.connection.sendMessage({
-    type: 'afen-update',
-    value: board.value.toAFEN(),
+    type: 'execute-node-index',
+    value: index,
   })
 }
 

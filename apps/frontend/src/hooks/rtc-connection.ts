@@ -14,7 +14,7 @@ export type DataRtcMessage = RtcMessageBase & {
   type: 'data'
 }
 
-type ErrorRtcMessage = RtcMessageBase & {
+export type ErrorRtcMessage = RtcMessageBase & {
   value: PeerError<
     | 'not-open-yet'
     | 'message-too-big'
@@ -29,34 +29,29 @@ type StateRtcMessage = RtcMessageBase & {
   type: 'state'
 }
 
-type OpenRtcMessage = RtcMessageBase & {
+export type OpenRtcMessage = RtcMessageBase & {
   value: void
   type: 'open'
 }
 
-type RtcMessage =
+export type RtcMessage =
   | DataRtcMessage
   | ErrorRtcMessage
   | StateRtcMessage
   | OpenRtcMessage
 
-export const useRtcConnection = () => {
+export const useRtcConnection = (onMessage: (message: RtcMessage) => void) => {
   const peer = ref<Peer | null>(null)
   const { notify } = useNotify()
 
   const peerId = ref<string | null>(null)
-  const messages = ref<RtcMessage[]>([])
   const connection = ref<DataConnection | null>()
   const mode = ref<'initial' | 'client' | 'server'>('initial')
-
-  const addMessage = (message: RtcMessage) => {
-    messages.value = [...messages.value, message]
-  }
 
   const attachEventListeners = (newConnection: DataConnection) => {
     const handleData = (data: unknown) => {
       if (data instanceof ArrayBuffer) {
-        addMessage({
+        onMessage({
           type: 'data',
           value: Buffer.from(data),
         })
@@ -68,18 +63,18 @@ export const useRtcConnection = () => {
         return
       }
 
-      addMessage({
+      onMessage({
         type: 'data',
         value: data,
       })
     }
 
     const handleStateChange = (state: RTCIceConnectionState) => {
-      addMessage({ type: 'state', value: state })
+      onMessage({ type: 'state', value: state })
     }
 
     const handleOpen = () => {
-      addMessage({ type: 'open', value: undefined })
+      onMessage({ type: 'open', value: undefined })
     }
 
     const handleError = (
@@ -90,7 +85,7 @@ export const useRtcConnection = () => {
         | 'connection-closed'
       >
     ) => {
-      addMessage({ type: 'error', value: error })
+      onMessage({ type: 'error', value: error })
 
       connection.value?.close()
 
@@ -111,8 +106,6 @@ export const useRtcConnection = () => {
 
       mode.value = 'initial'
       connection.value = null
-
-      messages.value = []
 
       notify({ message: 'Connection closed', icon: 'link_off' })
     }
@@ -186,7 +179,7 @@ export const useRtcConnection = () => {
     }
 
     connection.value.send(data)
-    addMessage({
+    onMessage({
       type: 'data',
       value: data,
     })
@@ -207,7 +200,6 @@ export const useRtcConnection = () => {
     connect,
     mode,
     peerId,
-    messages,
     sendData,
     disconnect,
   }

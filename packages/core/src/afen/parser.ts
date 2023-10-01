@@ -24,12 +24,12 @@ type SkipNode = {
   value: number
 }
 
-type ActiveColourNode = {
+export type ActiveColourNode = {
   kind: 'active-colour'
   value: 'white' | 'black'
 }
 
-type CastlingRightsNode = {
+export type CastlingRightsNode = {
   kind: 'castling-rights'
   value: {
     white: CastleSide[]
@@ -37,22 +37,22 @@ type CastlingRightsNode = {
   }
 }
 
-type EnPassantTargetsNode = {
+export type EnPassantTargetsNode = {
   kind: 'en-passant-targets'
   value: Coordinates
 }
 
-type HalfmoveClockNode = {
+export type HalfmoveClockNode = {
   kind: 'halfmove-clock'
   value: number
 }
 
-type FullmoveNumberNode = {
+export type FullmoveNumberNode = {
   kind: 'fullmove-number'
   value: number
 }
 
-type Node =
+export type Node =
   | PieceNode
   | SkipNode
   | ActiveColourNode
@@ -61,7 +61,7 @@ type Node =
   | HalfmoveClockNode
   | FullmoveNumberNode
 
-type RootNode = {
+export type RootNode = {
   kind: 'ast'
   children: Node[]
 }

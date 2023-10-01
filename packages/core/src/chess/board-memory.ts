@@ -4,11 +4,12 @@ import cloneDeep from 'lodash.clonedeep'
 import { File, Piece, Rank } from '../notation/declarations'
 import { Coordinates, Node } from '../notation/parser'
 
-import { PieceAllegiance } from './board'
-import { tokenize } from '../afen/tokenizer'
-import { parse } from '../afen/parser'
 import { fileToLetter } from '../lib/notation'
 import { allegianceSide } from '../lib/allegiance'
+
+import { CastlingRightsNode, RootNode } from '../afen/parser'
+
+import { PieceAllegiance } from './board'
 
 export type BoardSquare = {
   piece: Piece | null
@@ -160,96 +161,89 @@ export class BoardMemory {
     this.memory[coords.rank - 1][coords.file - 1] = square
   }
 
-  public toAFEN(): string {
-    const rankStrings: string[] = []
-    const blackCastling = this.castlingRights('black')
-    const whiteCastling = this.castlingRights('white')
+  public toAFEN(): RootNode {
+    const ast: RootNode = {
+      kind: 'ast',
+      children: [],
+    }
+
     let skip = 0
 
     for (let i = this.memory.length - 1; i >= 0; i--) {
-      const file = this.memory[i]
-      let rankString = ''
+      const rank = this.memory[i]
 
-      file.forEach((square) => {
+      for (const square of rank) {
         if (!square) {
           skip++
-          return
+          continue
         }
 
         if (skip) {
-          rankString += `${skip}`
+          ast.children.push({ kind: 'skip', value: skip })
           skip = 0
         }
 
-        const side = allegianceSide(square.allegiance)
-
-        const hasAllegiance =
-          square.allegiance === PieceAllegiance.DarkGrey ||
-          square.allegiance === PieceAllegiance.LightGrey
-
-        const pawn = side === 'white' ? 'P' : 'p'
-        const piece =
-          side === 'white'
-            ? square.piece?.toUpperCase()
-            : square.piece?.toLowerCase()
-
-        rankString += piece || pawn
-
-        if (hasAllegiance) {
-          rankString += '>'
-        }
-      })
-
-      if (skip) {
-        rankString += `${skip}`
-        skip = 0
+        ast.children.push({ kind: 'piece', value: square })
       }
 
-      rankStrings.push(rankString)
+      if (skip) {
+        ast.children.push({ kind: 'skip', value: skip })
+        skip = 0
+      }
     }
 
-    let castling = ''
+    ast.children.push({
+      kind: 'active-colour',
+      value: this.activeColour,
+    })
 
-    if (blackCastling.includes('king')) {
-      castling += 'k'
+    const castlingNode: CastlingRightsNode = {
+      kind: 'castling-rights',
+      value: { black: [], white: [] },
     }
 
-    if (blackCastling.includes('queen')) {
-      castling += 'q'
+    const whiteCastling = this.castlingRights('white')
+    const blackCastling = this.castlingRights('black')
+
+    if (whiteCastling.includes('king')) castlingNode.value.white.push('king')
+    if (whiteCastling.includes('queen')) castlingNode.value.white.push('queen')
+    if (blackCastling.includes('king')) castlingNode.value.black.push('king')
+    if (blackCastling.includes('queen')) castlingNode.value.black.push('queen')
+
+    if (
+      castlingNode.value.white.length > 0 ||
+      castlingNode.value.black.length > 0
+    ) {
+      ast.children.push(castlingNode)
     }
 
-    if (whiteCastling.includes('king')) {
-      castling += 'K'
+    if (this.enPassantTarget) {
+      ast.children.push({
+        kind: 'en-passant-targets',
+        value: this.enPassantTarget,
+      })
     }
 
-    if (whiteCastling.includes('queen')) {
-      castling += 'Q'
-    }
+    ast.children.push({
+      kind: 'halfmove-clock',
+      value: this.halfmoveClock,
+    })
 
-    const enPassantTarget = this.enPassantTarget
-      ? `${fileToLetter(this.enPassantTarget.file)}${this.enPassantTarget.rank}`
-      : '-'
+    ast.children.push({
+      kind: 'fullmove-number',
+      value: this.fullmoveNumber,
+    })
 
-    return [
-      rankStrings.join('/'),
-      this.activeColour === 'white' ? 'w' : 'b',
-      castling || '-',
-      enPassantTarget,
-      this.halfmoveClock,
-      this.fullmoveNumber,
-    ].join(' ')
+    return ast
   }
 
-  public importAFEN(afen: string) {
+  public fromAFEN(afen: RootNode) {
     this.clear()
-
-    const tokens = tokenize(afen)
-    const ast = parse(tokens)
 
     let rank: Rank = 8
     let file: File = 1
 
-    ast.children.forEach((node) => {
+    afen.children.forEach((node) => {
       if (file > 8) {
         rank--
         file = 1
