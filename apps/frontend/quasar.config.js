@@ -98,6 +98,10 @@ module.exports = configure(function (/* ctx */) {
     framework: {
       config: {
         dark: true,
+        ripple: {
+          stop: false,
+          early: true,
+        },
       },
 
       // iconSet: 'material-icons', // Quasar icon set

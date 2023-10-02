@@ -106,6 +106,7 @@ const size = computed(() => {
           :move-history="board.getMoveHistoryAst()"
           :active-colour="board.activeColour"
           :own-colour="board.activeColour"
+          :afen="board.toAFEN()"
         />
       </q-card-section>
     </q-card-section>

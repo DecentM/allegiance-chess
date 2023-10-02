@@ -269,6 +269,10 @@ const captureMoves: ComputedRef<Array<'x' | '>'>> = computed(() => {
     >
       <div v-for="(_, fileIndex) in files" :key="fileIndex" class="full-height">
         <div
+          v-ripple="
+            !coordsEmpty(indexToCoords(fileIndex, rankIndex)) &&
+            !isOpponent(indexToCoords(fileIndex, rankIndex))
+          "
           class="absolute"
           @click="
             (event) =>

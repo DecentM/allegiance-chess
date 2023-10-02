@@ -90,6 +90,7 @@ const perspective = computed(() => {
           :move-history="board.getMoveHistoryAst()"
           :active-colour="board.activeColour"
           :own-colour="perspective ?? 'white'"
+          :afen="connection.boardAFEN.value"
         />
       </q-card-section>
     </q-card-section>

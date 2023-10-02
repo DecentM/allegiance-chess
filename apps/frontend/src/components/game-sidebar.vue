@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Ref, computed, onMounted, ref, watch } from 'vue'
 import { Notation } from '@decentm/allegiance-chess-core'
-import { QScrollArea } from 'quasar'
+import { QScrollArea, useQuasar } from 'quasar'
 
 import ChessPiece from './chess-piece.vue'
 
@@ -9,6 +9,7 @@ const props = defineProps<{
   moveHistory: Notation.RootNode
   activeColour: 'white' | 'black'
   ownColour: 'white' | 'black'
+  afen: string
 }>()
 
 const rows = computed(() => {
@@ -53,6 +54,33 @@ onMounted(() => {
     1000
   )
 })
+
+const q = useQuasar()
+
+const handleAFENCopy = () => {
+  if (!props.afen) {
+    return
+  }
+
+  try {
+    navigator.clipboard.writeText(props.afen)
+
+    q.notify({
+      position: 'bottom-right',
+      timeout: 4000,
+      message: 'AFEN copied to clipboard',
+      icon: 'content_copy',
+    })
+  } catch {
+    q.notify({
+      position: 'bottom-right',
+      timeout: 4000,
+      message: 'Could not write to clipboard',
+      icon: 'close',
+      iconColor: 'red',
+    })
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -72,7 +100,12 @@ onMounted(() => {
 </style>
 
 <template>
-  <q-card flat bordered class="q-ma-md full-height column justify-between">
+  <q-card
+    flat
+    bordered
+    class="q-ma-md full-height column justify-between"
+    data-testid="game-sidebar"
+  >
     <transition mode="out-in">
       <q-card-section
         class="bg-primary text-white q-mb-md"
@@ -86,7 +119,24 @@ onMounted(() => {
       </q-card-section>
     </transition>
 
-    <div data-testid="">
+    <div class="spacer col" />
+
+    <div data-testid="afen">
+      <q-separator />
+
+      <q-item clickable v-ripple @click="handleAFENCopy">
+        <q-item-section class="q-mt-sm q-mb-sm">
+          <q-item-label>AFEN</q-item-label>
+          <q-item-label caption lines="2">{{ afen }}</q-item-label>
+        </q-item-section>
+
+        <q-item-section side>
+          <q-icon name="edit" />
+        </q-item-section>
+      </q-item>
+    </div>
+
+    <div data-testid="move-history">
       <q-separator />
 
       <q-scroll-area style="height: 500px" ref="moveHistoryScrollArea">
