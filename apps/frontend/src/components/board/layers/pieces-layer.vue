@@ -24,7 +24,7 @@ defineProps<{
       <chess-piece
         v-if="square"
         data-testid="piece"
-        class="absolute"
+        class="absolute q-pa-sm"
         :piece="square.piece"
         :allegiance="square.allegiance"
         :size="squareSize"
