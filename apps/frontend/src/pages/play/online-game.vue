@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
-import { Board, Node } from '@decentm/allegiance-chess-core'
+import { computed, onBeforeUnmount } from 'vue'
+import { Board, Notation } from '@decentm/allegiance-chess-core'
 
 import ChessBoard from '../../components/chess-board.vue'
+import GameSidebar from '../../components/game-sidebar.vue'
 
 import { ChessRtcConnection } from '../../hooks/chess-rtc-connection'
 import { useQuasar } from 'quasar'
@@ -19,11 +20,12 @@ const board = computed(() => {
   const result = new Board()
 
   result.importAFEN(props.connection.boardAFEN.value)
+  result.importMoveHistory(props.connection.moveHistory.value)
 
   return result
 })
 
-const handleExecuteNode = (node: Partial<Node>) => {
+const handleExecuteNode = (node: Partial<Notation.Node>) => {
   const index = board.value.findMoveIndex(node)
 
   if (index === -1) {
@@ -36,18 +38,27 @@ const handleExecuteNode = (node: Partial<Node>) => {
   })
 }
 
-const size = ref(800)
-
 const q = useQuasar()
 
-const handleResize = (newSize: { height: number; width: number }) => {
-  if (q.screen.gt.md) {
-    size.value = newSize.width - newSize.width / 8 - 200
-    return
+const size = computed(() => {
+  if (q.screen.gt.lg) {
+    return q.screen.sizes.lg
   }
 
-  size.value = newSize.width - newSize.width / 8
-}
+  if (q.screen.gt.md) {
+    return q.screen.sizes.md
+  }
+
+  if (q.screen.gt.sm) {
+    return q.screen.sizes.sm
+  }
+
+  if (q.screen.gt.xs) {
+    return q.screen.width / 2
+  }
+
+  return q.screen.width / 3
+})
 
 const perspective = computed(() => {
   if (!props.connection.serverSide.value) {
@@ -63,26 +74,26 @@ const perspective = computed(() => {
 </script>
 
 <template>
-  <q-card flat>
-    <q-card-section class="row">
-      <q-resize-observer @resize="handleResize" />
+  <q-card flat class="full-width">
+    <q-card-section horizontal>
+      <q-card-section :style="{ width: `${size}px` }">
+        <chess-board
+          :model-value="connection.boardAFEN.value"
+          :width="size"
+          @execute-node="handleExecuteNode"
+          :board="board"
+          :perspective="perspective ?? 'white'"
+          :play-as="['white', 'black']"
+        />
+      </q-card-section>
 
-      <chess-board
-        :model-value="connection.boardAFEN.value"
-        :width="size"
-        @execute-node="handleExecuteNode"
-        :board="board"
-        :perspective="perspective ?? 'white'"
-        :play-as="['white', 'black']"
-      />
-
-      <div class="col-lg col-md-12 full-width">
-        <q-card flat bordered class="full-height">
-          <q-card-section class="bg-primary q-mb-md">
-            <q-item-label>Board information</q-item-label>
-          </q-card-section>
-        </q-card>
-      </div>
+      <q-card-section class="q-mb-md full-width">
+        <game-sidebar
+          :move-history="board.getMoveHistoryAst()"
+          :active-colour="board.activeColour"
+          :own-colour="perspective ?? 'white'"
+        />
+      </q-card-section>
     </q-card-section>
   </q-card>
 </template>

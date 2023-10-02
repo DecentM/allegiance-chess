@@ -53,27 +53,23 @@ const rows = computed(() => {
       </q-card-section>
     </transition>
 
-    <transition-group mode="out-in">
-      <q-card-section
-        v-for="(row, index) in rows"
-        :key="index"
-        horizontal
-        class="row q-py-none q-mx-md"
-      >
-        <div class="col" v-if="row[0]">
-          <q-chip class="white-move">
-            {{ Notation.writeNode(row[0]) }}
-          </q-chip>
-        </div>
+    <q-card-section
+      v-for="(row, index) in rows"
+      :key="index"
+      horizontal
+      class="row q-py-none q-mx-md"
+    >
+      <div class="col" v-if="row[0]">
+        <q-chip class="white-move">
+          {{ Notation.writeNode(row[0]) }}
+        </q-chip>
+      </div>
 
-        <transition mode="out-in">
-          <div class="col" v-if="row[1]">
-            <q-chip class="black-move">
-              {{ Notation.writeNode(row[1]) }}
-            </q-chip>
-          </div>
-        </transition>
-      </q-card-section>
-    </transition-group>
+      <div class="col" v-if="row[1]">
+        <q-chip class="black-move">
+          {{ Notation.writeNode(row[1]) }}
+        </q-chip>
+      </div>
+    </q-card-section>
   </q-card>
 </template>
