@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
-import { Board, Coordinates, Node } from '@decentm/allegiance-chess-core'
+import { Board, Notation } from '@decentm/allegiance-chess-core'
 
 import BackgroundLayer from './layers/background-layer.vue'
 import InteractionLayer from './layers/interaction-layer.vue'
@@ -23,12 +23,18 @@ const squareSize = computed(() => {
   return props.width / 8
 })
 
-const pieceFocus = ref<Coordinates | null>(null)
+const pieceFocus = ref<Notation.Coordinates | null>(null)
 
 const handleExcuteNode = (node: Partial<Node>) => {
   emit('execute-node', node)
   pieceFocus.value = null
 }
+
+const lastMove = computed(() => {
+  const ast = props.board.getMoveHistoryAst()
+
+  return ast.children.at(-1) ?? null
+})
 </script>
 
 <template>
@@ -49,6 +55,7 @@ const handleExcuteNode = (node: Partial<Node>) => {
         :ranks="8"
         :perspective="perspective"
         :piece-focus="pieceFocus"
+        :last-move="lastMove"
       />
     </div>
 

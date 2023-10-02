@@ -2,9 +2,7 @@
 import { computed } from 'vue'
 import {
   Board,
-  Coordinates,
-  File,
-  Rank,
+  Notation,
   coordinatesEqual,
 } from '@decentm/allegiance-chess-core'
 
@@ -14,7 +12,8 @@ const props = defineProps<{
   files: number
   squareSize: number
   perspective: 'white' | 'black'
-  pieceFocus: Coordinates | null
+  pieceFocus: Notation.Coordinates | null
+  lastMove: Notation.Node | null
 }>()
 
 const highlightSquares = computed(() => {
@@ -37,29 +36,32 @@ const highlightSquares = computed(() => {
   return result
 })
 
-const show = (coords: Coordinates) =>
+const show = (coords: Notation.Coordinates) =>
   highlightSquares.value.some(
     (coordinate) => coordinate && coordinatesEqual(coords, coordinate)
   )
 
-const coordsEmpty = (coords: Coordinates) => {
+const coordsEmpty = (coords: Notation.Coordinates) => {
   return !props.board.getSquare(coords)
 }
 
-const indexToCoords = (fileIndex: number, rankIndex: number): Coordinates => {
+const indexToCoords = (
+  fileIndex: number,
+  rankIndex: number
+): Notation.Coordinates => {
   const rawFile = fileIndex + 1
   const rawRank = rankIndex + 1
 
   if (props.perspective === 'white') {
     return {
-      file: rawFile as File,
-      rank: (9 - rawRank) as Rank,
+      file: rawFile as Notation.File,
+      rank: (9 - rawRank) as Notation.Rank,
     }
   }
 
   return {
-    file: (9 - rawFile) as File,
-    rank: rawRank as Rank,
+    file: (9 - rawFile) as Notation.File,
+    rank: rawRank as Notation.Rank,
   }
 }
 
@@ -67,7 +69,7 @@ const checkMoves = computed(() => {
   return props.board.getCheckMoves()
 })
 
-const isChecked = (coords: Coordinates) => {
+const isChecked = (coords: Notation.Coordinates) => {
   return checkMoves.value.some(
     (move) => move.kind === 'move' && coordinatesEqual(move.to, coords)
   )
@@ -76,7 +78,7 @@ const isChecked = (coords: Coordinates) => {
 
 <style lang="scss" scoped>
 .indicators-layer {
-  z-index: 3;
+  z-index: 2;
 }
 
 .move-placeholder {
@@ -169,6 +171,16 @@ const isChecked = (coords: Coordinates) => {
       }
     }
   }
+
+  &.last {
+    &-from {
+      background-color: rgba(230, 233, 136, 0.3);
+    }
+
+    &-to {
+      background-color: rgba(230, 233, 136, 0.7);
+    }
+  }
 }
 </style>
 
@@ -195,6 +207,15 @@ const isChecked = (coords: Coordinates) => {
           capture: !coordsEmpty(indexToCoords(fileIndex, rankIndex)),
           target: coordsEmpty(indexToCoords(fileIndex, rankIndex)),
           checked: isChecked(indexToCoords(fileIndex, rankIndex)),
+          'last-from':
+            lastMove?.kind === 'move' &&
+            coordinatesEqual(
+              lastMove.from,
+              indexToCoords(fileIndex, rankIndex)
+            ),
+          'last-to':
+            lastMove?.kind === 'move' &&
+            coordinatesEqual(lastMove.to, indexToCoords(fileIndex, rankIndex)),
         }"
       />
     </div>

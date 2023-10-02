@@ -21,4 +21,11 @@
     transform: scale(0.95);
     filter: grayscale(1);
   }
+
+  &enter-to,
+  &leave-from {
+    opacity: 1;
+    transform: scale(1);
+    filter: grayscale(0);
+  }
 }

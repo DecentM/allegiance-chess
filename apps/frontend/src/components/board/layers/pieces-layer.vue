@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { BoardSquare, Coordinates } from '@decentm/allegiance-chess-core'
+import { BoardSquare, Notation } from '@decentm/allegiance-chess-core'
 
 import ChessPiece from '../../chess-piece.vue'
 
 defineProps<{
-  modelValue: Array<Coordinates & BoardSquare>
+  modelValue: Array<Notation.Coordinates & BoardSquare>
   squareSize: number
   perspective: 'white' | 'black'
 }>()
@@ -12,7 +12,7 @@ defineProps<{
 
 <style lang="scss" scoped>
 .pieces-layer {
-  z-index: 2;
+  z-index: 3;
 }
 </style>
 
