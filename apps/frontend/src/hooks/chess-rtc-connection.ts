@@ -24,8 +24,8 @@ export type ChessRtcConnection = {
   sendMessage: (message: ChessMessage) => void
   open: Ref<boolean>
   disconnect: () => void
-  serverSide: Ref<'white' | 'black' | null>
 
+  serverSide: Ref<'white' | 'black' | null>
   boardAFEN: Ref<string>
   moveHistory: Ref<Node[]>
 }

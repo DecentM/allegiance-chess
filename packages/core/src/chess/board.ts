@@ -18,12 +18,10 @@ import { coordinatesEqual } from '../lib/coordinate'
 import { allegianceSide } from '../lib/allegiance'
 import { isPromotion } from '../lib/board'
 
-import { GameOutcome, Piece, Rank } from '../notation/declarations'
-import { tokenize } from '../afen/tokenizer'
-import { parse } from '../afen/parser'
+import * as Notation from '../notation'
+import * as Afen from '../afen'
 
 import { BoardMemory, BoardSquare } from './board-memory'
-import { write } from '../afen/writer'
 
 export const PieceAllegiance = {
   Black: 0,
@@ -43,7 +41,7 @@ type ExecuteMoveTypeInput<NodeType extends MoveNode<string | void>> = {
   toSide: 'white' | 'black'
 }
 
-export const PROMOTION_PIECES: Piece[] = ['B', 'N', 'Q', 'R']
+export const PROMOTION_PIECES: Notation.Piece[] = ['B', 'N', 'Q', 'R']
 
 export class Board {
   private memory: BoardMemory
@@ -61,11 +59,15 @@ export class Board {
   }
 
   public importAFEN(afen: string) {
-    this.memory.fromAFEN(parse(tokenize(afen)))
+    this.memory.fromAFEN(Afen.parse(Afen.tokenize(afen)))
+  }
+
+  public importMoveHistory(history: string) {
+    this.memory.moveHistory = Notation.parse(Notation.tokenize(history))
   }
 
   public toAFEN() {
-    return write(this.memory.toAFEN())
+    return Afen.write(this.memory.toAFEN())
   }
 
   public getSquares() {
@@ -95,7 +97,11 @@ export class Board {
     }
   }
 
-  public get moveHistory() {
+  public getMoveHistory() {
+    return Notation.write(this.memory.moveHistory)
+  }
+
+  public getMoveHistoryAst() {
     return this.memory.moveHistory
   }
 
@@ -135,7 +141,7 @@ export class Board {
     this.memory.setSquare(kingTo, king)
     this.memory.setSquare(kingFrom, null)
 
-    const rank: Rank = input.fromSide === 'white' ? 1 : 8
+    const rank: Notation.Rank = input.fromSide === 'white' ? 1 : 8
     const rookFrom: Coordinates =
       input.node.side === 'king' ? { file: 8, rank } : { file: 1, rank }
     const rookTo: Coordinates =
@@ -150,7 +156,7 @@ export class Board {
       {
         rank: (input.fromSide === 'white'
           ? input.node.to.rank - 1
-          : input.node.to.rank + 1) as Rank,
+          : input.node.to.rank + 1) as Notation.Rank,
         file: input.node.to.file,
       },
       null
@@ -180,7 +186,7 @@ export class Board {
         file: input.node.from.file,
         rank: (input.fromSide === 'white'
           ? input.node.from.rank + 1
-          : input.node.from.rank - 1) as Rank,
+          : input.node.from.rank - 1) as Notation.Rank,
       }
     }
   }
@@ -302,7 +308,7 @@ export class Board {
       }
     }
 
-    this.memory.moveHistory.push(node)
+    this.memory.moveHistory.children.push(node)
   }
 
   public executeMoveIndex(moveIndex: number) {
@@ -600,7 +606,7 @@ export class Board {
       this.activeColour === 'white' ? 'black' : 'white'
     )
 
-    const hasGameOver = this.memory.moveHistory.some(
+    const hasGameOver = this.memory.moveHistory.children.some(
       (move) => move.kind === 'game-over'
     )
 
@@ -609,19 +615,19 @@ export class Board {
         result.push(
           {
             kind: 'game-over',
-            outcome: GameOutcome.White,
+            outcome: Notation.GameOutcome.White,
           },
           {
             kind: 'game-over',
-            outcome: GameOutcome.Draw,
+            outcome: Notation.GameOutcome.Draw,
           },
           {
             kind: 'game-over',
-            outcome: GameOutcome.Forfeit,
+            outcome: Notation.GameOutcome.Forfeit,
           },
           {
             kind: 'game-over',
-            outcome: GameOutcome.ForfeitWhite,
+            outcome: Notation.GameOutcome.ForfeitWhite,
           }
         )
       }
@@ -630,19 +636,19 @@ export class Board {
         result.push(
           {
             kind: 'game-over',
-            outcome: GameOutcome.Black,
+            outcome: Notation.GameOutcome.Black,
           },
           {
             kind: 'game-over',
-            outcome: GameOutcome.Draw,
+            outcome: Notation.GameOutcome.Draw,
           },
           {
             kind: 'game-over',
-            outcome: GameOutcome.Forfeit,
+            outcome: Notation.GameOutcome.Forfeit,
           },
           {
             kind: 'game-over',
-            outcome: GameOutcome.ForfeitBlack,
+            outcome: Notation.GameOutcome.ForfeitBlack,
           }
         )
       }

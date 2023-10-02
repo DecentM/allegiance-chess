@@ -104,7 +104,7 @@ onMounted(() => {
 </style>
 
 <template>
-  <q-card flat class="full-height">
+  <q-card flat>
     <q-card-section vertical>
       <div class="row items-center full-height space">
         <div class="col-12 text-center q-pa-md">

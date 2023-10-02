@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { Board, Node } from '@decentm/allegiance-chess-core'
+import { Board, Notation } from '@decentm/allegiance-chess-core'
 
 import ChessBoard from '../../components/chess-board.vue'
-import AfenInfo from '../../components/afen-info.vue'
+import GameSidebar from '../../components/game-sidebar.vue'
 
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { Hex } from '../../lib/hex'
 import { FenPreset } from '../../lib/boards'
 import { useQuasar } from 'quasar'
@@ -25,15 +25,28 @@ const afen = computed(() => {
   return Hex.hexToUtf8(hex)
 })
 
-const board = computed(() => {
-  const result = new Board()
+const moveHistory = computed(() => {
+  const hex = Array.isArray(route.params.history)
+    ? route.params.history[0]
+    : route.params.history
 
-  result.importAFEN(afen.value)
+  if (!hex) {
+    return ''
+  }
 
-  return result
+  return Hex.hexToUtf8(hex)
 })
 
-const handleExecuteNode = (node: Partial<Node>) => {
+const board = computed(() => {
+  const b = new Board()
+
+  b.importAFEN(afen.value)
+  b.importMoveHistory(moveHistory.value)
+
+  return b
+})
+
+const handleExecuteNode = (node: Partial<Notation.Node>) => {
   const index = board.value.findMoveIndex(node)
 
   if (index === -1) {
@@ -43,46 +56,55 @@ const handleExecuteNode = (node: Partial<Node>) => {
   board.value.executeMoveIndex(index)
 
   router.push({
-    path: `/play/pen-pal/${Hex.utf8ToHex(board.value.toAFEN())}`,
+    path: `/play/pen-pal/${Hex.utf8ToHex(board.value.toAFEN())}/${Hex.utf8ToHex(
+      board.value.getMoveHistory()
+    )}`,
   })
 }
 
-const size = ref(800)
-
 const q = useQuasar()
 
-const handleResize = (newSize: { height: number; width: number }) => {
-  if (q.screen.gt.md) {
-    size.value = Math.min(newSize.width - newSize.width / 8 - 200, 1200)
-    return
+const size = computed(() => {
+  if (q.screen.gt.lg) {
+    return q.screen.sizes.lg
   }
 
-  size.value = newSize.width - newSize.width / 8
-}
+  if (q.screen.gt.md) {
+    return q.screen.sizes.md
+  }
+
+  if (q.screen.gt.sm) {
+    return q.screen.sizes.sm
+  }
+
+  if (q.screen.gt.xs) {
+    return q.screen.width / 2
+  }
+
+  return q.screen.width / 3
+})
 </script>
 
 <template>
-  <q-card flat>
-    <q-card-section class="row">
-      <q-resize-observer @resize="handleResize" />
+  <q-card flat class="full-width">
+    <q-card-section horizontal>
+      <q-card-section :style="{ width: `${size}px` }">
+        <chess-board
+          @execute-node="handleExecuteNode"
+          :board="board"
+          :perspective="board.activeColour"
+          :play-as="['white', 'black']"
+          :width="size"
+        />
+      </q-card-section>
 
-      <chess-board
-        @execute-node="handleExecuteNode"
-        :board="board"
-        :perspective="board.activeColour"
-        :play-as="['white', 'black']"
-        :width="size"
-      />
-
-      <div class="col-lg col-md-12 full-width">
-        <q-card flat bordered class="full-height">
-          <q-card-section class="bg-primary q-mb-md">
-            <q-item-label>Board information</q-item-label>
-          </q-card-section>
-
-          <afen-info :model-value="afen" />
-        </q-card>
-      </div>
+      <q-card-section class="q-mb-md full-width">
+        <game-sidebar
+          :move-history="board.getMoveHistoryAst()"
+          :active-colour="board.activeColour"
+          :own-colour="board.activeColour"
+        />
+      </q-card-section>
     </q-card-section>
   </q-card>
 </template>

@@ -1,8 +1,7 @@
 import { VError } from 'verror'
 import cloneDeep from 'lodash.clonedeep'
 
-import { File, Piece, Rank } from '../notation/declarations'
-import { Coordinates, Node } from '../notation/parser'
+import * as Notation from '../notation'
 
 import { fileToLetter } from '../lib/notation'
 import { allegianceSide } from '../lib/allegiance'
@@ -12,21 +11,21 @@ import { CastlingRightsNode, RootNode } from '../afen/parser'
 import { PieceAllegiance } from './board'
 
 export type BoardSquare = {
-  piece: Piece | null
+  piece: Notation.Piece | null
   allegiance: PieceAllegiance
 }
 
 // memory[rank][file] = BoardSquare
 type Memory = (BoardSquare | null)[][]
 
-type StandaloneBoardSquare = BoardSquare & Coordinates
+type StandaloneBoardSquare = BoardSquare & Notation.Coordinates
 
 export class BoardMemory {
   private memory: Memory = []
 
   public activeColour: 'black' | 'white'
 
-  public enPassantTarget: Coordinates | null
+  public enPassantTarget: Notation.Coordinates | null
 
   private _castlingRights: Array<{
     colour: 'white' | 'black'
@@ -37,7 +36,7 @@ export class BoardMemory {
 
   public fullmoveNumber: number
 
-  public moveHistory: Node[]
+  public moveHistory: Notation.RootNode
 
   public clone() {
     const memory = new BoardMemory()
@@ -81,7 +80,10 @@ export class BoardMemory {
     this._castlingRights = []
     this.halfmoveClock = 0
     this.fullmoveNumber = 0
-    this.moveHistory = []
+    this.moveHistory = {
+      kind: 'root',
+      children: [],
+    }
 
     for (let rank = 0; rank < 8; rank++) {
       this.memory[rank] = []
@@ -121,7 +123,7 @@ export class BoardMemory {
     }
 
     result += `  ${ranks[0]
-      .map((_, fileIndex) => fileToLetter((fileIndex + 1) as File))
+      .map((_, fileIndex) => fileToLetter((fileIndex + 1) as Notation.File))
       .join(' ')}`
 
     return result
@@ -140,8 +142,8 @@ export class BoardMemory {
         result.push({
           allegiance: square.allegiance,
           piece: square.piece,
-          file: (file + 1) as File,
-          rank: (rank + 1) as Rank,
+          file: (file + 1) as Notation.File,
+          rank: (rank + 1) as Notation.Rank,
         })
       })
     })
@@ -149,7 +151,7 @@ export class BoardMemory {
     return result
   }
 
-  public getSquare(coords: Coordinates) {
+  public getSquare(coords: Notation.Coordinates) {
     if (!coords) {
       throw new VError('Attempted to get square with no coordinates')
     }
@@ -157,7 +159,7 @@ export class BoardMemory {
     return this.memory[coords.rank - 1][coords.file - 1]
   }
 
-  public setSquare(coords: Coordinates, square: BoardSquare | null) {
+  public setSquare(coords: Notation.Coordinates, square: BoardSquare | null) {
     this.memory[coords.rank - 1][coords.file - 1] = square
   }
 
@@ -240,8 +242,8 @@ export class BoardMemory {
   public fromAFEN(afen: RootNode) {
     this.clear()
 
-    let rank: Rank = 8
-    let file: File = 1
+    let rank: Notation.Rank = 8
+    let file: Notation.File = 1
 
     afen.children.forEach((node) => {
       if (file > 8) {

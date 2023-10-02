@@ -4,6 +4,10 @@ import { useRoute } from 'vue-router'
 import SidebarMenu from './main/sidebar-menu.vue'
 
 const route = useRoute()
+
+defineProps<{
+  fullwidth?: boolean
+}>()
 </script>
 
 <style lang="scss" scoped>
@@ -13,10 +17,6 @@ const route = useRoute()
 
 .main-layout {
   height: 100vh;
-
-  .layout-page {
-    max-width: 1400px;
-  }
 }
 </style>
 
@@ -38,7 +38,7 @@ const route = useRoute()
     </q-drawer>
 
     <q-page-container class="column items-center">
-      <q-page :class="{ 'q-pt-xl': route.meta.title }" class="layout-page">
+      <q-page :class="{ 'q-pt-xl': route.meta.title }" class="full-width">
         <router-view />
 
         <q-page-sticky

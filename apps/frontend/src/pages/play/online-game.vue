@@ -3,7 +3,6 @@ import { computed, onBeforeUnmount, ref } from 'vue'
 import { Board, Node } from '@decentm/allegiance-chess-core'
 
 import ChessBoard from '../../components/chess-board.vue'
-import AfenInfo from '../../components/afen-info.vue'
 
 import { ChessRtcConnection } from '../../hooks/chess-rtc-connection'
 import { useQuasar } from 'quasar'
@@ -82,8 +81,6 @@ const perspective = computed(() => {
           <q-card-section class="bg-primary q-mb-md">
             <q-item-label>Board information</q-item-label>
           </q-card-section>
-
-          <afen-info :model-value="connection.boardAFEN.value" />
         </q-card>
       </div>
     </q-card-section>
