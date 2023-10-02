@@ -83,6 +83,9 @@ module.exports = configure(function (/* ctx */) {
       // viteVuePluginOptions: {},
 
       vitePlugins: [[nodePolyfills()]],
+
+      // https://github.com/quasarframework/quasar/issues/14589
+      sourcemap: 'true',
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
@@ -161,6 +164,9 @@ module.exports = configure(function (/* ctx */) {
       // viteVuePluginOptions: {},
 
       vitePlugins: [[nodePolyfills()]],
+
+      // https://github.com/quasarframework/quasar/issues/14589
+      sourcemap: 'true',
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/developing-ssr/configuring-ssr

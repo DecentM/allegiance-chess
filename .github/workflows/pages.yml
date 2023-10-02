@@ -162,3 +162,41 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: dist/apps/frontend
           cname: allegiance-chess.decentm.com
+
+  sentry-release:
+    name: sentry-release
+
+    needs:
+      - lint
+      - test
+      - build
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    permissions:
+      repository-projects: write
+      pages: write
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: allegiance-chess
+          SENTRY_PROJECT: frontend
+        with:
+          environment: production
+          sourcemaps: ./dist
