@@ -72,19 +72,21 @@ const q = useQuasar()
 const padding = 200
 
 const size = computed(() => {
-  if (q.screen.gt.lg) {
-    return q.screen.sizes.lg - padding
+  let result = q.screen.width
+
+  if (q.screen.gt.sm) {
+    result = q.screen.sizes.sm
   }
 
   if (q.screen.gt.md) {
-    return q.screen.sizes.md - padding
+    result = q.screen.sizes.md - padding
   }
 
-  if (q.screen.gt.sm) {
-    return q.screen.sizes.sm - padding
+  if (q.screen.gt.lg) {
+    result = q.screen.sizes.lg - padding
   }
 
-  return q.screen.width - padding - 150
+  return Math.min(result - 75, q.screen.height - 75)
 })
 </script>
 

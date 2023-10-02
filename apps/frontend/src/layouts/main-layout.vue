@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useQuasar } from 'quasar'
 
 import SidebarMenu from './main/sidebar-menu.vue'
 
@@ -8,6 +10,10 @@ const route = useRoute()
 defineProps<{
   fullwidth?: boolean
 }>()
+
+const q = useQuasar()
+
+const drawerOpen = ref(false)
 </script>
 
 <style lang="scss" scoped>
@@ -25,19 +31,22 @@ defineProps<{
 </style>
 
 <template>
-  <q-layout
-    view="lhh LpR lff"
-    container
-    class="main-layout"
-    :class="$q.dark.isActive ? 'bg-grey-9' : 'bg-grey-3'"
-  >
+  <q-layout view="lhh LpR lff" container class="main-layout">
     <q-header reveal class="bg-primary">
       <q-toolbar>
         <q-toolbar-title>Allegiance Chess</q-toolbar-title>
       </q-toolbar>
     </q-header>
 
-    <q-drawer bordered persistent :model-value="true" behavior="desktop">
+    <q-drawer
+      bordered
+      :persistent="q.screen.gt.sm"
+      :model-value="q.screen.gt.sm || drawerOpen"
+      :side="q.screen.gt.sm ? 'left' : 'right'"
+      @hide="drawerOpen = false"
+      class="column"
+      :class="{ 'justify-end q-pb-xl': q.screen.lt.md }"
+    >
       <sidebar-menu />
     </q-drawer>
 
@@ -62,6 +71,19 @@ defineProps<{
             />
             <q-toolbar-title>{{ route.meta.title }}</q-toolbar-title>
           </q-toolbar>
+        </q-page-sticky>
+
+        <q-page-sticky position="bottom-right" :offset="[18, 18]">
+          <q-fab
+            v-if="q.screen.lt.md"
+            icon="menu"
+            direction="up"
+            color="accent"
+            :model-value="drawerOpen"
+            @show="drawerOpen = true"
+            @hide="drawerOpen = false"
+            class="menu-fab"
+          />
         </q-page-sticky>
       </q-page>
     </q-page-container>
