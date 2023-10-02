@@ -14,7 +14,9 @@ export default boot(({ app, router }) => {
         routingInstrumentation: Sentry.vueRouterInstrumentation(router),
       }),
 
-      new Sentry.Replay(),
+      new Sentry.Replay({
+        maskAllText: false,
+      }),
     ],
     // Performance Monitoring
     tracesSampleRate: 1.0,
