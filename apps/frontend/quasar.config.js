@@ -70,7 +70,7 @@ module.exports = configure(function (/* ctx */) {
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
-      publicPath: '/allegiance-chess/',
+      publicPath: '/',
       // analyze: true,
       env: process.env,
       // rawDefine: {}
@@ -148,7 +148,7 @@ module.exports = configure(function (/* ctx */) {
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
-      publicPath: '/allegiance-chess/',
+      publicPath: '/',
       // analyze: true,
       env: process.env,
       // rawDefine: {}
