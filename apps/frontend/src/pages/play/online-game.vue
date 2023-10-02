@@ -40,24 +40,22 @@ const handleExecuteNode = (node: Partial<Notation.Node>) => {
 
 const q = useQuasar()
 
+const padding = 200
+
 const size = computed(() => {
   if (q.screen.gt.lg) {
-    return q.screen.sizes.lg
+    return q.screen.sizes.lg - padding
   }
 
   if (q.screen.gt.md) {
-    return q.screen.sizes.md
+    return q.screen.sizes.md - padding
   }
 
   if (q.screen.gt.sm) {
-    return q.screen.sizes.sm
+    return q.screen.sizes.sm - padding
   }
 
-  if (q.screen.gt.xs) {
-    return q.screen.width / 2
-  }
-
-  return q.screen.width / 3
+  return q.screen.width - padding - 150
 })
 
 const perspective = computed(() => {
@@ -75,7 +73,7 @@ const perspective = computed(() => {
 
 <template>
   <q-card flat class="full-width">
-    <q-card-section horizontal>
+    <q-card-section :horizontal="q.screen.gt.sm">
       <q-card-section :style="{ width: `${size}px` }">
         <chess-board
           :model-value="connection.boardAFEN.value"

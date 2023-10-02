@@ -17,6 +17,10 @@ defineProps<{
 
 .main-layout {
   height: 100vh;
+
+  .layout-page {
+    max-width: 1750px;
+  }
 }
 </style>
 
@@ -38,7 +42,10 @@ defineProps<{
     </q-drawer>
 
     <q-page-container class="column items-center">
-      <q-page :class="{ 'q-pt-xl': route.meta.title }" class="full-width">
+      <q-page
+        :class="{ 'q-pt-xl': route.meta.title }"
+        class="full-width layout-page"
+      >
         <router-view />
 
         <q-page-sticky
