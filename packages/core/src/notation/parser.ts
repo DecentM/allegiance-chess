@@ -114,12 +114,10 @@ class WipNode {
 
     const moveResult: MoveNode = { from: {}, to: {} } as MoveNode
 
-    if (this.pieces[0]) moveResult.piece = this.pieces[0]
+    if (this.pieces[0] && this.moveType !== 'promotion')
+      moveResult.piece = this.pieces[0]
 
     moveResult.kind = 'move'
-
-    // if (this.causesCheck) moveResult.causesCheck = this.causesCheck;
-    // if (this.isMate) moveResult.isMate = this.isMate;
 
     if (this.files.length === 2) {
       moveResult.from.file = this.files[0]
@@ -175,8 +173,9 @@ class WipNode {
     if (this.moveType === 'promotion') {
       return {
         ...moveResult,
+        piece: null,
         type: 'promotion',
-        promotionTo: this.pieces[1],
+        promotionTo: this.pieces[0],
         sources: this.tokens,
       }
     }

@@ -2,7 +2,7 @@ import test from 'ava'
 
 import { parse } from './parser'
 import { tokenize } from './tokenizer'
-import { write } from './writer'
+import { write, writeNode } from './writer'
 
 test('allegiance', (t) => {
   const result = write(
@@ -38,4 +38,30 @@ f3 Bc8 34. Kf2 Bf5 35. Ra7 g6 36. Ra6+ Kc5 37. Ke1 Nf4 38. g3 Nxh3 39. Kd2 Kb5
   const result = write(parse(tokenize(spec)))
 
   t.snapshot(result)
+})
+
+test('writes promotions correctly', (t) => {
+  const result = writeNode({
+    kind: 'move',
+    type: 'promotion',
+    from: {
+      file: 3,
+      rank: 7,
+    },
+    to: {
+      file: 3,
+      rank: 8,
+    },
+    piece: null,
+    promotionTo: 'Q',
+  })
+
+  t.is(result, 'c7=Qc8')
+})
+
+test('writes promotions identically to correct input', (t) => {
+  const input = '1. b7=Qb8'
+  const result = write(parse(tokenize(input)))
+
+  t.is(result, input)
 })

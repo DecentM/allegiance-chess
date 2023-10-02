@@ -48,6 +48,10 @@ export const writeNode = (node: Node): string => {
 
         result += action
 
+        if (node.type === 'promotion' && node.promotionTo) {
+          result += `${node.promotionTo}`
+        }
+
         if (node.to.file) {
           result += `${fileToLetter(node.to.file)}`
         }
@@ -103,6 +107,7 @@ export const write = (root: RootNode): string => {
 
   return steps
     .filter(Boolean)
-    .map((step, index) => `${index + 1}. ${step}`)
+    .map((step, index) => ` ${index + 1}. ${step}`)
     .join('\n')
+    .trim()
 }

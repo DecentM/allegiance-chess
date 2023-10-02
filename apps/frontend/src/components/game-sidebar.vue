@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { Ref, computed, onMounted, ref, watch } from 'vue'
 import { Notation } from '@decentm/allegiance-chess-core'
+import { QScrollArea } from 'quasar'
+
+import ChessPiece from './chess-piece.vue'
 
 const props = defineProps<{
   moveHistory: Notation.RootNode
@@ -24,6 +27,32 @@ const rows = computed(() => {
 
   return result
 })
+
+const moveHistoryScrollArea: Ref<QScrollArea | null> = ref(null)
+
+watch(rows, () => {
+  if (!moveHistoryScrollArea.value) {
+    return
+  }
+
+  moveHistoryScrollArea.value.setScrollPosition(
+    'vertical',
+    rows.value.length * 36,
+    1000
+  )
+})
+
+onMounted(() => {
+  if (!moveHistoryScrollArea.value) {
+    return
+  }
+
+  moveHistoryScrollArea.value.setScrollPosition(
+    'vertical',
+    rows.value.length * 36,
+    1000
+  )
+})
 </script>
 
 <style lang="scss" scoped>
@@ -36,10 +65,14 @@ const rows = computed(() => {
   background-color: $chess-black;
   color: $chess-white;
 }
+
+.highlight {
+  background-color: $chess-highlight;
+}
 </style>
 
 <template>
-  <q-card flat bordered class="q-ma-md">
+  <q-card flat bordered class="q-ma-md full-height column justify-between">
     <transition mode="out-in">
       <q-card-section
         class="bg-primary text-white q-mb-md"
@@ -53,23 +86,61 @@ const rows = computed(() => {
       </q-card-section>
     </transition>
 
-    <q-card-section
-      v-for="(row, index) in rows"
-      :key="index"
-      horizontal
-      class="row q-py-none q-mx-md"
-    >
-      <div class="col" v-if="row[0]">
-        <q-chip class="white-move">
-          {{ Notation.writeNode(row[0]) }}
-        </q-chip>
-      </div>
+    <div data-testid="">
+      <q-separator />
 
-      <div class="col" v-if="row[1]">
-        <q-chip class="black-move">
-          {{ Notation.writeNode(row[1]) }}
-        </q-chip>
-      </div>
-    </q-card-section>
+      <q-scroll-area style="height: 500px" ref="moveHistoryScrollArea">
+        <q-card-section
+          v-for="(row, index) in rows"
+          :key="index"
+          horizontal
+          class="row q-py-none q-mx-md"
+          :class="{
+            'q-pt-md': index === 0,
+            'q-pb-md': index === rows.length - 1,
+          }"
+        >
+          <div class="col" v-if="row[0]">
+            <q-chip
+              :ripple="false"
+              class="white-move"
+              :class="{
+                highlight: row[0].kind !== 'move',
+              }"
+            >
+              <chess-piece
+                v-if="row[0].kind === 'move' && row[0].piece"
+                :piece="row[0].piece"
+                :allegiance="3"
+                :size="24"
+              />
+
+              {{ Notation.writeNode(row[0]) }}
+            </q-chip>
+          </div>
+
+          <transition mode="out-in">
+            <div class="col" v-if="row[1]">
+              <q-chip
+                :ripple="false"
+                class="black-move"
+                :class="{
+                  highlight: row[1].kind !== 'move',
+                }"
+              >
+                <chess-piece
+                  v-if="row[1].kind === 'move' && row[1].piece"
+                  :piece="row[1].piece"
+                  :allegiance="0"
+                  :size="24"
+                />
+
+                {{ Notation.writeNode(row[1]) }}
+              </q-chip>
+            </div>
+          </transition>
+        </q-card-section>
+      </q-scroll-area>
+    </div>
   </q-card>
 </template>

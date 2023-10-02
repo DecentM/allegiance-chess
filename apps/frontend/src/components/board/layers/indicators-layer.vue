@@ -174,11 +174,11 @@ const isChecked = (coords: Notation.Coordinates) => {
 
   &.last {
     &-from {
-      background-color: rgba(230, 233, 136, 0.3);
+      background-color: rgba($chess-highlight, 0.5);
     }
 
     &-to {
-      background-color: rgba(230, 233, 136, 0.7);
+      background-color: rgba($chess-highlight, 0.7);
     }
   }
 }

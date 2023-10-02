@@ -5,12 +5,8 @@ import {
   Board,
   coordinatesEqual,
   isPromotion,
-  Coordinates,
-  Piece,
   PieceAllegiance,
-  Node,
-  File,
-  Rank,
+  Notation,
   allegianceSide,
 } from '@decentm/allegiance-chess-core'
 
@@ -23,25 +19,25 @@ const props = defineProps<{
   ranks: number
   files: number
   perspective: 'white' | 'black'
-  pieceFocus: Coordinates | null
+  pieceFocus: Notation.Coordinates | null
 }>()
 
-const captureFocus = ref<Coordinates | null>(null)
+const captureFocus = ref<Notation.Coordinates | null>(null)
 
 const enPassantTarget = computed(() => {
   return props.board.enPassantTarget
 })
 
-const showPromotionPopup = ref<Coordinates | null>(null)
+const showPromotionPopup = ref<Notation.Coordinates | null>(null)
 const promotionAllegiance = ref<PieceAllegiance | null>(null)
 
 const emit = defineEmits<{
-  (event: 'execute-node', node: Partial<Node>): void
-  (event: 'update-piece-focus', coords: Coordinates | null): void
+  (event: 'execute-node', node: Partial<Notation.Node>): void
+  (event: 'update-piece-focus', coords: Notation.Coordinates | null): void
   (
     event: 'update-highlights',
-    targets: Coordinates[],
-    captures: Coordinates[]
+    targets: Notation.Coordinates[],
+    captures: Notation.Coordinates[]
   ): void
 }>()
 
@@ -69,7 +65,7 @@ const highlightSquares = computed(() => {
   return result
 })
 
-const isOpponent = (coords: Coordinates) => {
+const isOpponent = (coords: Notation.Coordinates) => {
   const square = props.board.getSquare(coords)
 
   if (!square) {
@@ -79,12 +75,12 @@ const isOpponent = (coords: Coordinates) => {
   return allegianceSide(square.allegiance) !== props.perspective
 }
 
-const isHighlighted = (coords: Coordinates) =>
+const isHighlighted = (coords: Notation.Coordinates) =>
   highlightSquares.value.some(
     (coordinate) => coordinate && coordinatesEqual(coords, coordinate)
   )
 
-const handleCoordsClick = (coords: Coordinates, event: MouseEvent) => {
+const handleCoordsClick = (coords: Notation.Coordinates, event: MouseEvent) => {
   event.stopPropagation()
   event.preventDefault()
 
@@ -142,7 +138,10 @@ const handleCoordsClick = (coords: Coordinates, event: MouseEvent) => {
   emit('update-piece-focus', square ? coords : null)
 }
 
-const handlePromotion = (coords: Coordinates, piece: Piece) => {
+const handlePromotion = (
+  coords: Notation.Coordinates,
+  piece: Notation.Piece
+) => {
   if (!props.pieceFocus) {
     return
   }
@@ -195,31 +194,34 @@ const handleCaptureClick = (decision: 'capture' | 'challenge') => {
   emit('update-piece-focus', null)
 }
 
-const indexToCoords = (fileIndex: number, rankIndex: number): Coordinates => {
+const indexToCoords = (
+  fileIndex: number,
+  rankIndex: number
+): Notation.Coordinates => {
   const rawFile = fileIndex + 1
   const rawRank = rankIndex + 1
 
   if (props.perspective === 'white') {
     return {
-      file: rawFile as File,
-      rank: (9 - rawRank) as Rank,
+      file: rawFile as Notation.File,
+      rank: (9 - rawRank) as Notation.Rank,
     }
   }
 
   return {
-    file: (9 - rawFile) as File,
-    rank: rawRank as Rank,
+    file: (9 - rawFile) as Notation.File,
+    rank: rawRank as Notation.Rank,
   }
 }
 
-const coordsEmpty = (coords: Coordinates) => {
+const coordsEmpty = (coords: Notation.Coordinates) => {
   return !props.board.getSquare(coords)
 }
 
 const canMove = (
   type: 'capture' | 'allegiance',
-  from: Coordinates,
-  to: Coordinates
+  from: Notation.Coordinates,
+  to: Notation.Coordinates
 ) => {
   const moves = props.board.getValidMoves()
 
@@ -322,28 +324,28 @@ const captureMoves: ComputedRef<Array<'x' | '>'>> = computed(() => {
             @click="handleCaptureClick"
             @dismiss="handleCaptureDismiss"
           />
-        </div>
 
-        <promotion-selector
-          v-if="
-            promotionAllegiance !== null &&
-            (isPromotion(indexToCoords(fileIndex, rankIndex), 'white') ||
-              isPromotion(indexToCoords(fileIndex, rankIndex), 'black'))
-          "
-          :model-value="
-            coordinatesEqual(
-              showPromotionPopup,
-              indexToCoords(fileIndex, rankIndex)
-            ) ?? false
-          "
-          :allegiance="promotionAllegiance"
-          :size="squareSize"
-          @click="
-            (piece) =>
-              handlePromotion(indexToCoords(fileIndex, rankIndex), piece)
-          "
-          @dismiss="handlePromotionDismiss"
-        />
+          <promotion-selector
+            v-if="
+              promotionAllegiance !== null &&
+              (isPromotion(indexToCoords(fileIndex, rankIndex), 'white') ||
+                isPromotion(indexToCoords(fileIndex, rankIndex), 'black'))
+            "
+            :model-value="
+              coordinatesEqual(
+                showPromotionPopup,
+                indexToCoords(fileIndex, rankIndex)
+              ) ?? false
+            "
+            :allegiance="promotionAllegiance"
+            :size="squareSize"
+            @click="
+              (piece) =>
+                handlePromotion(indexToCoords(fileIndex, rankIndex), piece)
+            "
+            @dismiss="handlePromotionDismiss"
+          />
+        </div>
       </div>
     </div>
   </div>

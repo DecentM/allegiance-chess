@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.0.1",
   "description": "Gameplay interface for Allegiance Chess",
-  "productName": "Allegiance Chess UI",
+  "productName": "Allegiance Chess",
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue ./",

@@ -167,18 +167,18 @@ export const tokenize = (rawInput: string): Token[] => {
       continue
     }
 
-    if (findWord('O-O') || findWord('0-0')) {
-      token(3, {
-        kind: 'castle',
-        side: 'king',
-      })
-      continue
-    }
-
     if (findWord('O-O-O') || findWord('0-0-0')) {
       token(5, {
         kind: 'castle',
         side: 'queen',
+      })
+      continue
+    }
+
+    if (findWord('O-O') || findWord('0-0')) {
+      token(3, {
+        kind: 'castle',
+        side: 'king',
       })
       continue
     }

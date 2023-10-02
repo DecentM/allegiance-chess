@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Piece, PieceAllegiance } from '@decentm/allegiance-chess-core'
+import { Notation, PieceAllegiance } from '@decentm/allegiance-chess-core'
 
 import ChessPiece from './chess-piece.vue'
 
@@ -9,11 +9,11 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'click', piece: Piece): void
+  (event: 'click', piece: Notation.Piece): void
   (event: 'dismiss'): void
 }>()
 
-const pieces: Piece[] = ['Q', 'N', 'R', 'B']
+const pieces: Notation.Piece[] = ['Q', 'N', 'R', 'B']
 
 const handleDismiss = () => {
   emit('dismiss')
@@ -22,8 +22,8 @@ const handleDismiss = () => {
 
 <style lang="scss" scoped>
 .promotion-piece {
-  width: 86px;
-  height: 86px;
+  width: 92px;
+  height: 92px;
 }
 </style>
 
@@ -37,8 +37,8 @@ const handleDismiss = () => {
         class="q-pa-sm"
         @click="emit('click', piece)"
       >
-        <q-item-section class="promotion-piece">
-          <chess-piece :allegiance="allegiance" :piece="piece" :size="86" />
+        <q-item-section class="promotion-piece items-center">
+          <chess-piece :allegiance="allegiance" :piece="piece" :size="92" />
         </q-item-section>
       </q-item>
     </q-list>
