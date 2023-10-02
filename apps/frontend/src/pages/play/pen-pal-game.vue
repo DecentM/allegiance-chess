@@ -9,6 +9,7 @@ import { computed } from 'vue'
 import { Hex } from '../../lib/hex'
 import { FenPreset } from '../../lib/boards'
 import { useQuasar } from 'quasar'
+import { useBoardAudio } from '../../hooks/board-audio'
 
 const route = useRoute()
 const router = useRouter()
@@ -46,6 +47,8 @@ const board = computed(() => {
   return b
 })
 
+const audio = useBoardAudio()
+
 const handleExecuteNode = (node: Partial<Notation.Node>) => {
   const index = board.value.findMoveIndex(node)
 
@@ -54,6 +57,8 @@ const handleExecuteNode = (node: Partial<Notation.Node>) => {
   }
 
   board.value.executeMoveIndex(index)
+
+  audio?.playNode(node)
 
   router.push({
     path: `/play/pen-pal/${Hex.utf8ToHex(board.value.toAFEN())}/${Hex.utf8ToHex(

@@ -16,7 +16,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'execute-node', value: Partial<Node>): void
+  (event: 'execute-node', value: Partial<Notation.Node>): void
 }>()
 
 const squareSize = computed(() => {
@@ -25,7 +25,7 @@ const squareSize = computed(() => {
 
 const pieceFocus = ref<Notation.Coordinates | null>(null)
 
-const handleExcuteNode = (node: Partial<Node>) => {
+const handleExcuteNode = (node: Partial<Notation.Node>) => {
   emit('execute-node', node)
   pieceFocus.value = null
 }

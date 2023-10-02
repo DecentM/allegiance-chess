@@ -3,9 +3,13 @@ import { watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { useChessRtcConnection } from '../hooks/chess-rtc-connection'
+import { useBoardAudio } from '../hooks/board-audio'
 
+const audio = useBoardAudio()
 const router = useRouter()
-const chessRtcConnection = useChessRtcConnection()
+const chessRtcConnection = useChessRtcConnection((node) => {
+  audio?.playNode(node)
+})
 
 watch(chessRtcConnection.mode, (newValue) => {
   if (newValue === 'initial') {

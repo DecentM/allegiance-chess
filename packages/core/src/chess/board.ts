@@ -324,6 +324,8 @@ export class Board {
     }
 
     this.executeNode(move)
+
+    return move
   }
 
   public getSquare(coords: Coordinates) {

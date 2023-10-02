@@ -1,6 +1,6 @@
 import { Ref, ref } from 'vue'
 import * as Sentry from '@sentry/vue'
-import { Board } from '@decentm/allegiance-chess-core'
+import { Board, Notation } from '@decentm/allegiance-chess-core'
 
 import { DataRtcMessage, RtcMessage, useRtcConnection } from './rtc-connection'
 import { FenPreset } from '../lib/boards'
@@ -30,7 +30,9 @@ export type ChessRtcConnection = {
   moveHistory: Ref<string>
 }
 
-export const useChessRtcConnection = (): ChessRtcConnection => {
+export const useChessRtcConnection = (
+  onMovePlayed?: (node: Notation.Node) => void
+): ChessRtcConnection => {
   const board = ref(new Board())
 
   const sendMessage = (message: ChessMessage) => {
@@ -78,11 +80,15 @@ export const useChessRtcConnection = (): ChessRtcConnection => {
         serverSide.value = message.value
         break
 
-      case 'execute-node-index':
-        board.value.executeMoveIndex(message.value)
+      case 'execute-node-index': {
+        const executedMove = board.value.executeMoveIndex(message.value)
         boardAFEN.value = board.value.toAFEN()
         moveHistory.value = board.value.getMoveHistory()
+
+        if (onMovePlayed) onMovePlayed(executedMove)
+
         break
+      }
     }
   }
 

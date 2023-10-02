@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { Board, File, Node, fileToLetter } from '@decentm/allegiance-chess-core'
+import { Board, Notation, fileToLetter } from '@decentm/allegiance-chess-core'
 
 import BoardTable from './board/board-table.vue'
 
@@ -13,7 +13,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'execute-node', value: Partial<Node>): void
+  (event: 'execute-node', value: Partial<Notation.Node>): void
 }>()
 
 const sidebarWidth = computed(() => {
@@ -37,7 +37,7 @@ const sidebarWidth = computed(() => {
               fileToLetter(
                 (perspective === 'white'
                   ? 9 - (8 - fileIndex)
-                  : 8 - fileIndex) as File
+                  : 8 - fileIndex) as Notation.File
               ).toUpperCase()
             }}
           </q-card-section>
@@ -100,7 +100,7 @@ const sidebarWidth = computed(() => {
               fileToLetter(
                 (perspective === 'white'
                   ? 9 - (8 - fileIndex)
-                  : 8 - fileIndex) as File
+                  : 8 - fileIndex) as Notation.File
               ).toUpperCase()
             }}
           </q-card-section>

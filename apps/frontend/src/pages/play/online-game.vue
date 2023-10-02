@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount } from 'vue'
 import { Board, Notation } from '@decentm/allegiance-chess-core'
+import { useQuasar } from 'quasar'
 
 import ChessBoard from '../../components/chess-board.vue'
 import GameSidebar from '../../components/game-sidebar.vue'
 
 import { ChessRtcConnection } from '../../hooks/chess-rtc-connection'
-import { useQuasar } from 'quasar'
 
 const props = defineProps<{
   connection: ChessRtcConnection

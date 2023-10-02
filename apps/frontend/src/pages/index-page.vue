@@ -143,6 +143,26 @@ import ChessPiece from '../components/chess-piece.vue'
             </q-item-label>
           </q-item-section>
         </q-item>
+
+        <q-item
+          clickable
+          href="https://m2.material.io/design/sound/sound-resources.html"
+          target="_blank"
+          rel="noopener"
+        >
+          <q-item-section avatar>
+            <q-avatar rounded>
+              <q-icon name="music_note" />
+            </q-avatar>
+          </q-item-section>
+
+          <q-item-section>
+            <q-item-label> Move sounds </q-item-label>
+            <q-item-label caption :lines="1">
+              <span>Google</span>
+            </q-item-label>
+          </q-item-section>
+        </q-item>
       </q-list>
     </q-card-section>
   </q-card>
