@@ -1,61 +1,8 @@
-<script setup lang="ts">
-import { computed } from 'vue'
-
-const props = defineProps<{
-  variant: 'white' | 'black'
-  colour: string
-}>()
-
-const colours = computed(() => {
-  return {
-    primary: props.variant === 'white' ? '#000000' : '#FFFFFF',
-    secondary: props.variant === 'white' ? '#FFFFFF' : '#000000',
-  }
-})
-</script>
-
-<style lang="scss" scoped>
-svg {
-  height: 100%;
-}
-</style>
-
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 46 46">
-    <g
-      opacity="1"
-      fill="none"
-      fill-opacity="1"
-      fill-rule="evenodd"
-      stroke-width="1.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-miterlimit="4"
-      stroke-dasharray="none"
-      stroke-opacity="1"
-      :stroke="colours.primary"
-      transform="translate(0,0.3)"
-    >
-      <path
-        d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"
-        stroke="#000000"
-        :style="{ fill: colour }"
-      />
-      <path
-        d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"
-        stroke="#000000"
-        :style="{ fill: colour }"
-      />
-      <path
-        d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"
-        :stroke="colours.primary"
-        :fill="colours.primary"
-      />
-      <path
-        d="M 15 15.5 A 0.5 1.5 0 1 1  14,15.5 A 0.5 1.5 0 1 1  15 15.5 z"
-        transform="matrix(0.866,0.5,-0.5,0.866,9.693,-5.173)"
-        :stroke="colours.primary"
-      />
-    </g>
-  </svg>
+  <path
+    d="M19,22H5V20H19V22M13,2V2C11.75,2 10.58,2.62
+      9.89,3.66L7,8L9,10L11.06,8.63C11.5,8.32 12.14,8.44 12.45,8.9C12.47,8.93
+      12.5,8.96 12.5,9V9C12.8,9.59 12.69,10.3 12.22,10.77L7.42,15.57C6.87,16.13
+      6.87,17.03 7.43,17.58C7.69,17.84 8.05,18 8.42,18H17V6A4,4 0 0,0 13,2Z"
+  />
 </template>

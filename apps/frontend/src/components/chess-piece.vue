@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import {
-  Piece,
-  PieceAllegiance,
-  allegianceSide,
-} from '@decentm/allegiance-chess-core'
+import { Notation, PieceAllegiance } from '@decentm/allegiance-chess-core'
+
+import PieceSvg from './piece-svg.vue'
 
 import BishopIcon from './pieces/bishop-icon.vue'
 import KingIcon from './pieces/king-icon.vue'
@@ -13,30 +10,11 @@ import PawnIcon from './pieces/pawn-icon.vue'
 import QueenIcon from './pieces/queen-icon.vue'
 import RookIcon from './pieces/rook-icon.vue'
 
-const props = defineProps<{
-  piece: Piece | null
+defineProps<{
+  piece: Notation.Piece | null
   allegiance: PieceAllegiance
   size: number
 }>()
-
-const side = computed(() => {
-  return allegianceSide(props.allegiance)
-})
-
-const colour = computed(() => {
-  switch (props.allegiance) {
-    case PieceAllegiance.Black:
-      return '#000'
-    case PieceAllegiance.DarkGrey:
-      return '#444'
-    case PieceAllegiance.LightGrey:
-      return '#999'
-    case PieceAllegiance.White:
-      return '#FFF'
-    default:
-      return ''
-  }
-})
 
 const emit = defineEmits<{ (event: 'click', e: MouseEvent): void }>()
 </script>
@@ -53,43 +31,33 @@ const emit = defineEmits<{ (event: 'click', e: MouseEvent): void }>()
     @click="(event) => emit('click', event)"
     :style="{ height: `${size}px`, width: `${size}px` }"
   >
-    <pawn-icon
-      class="piece"
-      :variant="side"
-      :colour="colour"
-      v-if="piece === null"
-    />
+    <piece-svg class="piece" :allegiance="allegiance" v-if="piece === null">
+      <pawn-icon />
+    </piece-svg>
 
-    <bishop-icon
+    <piece-svg
       class="piece"
-      :variant="side"
-      :colour="colour"
+      :allegiance="allegiance"
       :size="size"
       v-if="piece === 'B'"
-    />
-    <king-icon
-      class="piece"
-      :variant="side"
-      :colour="colour"
-      v-if="piece === 'K'"
-    />
-    <knight-icon
-      class="piece"
-      :variant="side"
-      :colour="colour"
-      v-if="piece === 'N'"
-    />
-    <queen-icon
-      class="piece"
-      :variant="side"
-      :colour="colour"
-      v-if="piece === 'Q'"
-    />
-    <rook-icon
-      class="piece"
-      :variant="side"
-      :colour="colour"
-      v-if="piece === 'R'"
-    />
+    >
+      <bishop-icon />
+    </piece-svg>
+
+    <piece-svg :allegiance="allegiance" v-if="piece === 'K'" class="piece">
+      <king-icon />
+    </piece-svg>
+
+    <piece-svg class="piece" :allegiance="allegiance" v-if="piece === 'N'">
+      <knight-icon />
+    </piece-svg>
+
+    <piece-svg class="piece" :allegiance="allegiance" v-if="piece === 'Q'">
+      <queen-icon />
+    </piece-svg>
+
+    <piece-svg class="piece" :allegiance="allegiance" v-if="piece === 'R'">
+      <rook-icon />
+    </piece-svg>
   </div>
 </template>

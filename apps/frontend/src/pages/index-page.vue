@@ -16,8 +16,13 @@ import ChessPiece from '../components/chess-piece.vue'
       <div class="text-body1 q-mb-md">
         Allegiance Chess is a Chess variant where you can essentially brainwash
         your opponents' pieces. Instead of being black or white, each piece has
-        an allegiance score from zero to three. Pieces with zero or one belong
-        to black, while two and three are to white.
+        an allegiance. At the beginning, pieces start with a pure black or white
+        allegiance. During the course of a game, a piece can be manipulated into
+        switching sides, if your opponent decides to challenge a piece of yours.
+        <br />
+        From the original pure state, pieces transition into a partial state
+        where you still control them, but one more step and they switch sides.
+        You can't change the allegiance of your own pieces.
       </div>
 
       <div class="text-body1 q-mb-md">
@@ -125,7 +130,7 @@ import ChessPiece from '../components/chess-piece.vue'
       <q-list>
         <q-item
           clickable
-          href="https://en.wikipedia.org/wiki/User:Cburnett/GFDL_images/Chess"
+          href="https://pictogrammers.com/contributor/MrGrigri/"
           target="_blank"
           rel="noopener"
         >
@@ -138,7 +143,7 @@ import ChessPiece from '../components/chess-piece.vue'
           <q-item-section>
             <q-item-label> Chess pieces </q-item-label>
             <q-item-label caption :lines="2">
-              <span>Colin M.L. Burnett on Wikimedia</span><br />
+              <span>Michael Richins on Pictogrammers</span><br />
               <span>Modified to have allegiance indications</span>
             </q-item-label>
           </q-item-section>

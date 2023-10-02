@@ -1,65 +1,8 @@
-<script setup lang="ts">
-import { computed } from 'vue'
-
-const props = defineProps<{
-  variant: 'white' | 'black'
-  colour: string
-}>()
-
-const colours = computed(() => {
-  return {
-    primary: props.variant === 'white' ? '#000000' : '#FFFFFF',
-    secondary: props.variant === 'white' ? '#FFFFFF' : '#000000',
-  }
-})
-</script>
-
-<style lang="scss" scoped>
-svg {
-  height: 100%;
-}
-</style>
-
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46 46">
-    <g
-      fill="none"
-      fill-opacity="1"
-      fill-rule="evenodd"
-      stroke="#000000"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      :stroke-width="variant === 'white' ? 1.5 : 1.1"
-      stroke-miterlimit="4"
-      stroke-dasharray="none"
-      stroke-opacity="1"
-    >
-      <path
-        d="M 22.5,11.63 L 22.5,6"
-        style="fill: none; stroke-linejoin: miter"
-        stroke="#000000"
-      />
-
-      <path
-        d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25"
-        :style="{ fill: colour }"
-        style="fill-opacity: 1; stroke-linecap: butt; stroke-linejoin: miter"
-      />
-      <path
-        d="M 12.5,37 C 18,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 20,16 10.5,13 6.5,19.5 C 3.5,25.5 12.5,30 12.5,30 L 12.5,37"
-        :stroke="colours.primary"
-        :style="{ fill: colour }"
-      />
-      <path
-        d="M 20,8 L 25,8"
-        style="fill: none; stroke-linejoin: miter"
-        stroke="#000000"
-      />
-      <path
-        d="M 12.5,30 C 18,27 27,27 32.5,30 M 12.5,33.5 C 18,30.5 27,30.5 32.5,33.5 M 12.5,37 C 18,34 27,34 32.5,37"
-        style="fill: none"
-        :stroke="colours.primary"
-      />
-    </g>
-  </svg>
+  <path
+    d="M19,22H5V20H19V22M17,10C15.58,10 14.26,10.77
+      13.55,12H13V7H16V5H13V2H11V5H8V7H11V12H10.45C9.35,10.09 6.9,9.43
+      5,10.54C3.07,11.64 2.42,14.09 3.5,16C4.24,17.24 5.57,18 7,18H17A4,4 0 0,0
+      21,14A4,4 0 0,0 17,10Z"
+  />
 </template>

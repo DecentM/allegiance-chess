@@ -1,37 +1,7 @@
-<script setup lang="ts">
-defineProps<{
-  variant: 'white' | 'black'
-  colour: string
-}>()
-</script>
-
-<style lang="scss" scoped>
-svg {
-  height: 100%;
-}
-</style>
-
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 46 46">
-    <path
-      d="m 22.5,9 c -2.21,0 -4,1.79 -4,4 0,0.89 0.29,1.71 0.78,2.38 C 17.33,16.5
-    16,18.59 16,21 c 0,2.03 0.94,3.84 2.41,5.03 C 15.41,27.09 11,31.58 11,39.5 H
-    34 C 34,31.58 29.59,27.09 26.59,26.03 28.06,24.84 29,23.03 29,21 29,18.59
-    27.67,16.5 25.72,15.38 26.21,14.71 26.5,13.89 26.5,13 c 0,-2.21 -1.79,-4
-    -4,-4 z"
-      :style="{ fill: colour }"
-      style="
-        opacity: 1;
-        fill-opacity: 1;
-        fill-rule: nonzero;
-        stroke: #000000;
-        stroke-width: 1.5;
-        stroke-linecap: round;
-        stroke-linejoin: miter;
-        stroke-miterlimit: 4;
-        stroke-dasharray: none;
-        stroke-opacity: 1;
-      "
-    />
-  </svg>
+  <path
+    d="M19 22H5V20H19V22M16 18H8L10.18 10H8V8H10.72L10.79 7.74C10.1 7.44 9.55
+      6.89 9.25 6.2C8.58 4.68 9.27 2.91 10.79 2.25C12.31 1.58 14.08 2.27 14.74
+      3.79C15.41 5.31 14.72 7.07 13.2 7.74L13.27 8H16V10H13.82L16 18Z"
+  />
 </template>
