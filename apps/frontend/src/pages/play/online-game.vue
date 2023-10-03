@@ -8,6 +8,7 @@ import GameSidebar from '../../components/game-sidebar.vue'
 import GameOverDialog from '../../components/game-over-dialog.vue'
 
 import { ChessRtcConnection } from '../../hooks/chess-rtc-connection'
+import { useBoardSize } from '../../hooks/board-size'
 
 const props = defineProps<{
   connection: ChessRtcConnection
@@ -40,28 +41,7 @@ const handleExecuteNode = (node: Partial<Notation.Node>) => {
 }
 
 const q = useQuasar()
-
-const size = computed(() => {
-  let result = q.screen.width
-
-  if (q.screen.gt.xs) {
-    result = q.screen.width - 65
-  }
-
-  if (q.screen.gt.sm) {
-    result = q.screen.sizes.sm
-  }
-
-  if (q.screen.gt.md) {
-    result = q.screen.sizes.md - 265
-  }
-
-  if (q.screen.gt.lg) {
-    result = q.screen.sizes.lg - 265
-  }
-
-  return Math.min(result, q.screen.height)
-})
+const size = useBoardSize()
 
 const perspective = computed(() => {
   if (!props.connection.serverSide.value) {

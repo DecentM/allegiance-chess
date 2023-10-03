@@ -11,6 +11,7 @@ import { Hex } from '../../lib/hex'
 import { useQuasar } from 'quasar'
 import { useBoardAudio } from '../../hooks/board-audio'
 import { useGameover } from '../../hooks/game-over'
+import { useBoardSize } from '../../hooks/board-size'
 
 const route = useRoute()
 const router = useRouter()
@@ -71,28 +72,7 @@ const handleExecuteNode = (node: Partial<Notation.Node>) => {
 const { gameOver } = useGameover(board)
 
 const q = useQuasar()
-
-const size = computed(() => {
-  let result = q.screen.width
-
-  if (q.screen.gt.xs) {
-    result = q.screen.width - 65
-  }
-
-  if (q.screen.gt.sm) {
-    result = q.screen.sizes.sm
-  }
-
-  if (q.screen.gt.md) {
-    result = q.screen.sizes.md - 265
-  }
-
-  if (q.screen.gt.lg) {
-    result = q.screen.sizes.lg - 265
-  }
-
-  return Math.min(result, q.screen.height)
-})
+const size = useBoardSize()
 </script>
 
 <template>
