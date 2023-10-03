@@ -41,6 +41,7 @@ export type AllegianceNode = MoveNode<'allegiance'>
 export type GameOverNode = {
   kind: 'game-over'
   outcome: GameOutcome
+  reason?: string
 }
 
 export type Node =

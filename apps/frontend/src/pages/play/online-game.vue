@@ -5,6 +5,7 @@ import { useQuasar } from 'quasar'
 
 import ChessBoard from '../../components/chess-board.vue'
 import GameSidebar from '../../components/game-sidebar.vue'
+import GameOverDialog from '../../components/game-over-dialog.vue'
 
 import { ChessRtcConnection } from '../../hooks/chess-rtc-connection'
 
@@ -105,5 +106,10 @@ const perspective = computed(() => {
         />
       </q-card-section>
     </q-card-section>
+
+    <game-over-dialog
+      v-if="connection.gameOver.value"
+      :node="connection.gameOver.value"
+    />
   </q-card>
 </template>

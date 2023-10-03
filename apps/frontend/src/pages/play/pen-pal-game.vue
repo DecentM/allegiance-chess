@@ -4,12 +4,14 @@ import { Board, Notation } from '@decentm/allegiance-chess-core'
 
 import ChessBoard from '../../components/chess-board.vue'
 import GameSidebar from '../../components/game-sidebar.vue'
+import GameOverDialog from '../../components/game-over-dialog.vue'
 
 import { computed } from 'vue'
 import { Hex } from '../../lib/hex'
 import { FenPreset } from '../../lib/boards'
 import { useQuasar } from 'quasar'
 import { useBoardAudio } from '../../hooks/board-audio'
+import { useGameover } from '../../hooks/game-over'
 
 const route = useRoute()
 const router = useRouter()
@@ -41,8 +43,8 @@ const moveHistory = computed(() => {
 const board = computed(() => {
   const b = new Board()
 
-  b.importAFEN(afen.value)
-  b.importMoveHistory(moveHistory.value)
+  if (afen.value) b.importAFEN(afen.value)
+  if (moveHistory.value) b.importMoveHistory(moveHistory.value)
 
   return b
 })
@@ -66,6 +68,8 @@ const handleExecuteNode = (node: Partial<Notation.Node>) => {
     )}`,
   })
 }
+
+const { gameOver } = useGameover(board)
 
 const q = useQuasar()
 
@@ -121,5 +125,7 @@ const size = computed(() => {
         />
       </q-card-section>
     </q-card-section>
+
+    <game-over-dialog v-if="gameOver" :node="gameOver" />
   </q-card>
 </template>

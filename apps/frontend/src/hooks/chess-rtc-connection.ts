@@ -1,9 +1,10 @@
-import { Ref, ref } from 'vue'
+import { ComputedRef, Ref, ref } from 'vue'
 import * as Sentry from '@sentry/vue'
 import { Board, Notation } from '@decentm/allegiance-chess-core'
 
 import { DataRtcMessage, RtcMessage, useRtcConnection } from './rtc-connection'
 import { FenPreset } from '../lib/boards'
+import { useGameover } from './game-over'
 
 type ExecuteNodeIndexMessage = {
   type: 'execute-node-index'
@@ -28,12 +29,13 @@ export type ChessRtcConnection = {
   serverSide: Ref<'white' | 'black' | null>
   boardAFEN: Ref<string>
   moveHistory: Ref<string>
+  gameOver: ComputedRef<Notation.GameOverNode | null>
 }
 
 export const useChessRtcConnection = (
   onMovePlayed?: (node: Notation.Node) => void
 ): ChessRtcConnection => {
-  const board = ref(new Board())
+  const board = ref(new Board()) as Ref<Board>
 
   const sendMessage = (message: ChessMessage) => {
     sendData(Buffer.from(JSON.stringify(message), 'utf8'))
@@ -105,6 +107,8 @@ export const useChessRtcConnection = (
   const { connect, mode, peerId, sendData, disconnect } =
     useRtcConnection(receiveMessage)
 
+  const { gameOver } = useGameover(board)
+
   return {
     connect,
     mode,
@@ -115,5 +119,6 @@ export const useChessRtcConnection = (
     serverSide,
     boardAFEN,
     moveHistory,
+    gameOver,
   }
 }

@@ -1,5 +1,4 @@
 import { VError } from 'verror'
-import cloneDeep from 'lodash.clonedeep'
 
 import * as Notation from '../notation'
 
@@ -38,16 +37,23 @@ export class BoardMemory {
 
   public moveHistory: Notation.RootNode
 
+  public positionHistory: Map<string, number>
+
   public clone() {
     const memory = new BoardMemory()
 
-    memory.memory = cloneDeep(this.memory)
+    memory.memory = [...this.memory.map((item) => [...item])]
     memory.activeColour = this.activeColour
-    memory.enPassantTarget = cloneDeep(this.enPassantTarget)
-    memory._castlingRights = cloneDeep(this._castlingRights)
+    memory.enPassantTarget = { ...this.enPassantTarget }
+    memory._castlingRights = [...this._castlingRights]
     memory.halfmoveClock = this.halfmoveClock
     memory.fullmoveNumber = this.fullmoveNumber
-    memory.moveHistory = cloneDeep(this.moveHistory)
+
+    memory.moveHistory = {
+      kind: 'root',
+      children: [...this.moveHistory.children],
+    }
+    memory.positionHistory = new Map(this.positionHistory)
 
     return memory
   }
@@ -74,16 +80,19 @@ export class BoardMemory {
   }
 
   private clear() {
-    this.memory = []
     this.activeColour = 'white'
     this.enPassantTarget = null
     this._castlingRights = []
     this.halfmoveClock = 0
     this.fullmoveNumber = 0
+
     this.moveHistory = {
       kind: 'root',
       children: [],
     }
+    this.positionHistory = new Map()
+
+    this.memory = []
 
     for (let rank = 0; rank < 8; rank++) {
       this.memory[rank] = []

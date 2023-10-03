@@ -43,6 +43,11 @@ type ExecuteMoveTypeInput<NodeType extends MoveNode<string | void>> = {
 
 export const PROMOTION_PIECES: Notation.Piece[] = ['B', 'N', 'Q', 'R']
 
+export type GetValidMovesInput = {
+  from?: Coordinates | null
+  side: 'white' | 'black'
+}
+
 export class Board {
   private memory: BoardMemory
 
@@ -50,7 +55,6 @@ export class Board {
     const board = new Board()
 
     board.memory = this.memory.clone()
-    board.lastKnownValidMoves = this.lastKnownValidMoves
 
     return board
   }
@@ -292,9 +296,27 @@ export class Board {
         break
     }
 
-    if (this.memory.activeColour === 'black') this.memory.halfmoveClock++
+    switch (node.type) {
+      case 'capture':
+      case 'en-passant': {
+        this.memory.halfmoveClock = 0
+        break
+      }
 
-    this.memory.fullmoveNumber++
+      case null: {
+        if (node.piece === null) this.memory.halfmoveClock = 0
+        else this.memory.halfmoveClock++
+
+        break
+      }
+
+      default: {
+        this.memory.halfmoveClock++
+        break
+      }
+    }
+
+    if (this.memory.activeColour === 'black') this.memory.fullmoveNumber++
 
     this.memory.activeColour =
       this.memory.activeColour === 'white' ? 'black' : 'white'
@@ -310,9 +332,16 @@ export class Board {
     }
 
     this.memory.moveHistory.children.push(node)
-    this.lastKnownValidMoves = null
+
+    const afen = this.toAFEN()
+    const position = this.memory.positionHistory.get(afen) || 0
+
+    this.memory.positionHistory.set(afen, position + 1)
   }
 
+  /**
+   * @returns The executed move
+   */
   public executeMoveIndex(moveIndex: number) {
     if (moveIndex < 0) {
       throw new VError(`Move index must be positive, got ${moveIndex}`)
@@ -614,50 +643,8 @@ export class Board {
       (move) => move.kind === 'game-over'
     )
 
-    if (!hasGameOver) {
-      if (this.memory.activeColour === 'black') {
-        result.push(
-          {
-            kind: 'game-over',
-            outcome: Notation.GameOutcome.White,
-          },
-          {
-            kind: 'game-over',
-            outcome: Notation.GameOutcome.Draw,
-          },
-          {
-            kind: 'game-over',
-            outcome: Notation.GameOutcome.Forfeit,
-          },
-          {
-            kind: 'game-over',
-            outcome: Notation.GameOutcome.ForfeitWhite,
-          }
-        )
-      }
-
-      if (this.memory.activeColour === 'white') {
-        result.push(
-          {
-            kind: 'game-over',
-            outcome: Notation.GameOutcome.Black,
-          },
-          {
-            kind: 'game-over',
-            outcome: Notation.GameOutcome.Draw,
-          },
-          {
-            kind: 'game-over',
-            outcome: Notation.GameOutcome.Forfeit,
-          },
-          {
-            kind: 'game-over',
-            outcome: Notation.GameOutcome.ForfeitBlack,
-          }
-        )
-      }
-
-      result.push({ kind: 'draw-offer' })
+    if (hasGameOver) {
+      return []
     }
 
     squares.forEach((square) => {
@@ -1263,10 +1250,148 @@ export class Board {
     return result
   }
 
+  // https://www.chess.com/article/view/how-chess-games-can-end-8-ways-explained
+  private getGameOverNode(
+    possibleMoves: Node[],
+    validMoves: Node[]
+  ): Notation.GameOverNode | null {
+    const checkMoves = this.getCheckMovesFromList(possibleMoves)
+    const squares = this.getSquares().filter(Boolean)
+
+    const selfSide = this.activeColour
+    const opponentSide = this.activeColour === 'white' ? 'black' : 'white'
+
+    const countPiece = (
+      side: 'white' | 'black',
+      piece?: Notation.Piece
+    ): number => {
+      return squares.reduce((acc, cur) => {
+        if (
+          !piece &&
+          piece !== null &&
+          allegianceSide(cur.allegiance) === side
+        ) {
+          return acc + 1
+        }
+
+        if (cur.piece === piece && allegianceSide(cur.allegiance) === side) {
+          return acc + 1
+        }
+
+        return acc
+      }, 0)
+    }
+
+    // checkmate: no valid moves for active side + active side is checked
+    const checked = checkMoves.some((move) => {
+      const targetSquare = this.memory.getSquare(move.to)
+      return allegianceSide(targetSquare.allegiance) === selfSide
+    })
+
+    if (checked && validMoves.length === 0) {
+      return {
+        kind: 'game-over',
+        outcome: opponentSide,
+        reason: 'Checkmate',
+      }
+    }
+
+    // draw by stalemate
+    if (!checked && validMoves.length === 0) {
+      return {
+        kind: 'game-over',
+        outcome: 'draw',
+        reason: 'Stalemate',
+      }
+    }
+
+    // draw by insufficient material
+    const selfPieces = countPiece(selfSide)
+    const opponentPieces = countPiece(opponentSide)
+
+    // King vs king
+    if (selfPieces === 1 && opponentPieces === 1) {
+      const opponentPiece = squares.find(
+        (square) => allegianceSide(square.allegiance) === opponentSide
+      )
+
+      const selfPiece = squares.find(
+        (square) => allegianceSide(square.allegiance) === selfSide
+      )
+
+      if (selfPiece.piece === 'K' && opponentPiece.piece === 'K') {
+        return {
+          kind: 'game-over',
+          outcome: 'draw',
+          reason: 'Insufficient material (king vs king)',
+        }
+      }
+    }
+
+    // king + minor vs king + minor
+    if (selfPieces <= 2 && opponentPieces <= 2) {
+      const opponentPiece = squares.find(
+        (square) =>
+          allegianceSide(square.allegiance) === opponentSide &&
+          square.piece !== 'K'
+      )
+
+      const selfPiece = squares.find(
+        (square) =>
+          allegianceSide(square.allegiance) === selfSide && square.piece !== 'K'
+      )
+
+      if (
+        // yikes
+        (!selfPiece || selfPiece.piece === 'N' || selfPiece.piece === 'B') &&
+        (!opponentPiece ||
+          opponentPiece.piece === 'N' ||
+          opponentPiece.piece === 'B')
+      ) {
+        return {
+          kind: 'game-over',
+          outcome: 'draw',
+          reason: 'Insufficient material (king + minor vs king + minor)',
+        }
+      }
+    }
+
+    // draw by 50-move rule
+    if (this.halfmoveClock >= 100) {
+      return {
+        kind: 'game-over',
+        outcome: 'draw',
+        reason: '50 move-rule',
+      }
+    }
+
+    // draw by repetition
+    const afen = this.toAFEN()
+    const occurrenceCount = this.memory.positionHistory.get(afen) || 0
+
+    if (occurrenceCount >= 2) {
+      return {
+        kind: 'game-over',
+        outcome: 'draw',
+        reason: 'Repetition',
+      }
+    }
+
+    // TODO: draw by agreement?
+    // TODO: timeouts?
+    // TODO: resignation?
+  }
+
+  public getCheckMoves() {
+    const possibleMoves = this.getPossibleMoves()
+
+    return this.getCheckMovesFromList(possibleMoves)
+  }
+
   /**
    * @returns Moves that check a king
    */
-  public getCheckMoves(possibleMoves: Node[]): Node[] {
+  private getCheckMovesFromList(possibleMoves: Node[]): MoveNode[] {
     return possibleMoves.filter((node) => {
       if (node.kind !== 'move' || !node.to) {
         return
@@ -1275,56 +1400,57 @@ export class Board {
       const targetSquare = this.memory.getSquare(node.to)
 
       return targetSquare && targetSquare.piece === 'K'
-    })
+    }) as MoveNode[]
   }
 
-  private lastKnownValidMoves: Node[] | null = null
-
-  public getValidMoves(from?: Coordinates | null): Node[] {
-    if (!from && this.lastKnownValidMoves) {
-      return this.lastKnownValidMoves
-    }
-
-    const moveNodes = this.getPossibleMoves()
-
-    const result = moveNodes.filter((moveNode) => {
+  private getValidMovesFromList(list: Node[], input: GetValidMovesInput) {
+    const result = list.filter((moveNode) => {
       if (moveNode.kind !== 'move') {
         return true
       }
 
-      if (from && !coordinatesEqual(from, moveNode.from)) {
+      if (input.from && !coordinatesEqual(input.from, moveNode.from)) {
         return false
       }
 
       const fromSquare = this.memory.getSquare(moveNode.from)
 
       // Filter out moves that the other side makes
-      if (allegianceSide(fromSquare.allegiance) !== this.memory.activeColour) {
+      if (allegianceSide(fromSquare.allegiance) !== this.activeColour) {
         return false
       }
 
-      // Sets up a clone of the board with this move applied so wee can scan for
+      // Sets up a clone of the board with this move applied so we can scan for
       // checks
       const virtualBoard = this.clone()
       virtualBoard.executeNode(moveNode)
 
       const possibleMoves = virtualBoard.getPossibleMoves()
-      const checkMoveNodes = virtualBoard.getCheckMoves(possibleMoves)
+      const checkMoves = virtualBoard.getCheckMovesFromList(possibleMoves)
 
       // Filter out moves that would result in us getting checked
-      return checkMoveNodes.every((checkMoveNode) => {
-        if (checkMoveNode.kind !== 'move') {
-          return false
-        }
+      return checkMoves.every((checkMove) => {
+        const toSquare = virtualBoard.memory.getSquare(checkMove.to)
 
-        const toSquare = virtualBoard.memory.getSquare(checkMoveNode.to)
-
-        return allegianceSide(toSquare.allegiance) !== this.memory.activeColour
+        return allegianceSide(toSquare.allegiance) !== this.activeColour
       })
     })
 
-    if (!from) this.lastKnownValidMoves = result
+    const gameOver = this.getGameOverNode(list, result)
+
+    if (gameOver) {
+      return [gameOver]
+    }
 
     return result
+  }
+
+  public getValidMoves(from?: Coordinates): Node[] {
+    const possibleMoves = this.getPossibleMoves()
+
+    return this.getValidMovesFromList(possibleMoves, {
+      from,
+      side: this.activeColour,
+    })
   }
 }

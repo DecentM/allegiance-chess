@@ -46,7 +46,7 @@ const lastMove = computed(() => {
     :style="{ width: props.width + 'px', height: props.width + 'px' }"
   >
     <div class="absolute full-width full-height">
-      <background-layer :ranks="8" :files="8" />
+      <background-layer :ranks="8" :files="8" :perspective="perspective" />
     </div>
 
     <div class="absolute full-width full-height">

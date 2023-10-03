@@ -34,8 +34,7 @@ test('finds 20 moves on a starting board for white', (t) => {
 
   const moves = b.getValidMoves()
 
-  // 1 is draw offer, 4 are resignations
-  t.is(moves.length, 25)
+  t.is(moves.length, 20)
 })
 
 test('finds 20 moves for black after a move', (t) => {
@@ -53,8 +52,7 @@ test('finds 20 moves for black after a move', (t) => {
 
   const moves = b.getValidMoves()
 
-  // 1 is draw offer, 4 are resignations
-  t.is(moves.length, 25)
+  t.is(moves.length, 20)
 })
 
 test('executes single move', (t) => {
@@ -179,7 +177,7 @@ test('finds single node', (t) => {
     },
   })
 
-  t.is(node, 10)
+  t.is(node, 5)
 })
 
 test('infers two nodes', (t) => {
@@ -427,4 +425,69 @@ test('does not allow castling through checks', (t) => {
     validMoves.find((move) => move.kind === 'move' && move.type === 'castle'),
     undefined
   )
+})
+
+test('allows Bh6 from rnbk3r/p3n>Q2/1pp>p4/q3p1Bp/3P4/PB3N2/1P3RPP/RN4K1 w - h6 0 30', (t) => {
+  const b = new Board()
+
+  b.importAFEN('rnbk3r/p3n>Q2/1pp>p4/q3p1Bp/3P4/PB3N2/1P3RPP/RN4K1 w - h6 0 30')
+
+  const index = b.findMoveIndex({
+    kind: 'move',
+    type: null,
+    from: {
+      file: 7,
+      rank: 5,
+    },
+    to: {
+      file: 8,
+      rank: 6,
+    },
+  })
+
+  t.not(index, -1)
+
+  b.executeMoveIndex(index)
+
+  const result = b.getSquare({
+    file: 8,
+    rank: 6,
+  })
+
+  t.deepEqual(result, {
+    piece: 'B',
+    allegiance: 3,
+  })
+})
+
+test('detects checkmate by white', (t) => {
+  const b = new Board()
+
+  b.importAFEN('rnbk3r/p4Q2/1pp>p4/q3p1Bp/P2P4/1Bn>2N2/1P3RPP/RN4K1 b - - 2 32')
+
+  const result = b.getValidMoves()
+
+  t.deepEqual(result, [
+    {
+      kind: 'game-over',
+      outcome: 'white',
+      reason: 'Checkmate',
+    },
+  ])
+})
+
+test('detects stalemate by black', (t) => {
+  const b = new Board()
+
+  b.importAFEN('8/8/4k3/8/8/6q1/8/7K w - - 0 1')
+
+  const result = b.getValidMoves()
+
+  t.deepEqual(result, [
+    {
+      kind: 'game-over',
+      outcome: 'draw',
+      reason: 'Stalemate',
+    },
+  ])
 })
