@@ -11,7 +11,32 @@ import {
 } from './parser'
 import { coordinatesToNotation } from '../lib/coordinate'
 
-export const write = (input: RootNode): string => {
+export type WriteOptions = {
+  sections: Array<
+    | 'positions'
+    | 'active-colour'
+    | 'castlig-rights'
+    | 'en-passant-targets'
+    | 'halfmove-clock'
+    | 'fullmove-number'
+  >
+}
+
+export const defaultOptions: WriteOptions = {
+  sections: [
+    'positions',
+    'active-colour',
+    'castlig-rights',
+    'en-passant-targets',
+    'halfmove-clock',
+    'fullmove-number',
+  ],
+}
+
+export const write = (
+  input: RootNode,
+  options: WriteOptions = defaultOptions
+): string => {
   let positions = ''
   let charsWritten = 0
 
@@ -116,12 +141,12 @@ export const write = (input: RootNode): string => {
   }
 
   const result = [
-    positions,
-    activeColour,
-    castlingRights,
-    enPassantTargets,
-    halfmoveClock,
-    fullmoveNumber,
+    options.sections.includes('positions') && positions,
+    options.sections.includes('active-colour') && activeColour,
+    options.sections.includes('castlig-rights') && castlingRights,
+    options.sections.includes('en-passant-targets') && enPassantTargets,
+    options.sections.includes('halfmove-clock') && halfmoveClock,
+    options.sections.includes('fullmove-number') && fullmoveNumber,
   ].join(' ')
 
   return result

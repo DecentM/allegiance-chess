@@ -1,11 +1,10 @@
 import { VError } from 'verror'
 
 import * as Notation from '../notation'
+import * as Afen from '../afen'
 
 import { fileToLetter } from '../lib/notation'
 import { allegianceSide } from '../lib/allegiance'
-
-import { CastlingRightsNode, RootNode } from '../afen/parser'
 
 import { PieceAllegiance } from './board'
 
@@ -37,8 +36,6 @@ export class BoardMemory {
 
   public moveHistory: Notation.RootNode
 
-  public positionHistory: Map<string, number>
-
   public clone() {
     const memory = new BoardMemory()
 
@@ -53,7 +50,6 @@ export class BoardMemory {
       kind: 'root',
       children: [...this.moveHistory.children],
     }
-    memory.positionHistory = new Map(this.positionHistory)
 
     return memory
   }
@@ -90,7 +86,6 @@ export class BoardMemory {
       kind: 'root',
       children: [],
     }
-    this.positionHistory = new Map()
 
     this.memory = []
 
@@ -172,83 +167,100 @@ export class BoardMemory {
     this.memory[coords.rank - 1][coords.file - 1] = square
   }
 
-  public toAFEN(): RootNode {
-    const ast: RootNode = {
+  public toAFEN(
+    options: Afen.WriteOptions = Afen.defaultOptions
+  ): Afen.RootNode {
+    const ast: Afen.RootNode = {
       kind: 'ast',
       children: [],
     }
 
     let skip = 0
 
-    for (let i = this.memory.length - 1; i >= 0; i--) {
-      const rank = this.memory[i]
+    if (options.sections.includes('positions')) {
+      for (let i = this.memory.length - 1; i >= 0; i--) {
+        const rank = this.memory[i]
 
-      for (const square of rank) {
-        if (!square) {
-          skip++
-          continue
+        for (const square of rank) {
+          if (!square) {
+            skip++
+            continue
+          }
+
+          if (skip) {
+            ast.children.push({ kind: 'skip', value: skip })
+            skip = 0
+          }
+
+          ast.children.push({ kind: 'piece', value: square })
         }
 
         if (skip) {
           ast.children.push({ kind: 'skip', value: skip })
           skip = 0
         }
-
-        ast.children.push({ kind: 'piece', value: square })
-      }
-
-      if (skip) {
-        ast.children.push({ kind: 'skip', value: skip })
-        skip = 0
       }
     }
 
-    ast.children.push({
-      kind: 'active-colour',
-      value: this.activeColour,
-    })
-
-    const castlingNode: CastlingRightsNode = {
-      kind: 'castling-rights',
-      value: { black: [], white: [] },
+    if (options.sections.includes('active-colour')) {
+      ast.children.push({
+        kind: 'active-colour',
+        value: this.activeColour,
+      })
     }
 
-    const whiteCastling = this.castlingRights('white')
-    const blackCastling = this.castlingRights('black')
+    if (options.sections.includes('castlig-rights')) {
+      const castlingNode: Afen.CastlingRightsNode = {
+        kind: 'castling-rights',
+        value: { black: [], white: [] },
+      }
 
-    if (whiteCastling.includes('king')) castlingNode.value.white.push('king')
-    if (whiteCastling.includes('queen')) castlingNode.value.white.push('queen')
-    if (blackCastling.includes('king')) castlingNode.value.black.push('king')
-    if (blackCastling.includes('queen')) castlingNode.value.black.push('queen')
+      const whiteCastling = this.castlingRights('white')
+      const blackCastling = this.castlingRights('black')
+
+      if (whiteCastling.includes('king')) castlingNode.value.white.push('king')
+      if (whiteCastling.includes('queen'))
+        castlingNode.value.white.push('queen')
+      if (blackCastling.includes('king')) castlingNode.value.black.push('king')
+      if (blackCastling.includes('queen'))
+        castlingNode.value.black.push('queen')
+
+      if (
+        castlingNode.value.white.length > 0 ||
+        castlingNode.value.black.length > 0
+      ) {
+        ast.children.push(castlingNode)
+      }
+    }
 
     if (
-      castlingNode.value.white.length > 0 ||
-      castlingNode.value.black.length > 0
+      options.sections.includes('en-passant-targets') &&
+      this.enPassantTarget
     ) {
-      ast.children.push(castlingNode)
-    }
-
-    if (this.enPassantTarget) {
       ast.children.push({
         kind: 'en-passant-targets',
         value: this.enPassantTarget,
       })
     }
 
-    ast.children.push({
-      kind: 'halfmove-clock',
-      value: this.halfmoveClock,
-    })
+    if (options.sections.includes('halfmove-clock')) {
+      ast.children.push({
+        kind: 'halfmove-clock',
+        value: this.halfmoveClock,
+      })
+    }
 
-    ast.children.push({
-      kind: 'fullmove-number',
-      value: this.fullmoveNumber,
-    })
+    if (options.sections.includes('fullmove-number')) {
+      ast.children.push({
+        kind: 'fullmove-number',
+        value: this.fullmoveNumber,
+      })
+    }
 
     return ast
   }
 
-  public fromAFEN(afen: RootNode) {
+  public fromAFEN(afen: Afen.RootNode) {
     this.clear()
 
     let rank: Notation.Rank = 8

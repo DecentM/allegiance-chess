@@ -4,6 +4,7 @@ export { allegianceSide } from './lib/allegiance'
 export { coordinatesEqual } from './lib/coordinate'
 export { fileToLetter } from './lib/notation'
 export { getCoordsForIndex, isPromotion } from './lib/board'
+export * from './lib/afen-preset'
 
 export type { BoardSquare } from './chess/board-memory'
 

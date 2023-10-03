@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { Board, Notation } from '@decentm/allegiance-chess-core'
+import { AfenPreset, Board, Notation } from '@decentm/allegiance-chess-core'
 
 import ChessBoard from '../../components/chess-board.vue'
 import GameSidebar from '../../components/game-sidebar.vue'
@@ -8,7 +8,6 @@ import GameOverDialog from '../../components/game-over-dialog.vue'
 
 import { computed } from 'vue'
 import { Hex } from '../../lib/hex'
-import { FenPreset } from '../../lib/boards'
 import { useQuasar } from 'quasar'
 import { useBoardAudio } from '../../hooks/board-audio'
 import { useGameover } from '../../hooks/game-over'
@@ -22,7 +21,7 @@ const afen = computed(() => {
     : route.params.state
 
   if (!hex) {
-    return FenPreset.VanillaDefault
+    return AfenPreset.VanillaDefault
   }
 
   return Hex.hexToUtf8(hex)

@@ -22,6 +22,7 @@ import * as Notation from '../notation'
 import * as Afen from '../afen'
 
 import { BoardMemory, BoardSquare } from './board-memory'
+import { AfenPreset } from '../lib/afen-preset'
 
 export const PieceAllegiance = {
   Black: 0,
@@ -71,8 +72,8 @@ export class Board {
     this.memory.moveHistory = Notation.parse(Notation.tokenize(history))
   }
 
-  public toAFEN() {
-    return Afen.write(this.memory.toAFEN())
+  public toAFEN(options: Afen.WriteOptions = Afen.defaultOptions) {
+    return Afen.write(this.memory.toAFEN(options))
   }
 
   public getSquares() {
@@ -112,6 +113,28 @@ export class Board {
 
   constructor() {
     this.memory = new BoardMemory()
+  }
+
+  private getPositionHistory() {
+    const moves = this.memory.moveHistory.children
+    const result: Map<string, number> = new Map()
+    const virtualBoard = new Board()
+
+    virtualBoard.importAFEN(AfenPreset.VanillaDefault)
+
+    for (const move of moves) {
+      virtualBoard.executeNode(move)
+      const afen = virtualBoard.toAFEN({ sections: ['positions'] })
+      const count = result.get(afen)
+
+      if (count) {
+        result.set(afen, count + 1)
+      } else {
+        result.set(afen, 1)
+      }
+    }
+
+    return result
   }
 
   private executeAllegianceMoveNode(
@@ -332,11 +355,6 @@ export class Board {
     }
 
     this.memory.moveHistory.children.push(node)
-
-    const afen = this.toAFEN()
-    const position = this.memory.positionHistory.get(afen) || 0
-
-    this.memory.positionHistory.set(afen, position + 1)
   }
 
   /**
@@ -1365,11 +1383,13 @@ export class Board {
       }
     }
 
-    // draw by repetition
-    const afen = this.toAFEN()
-    const occurrenceCount = this.memory.positionHistory.get(afen) || 0
+    const positionHistory = this.getPositionHistory()
 
-    if (occurrenceCount >= 2) {
+    // draw by repetition
+    const afen = this.toAFEN({ sections: ['positions'] })
+    const occurrenceCount = positionHistory.get(afen) || 0
+
+    if (occurrenceCount >= 3) {
       return {
         kind: 'game-over',
         outcome: 'draw',

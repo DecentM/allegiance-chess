@@ -1,9 +1,8 @@
 import { ComputedRef, Ref, ref } from 'vue'
 import * as Sentry from '@sentry/vue'
-import { Board, Notation } from '@decentm/allegiance-chess-core'
+import { AfenPreset, Board, Notation } from '@decentm/allegiance-chess-core'
 
 import { DataRtcMessage, RtcMessage, useRtcConnection } from './rtc-connection'
-import { FenPreset } from '../lib/boards'
 import { useGameover } from './game-over'
 
 type ExecuteNodeIndexMessage = {
@@ -52,8 +51,8 @@ export const useChessRtcConnection = (
   const receiveOpenMessage = () => {
     open.value = true
 
-    board.value.importAFEN(FenPreset.VanillaDefault)
-    boardAFEN.value = FenPreset.VanillaDefault
+    board.value.importAFEN(AfenPreset.VanillaDefault)
+    boardAFEN.value = AfenPreset.VanillaDefault
   }
 
   const receiveDataMessage = (rtcMessage: DataRtcMessage) => {
