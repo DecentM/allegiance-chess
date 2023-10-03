@@ -1,0 +1,15 @@
+{
+  "parserOptions": {
+    "project": "apps/frontend/src-pwa/tsconfig.json"
+  },
+
+  "overrides": [
+    {
+      "files": "custom-service-worker.ts",
+
+      "env": {
+        "serviceworker": true
+      }
+    }
+  ]
+}

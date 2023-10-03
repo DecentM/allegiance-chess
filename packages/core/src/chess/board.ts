@@ -50,6 +50,7 @@ export class Board {
     const board = new Board()
 
     board.memory = this.memory.clone()
+    board.lastKnownValidMoves = this.lastKnownValidMoves
 
     return board
   }
@@ -309,6 +310,7 @@ export class Board {
     }
 
     this.memory.moveHistory.children.push(node)
+    this.lastKnownValidMoves = null
   }
 
   public executeMoveIndex(moveIndex: number) {
@@ -1264,10 +1266,8 @@ export class Board {
   /**
    * @returns Moves that check a king
    */
-  public getCheckMoves(): Node[] {
-    const moves = this.getPossibleMoves()
-
-    return moves.filter((node) => {
+  public getCheckMoves(possibleMoves: Node[]): Node[] {
+    return possibleMoves.filter((node) => {
       if (node.kind !== 'move' || !node.to) {
         return
       }
@@ -1278,10 +1278,16 @@ export class Board {
     })
   }
 
+  private lastKnownValidMoves: Node[] | null = null
+
   public getValidMoves(from?: Coordinates | null): Node[] {
+    if (!from && this.lastKnownValidMoves) {
+      return this.lastKnownValidMoves
+    }
+
     const moveNodes = this.getPossibleMoves()
 
-    return moveNodes.filter((moveNode) => {
+    const result = moveNodes.filter((moveNode) => {
       if (moveNode.kind !== 'move') {
         return true
       }
@@ -1302,7 +1308,8 @@ export class Board {
       const virtualBoard = this.clone()
       virtualBoard.executeNode(moveNode)
 
-      const checkMoveNodes = virtualBoard.getCheckMoves()
+      const possibleMoves = virtualBoard.getPossibleMoves()
+      const checkMoveNodes = virtualBoard.getCheckMoves(possibleMoves)
 
       // Filter out moves that would result in us getting checked
       return checkMoveNodes.every((checkMoveNode) => {
@@ -1315,5 +1322,9 @@ export class Board {
         return allegianceSide(toSquare.allegiance) !== this.memory.activeColour
       })
     })
+
+    if (!from) this.lastKnownValidMoves = result
+
+    return result
   }
 }

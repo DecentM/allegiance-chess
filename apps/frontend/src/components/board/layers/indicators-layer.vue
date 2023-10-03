@@ -16,6 +16,10 @@ const props = defineProps<{
   lastMove: Notation.Node | null
 }>()
 
+const validMoves = computed(() => {
+  return props.board.getValidMoves()
+})
+
 const highlightSquares = computed(() => {
   if (!props.pieceFocus) {
     return []
@@ -66,7 +70,7 @@ const indexToCoords = (
 }
 
 const checkMoves = computed(() => {
-  return props.board.getCheckMoves()
+  return props.board.getCheckMoves(validMoves.value)
 })
 
 const isChecked = (coords: Notation.Coordinates) => {
