@@ -69,37 +69,46 @@ const handleExecuteNode = (node: Partial<Notation.Node>) => {
 
 const q = useQuasar()
 
-const padding = 200
-
 const size = computed(() => {
   let result = q.screen.width
+
+  if (q.screen.gt.xs) {
+    result = q.screen.width - 65
+  }
 
   if (q.screen.gt.sm) {
     result = q.screen.sizes.sm
   }
 
   if (q.screen.gt.md) {
-    result = q.screen.sizes.md - padding
+    result = q.screen.sizes.md - 265
   }
 
   if (q.screen.gt.lg) {
-    result = q.screen.sizes.lg - padding
+    result = q.screen.sizes.lg - 265
   }
 
-  return Math.min(result - 75, q.screen.height - 75)
+  return Math.min(result, q.screen.height)
 })
 </script>
 
 <template>
   <q-card flat class="full-width">
-    <q-card-section :horizontal="q.screen.gt.sm">
-      <q-card-section :style="{ width: `${size}px` }">
+    <q-card-section
+      :horizontal="q.screen.gt.sm"
+      :class="{ 'q-px-none': q.screen.lt.sm }"
+    >
+      <q-card-section
+        :style="{ width: `${size}px` }"
+        :class="{ 'q-px-none': q.screen.lt.sm }"
+      >
         <chess-board
           @execute-node="handleExecuteNode"
           :board="board"
           :perspective="board.activeColour"
           :play-as="['white', 'black']"
           :width="size"
+          :rounded-borders="q.screen.gt.xs"
         />
       </q-card-section>
 

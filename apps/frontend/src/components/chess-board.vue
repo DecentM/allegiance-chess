@@ -1,112 +1,85 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
-import { Board, Notation, fileToLetter } from '@decentm/allegiance-chess-core'
+import { Board, Notation } from '@decentm/allegiance-chess-core'
 
-import BoardTable from './board/board-table.vue'
+import BackgroundLayer from './board/layers/background-layer.vue'
+import InteractionLayer from './board/layers/interaction-layer.vue'
+import IndicatorsLayer from './board/layers/indicators-layer.vue'
+import PiecesLayer from './board/layers/pieces-layer.vue'
 
 const props = defineProps<{
   board: Board
   width: number
   perspective: 'black' | 'white'
   playAs: Array<'black' | 'white'>
+  roundedBorders?: boolean
 }>()
 
 const emit = defineEmits<{
   (event: 'execute-node', value: Partial<Notation.Node>): void
 }>()
 
-const sidebarWidth = computed(() => {
-  return props.width / 8 / 2.5
+const squareSize = computed(() => {
+  return props.width / 8
+})
+
+const pieceFocus = ref<Notation.Coordinates | null>(null)
+
+const handleExcuteNode = (node: Partial<Notation.Node>) => {
+  emit('execute-node', node)
+  pieceFocus.value = null
+}
+
+const lastMove = computed(() => {
+  const ast = props.board.getMoveHistoryAst()
+
+  return ast.children.at(-1) ?? null
 })
 </script>
 
 <template>
-  <div :style="{ width: `${width}px` }">
-    <div class="column">
-      <div class="row" :style="{ height: `${sidebarWidth}px` }">
-        <div :style="{ width: `${sidebarWidth}px` }"></div>
-        <q-card
-          v-for="(_, fileIndex) in 8"
-          :key="fileIndex"
-          class="col column full-height justify-center"
-          flat
-        >
-          <q-card-section class="text-center q-pa-none">
-            {{
-              fileToLetter(
-                (perspective === 'white'
-                  ? 9 - (8 - fileIndex)
-                  : 8 - fileIndex) as Notation.File
-              ).toUpperCase()
-            }}
-          </q-card-section>
-        </q-card>
-        <div :style="{ width: `${sidebarWidth}px` }"></div>
-      </div>
+  <div
+    data-testid="chess-board"
+    class="relative-position column"
+    :class="{ 'rounded-borders overflow-hidden': roundedBorders }"
+    :style="{ width: props.width + 'px', height: props.width + 'px' }"
+  >
+    <div class="absolute full-width full-height">
+      <background-layer :ranks="8" :files="8" />
+    </div>
 
-      <div class="row">
-        <div class="column" :style="{ width: `${sidebarWidth}px` }">
-          <q-card
-            v-for="(_, rankIndex) in 8"
-            :key="rankIndex"
-            class="col column full-height justify-center text-center"
-            flat
-          >
-            <q-card-section class="q-pa-none">
-              {{
-                perspective === 'white' ? 8 - rankIndex : 9 - (8 - rankIndex)
-              }}
-            </q-card-section>
-          </q-card>
-        </div>
+    <div class="absolute full-width full-height">
+      <indicators-layer
+        :board="board"
+        :square-size="squareSize"
+        :files="8"
+        :ranks="8"
+        :perspective="perspective"
+        :piece-focus="pieceFocus"
+        :last-move="lastMove"
+      />
+    </div>
 
-        <div class="col">
-          <board-table
-            @execute-node="(node) => emit('execute-node', node)"
-            :board="board"
-            :perspective="perspective"
-            :play-as="playAs"
-            :width="width - sidebarWidth * 2"
-          />
-        </div>
+    <div class="absolute full-width full-height">
+      <pieces-layer
+        :model-value="board.getSquares()"
+        :perspective="props.perspective"
+        :square-size="squareSize"
+      />
+    </div>
 
-        <div class="column" :style="{ width: `${sidebarWidth}px` }">
-          <q-card
-            v-for="(_, rankIndex) in 8"
-            :key="rankIndex"
-            class="col column full-height justify-center text-center"
-            flat
-          >
-            <q-card-section class="q-pa-none">
-              {{
-                perspective === 'white' ? 8 - rankIndex : 9 - (8 - rankIndex)
-              }}
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
-
-      <div class="row" :style="{ height: `${sidebarWidth}px` }">
-        <div :style="{ width: `${sidebarWidth}px` }"></div>
-        <q-card
-          v-for="(_, fileIndex) in 8"
-          :key="fileIndex"
-          class="col column full-height justify-center"
-          flat
-        >
-          <q-card-section class="text-center q-pa-none">
-            {{
-              fileToLetter(
-                (perspective === 'white'
-                  ? 9 - (8 - fileIndex)
-                  : 8 - fileIndex) as Notation.File
-              ).toUpperCase()
-            }}
-          </q-card-section>
-        </q-card>
-        <div :style="{ width: `${sidebarWidth}px` }"></div>
-      </div>
+    <div class="absolute full-width full-height">
+      <interaction-layer
+        @execute-node="handleExcuteNode"
+        @update-piece-focus="(focus) => (pieceFocus = focus)"
+        :piece-focus="pieceFocus"
+        :board="board"
+        :square-size="squareSize"
+        :files="8"
+        :ranks="8"
+        :perspective="props.perspective"
+      />
     </div>
   </div>
 </template>

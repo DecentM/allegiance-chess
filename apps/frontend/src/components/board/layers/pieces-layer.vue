@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useQuasar } from 'quasar'
 import { BoardSquare, Notation } from '@decentm/allegiance-chess-core'
 
 import ChessPiece from '../../chess-piece.vue'
@@ -8,6 +9,8 @@ defineProps<{
   squareSize: number
   perspective: 'white' | 'black'
 }>()
+
+const q = useQuasar()
 </script>
 
 <style lang="scss" scoped>
@@ -24,7 +27,11 @@ defineProps<{
       <chess-piece
         v-if="square"
         data-testid="piece"
-        class="absolute q-pa-sm"
+        class="absolute"
+        :class="{
+          'q-pa-xs': q.screen.sm || q.screen.md,
+          'q-pa-sm': q.screen.gt.sm,
+        }"
         :piece="square.piece"
         :allegiance="square.allegiance"
         :size="squareSize"
