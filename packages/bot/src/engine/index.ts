@@ -5,7 +5,6 @@ import {
   allegianceSide,
 } from '@decentm/allegiance-chess-core'
 
-import { randomBytes } from 'node:crypto'
 import seedrandom from 'seedrandom'
 
 const getSquareScore = (square: BoardSquare): number => {
@@ -55,7 +54,7 @@ const getBoardScore = (board: Board) => {
 export const findBestMove = (
   board: Board,
   maxDepth: number,
-  seed = randomBytes(8).toString('hex')
+  seed = String(Math.random())
 ) => {
   if (maxDepth <= 0) {
     return null

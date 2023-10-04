@@ -45,6 +45,14 @@ const routes: RouteRecordRaw[] = [
               icon: 'settings',
             },
           },
+          {
+            path: 'bot/:state?/:history?',
+            component: () => import('pages/play/bot-game.vue'),
+            meta: {
+              title: 'Play against computer',
+              icon: 'precision_manufacturing',
+            },
+          },
         ],
       },
     ],

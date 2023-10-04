@@ -15,7 +15,7 @@ defineProps<{
 </style>
 
 <template>
-  <q-dialog :model-value="true" position="bottom">
+  <q-dialog :model-value="true" persistent position="bottom">
     <q-card class="my-card game-over-dialog">
       <q-card-section class="bg-primary text-h5 row justify-between">
         <span v-if="node.outcome === 'white'">White wins!</span>

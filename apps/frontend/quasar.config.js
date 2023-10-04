@@ -61,6 +61,11 @@ module.exports = configure(function (/* ctx */) {
           __dirname,
           '../../packages/core/src/index.ts'
         ),
+
+        '@decentm/allegiance-chess-bot': path.resolve(
+          __dirname,
+          '../../packages/bot/src/index.ts'
+        ),
       },
 
       vueRouterMode: 'history', // available values: 'hash', 'history'
@@ -140,19 +145,6 @@ module.exports = configure(function (/* ctx */) {
         node: 'node16',
       },
 
-      alias: {
-        // Add your own alias like this
-        '@decentm/allegiance-chess-core': path.resolve(
-          __dirname,
-          '../../packages/core/src/index.ts'
-        ),
-
-        '@decentm/allegiance-chess-bot': path.resolve(
-          __dirname,
-          '../../packages/core/bot/index.ts'
-        ),
-      },
-
       vueRouterMode: 'history', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,
@@ -211,51 +203,6 @@ module.exports = configure(function (/* ctx */) {
       // extendInjectManifestOptions (cfg) {},
       // extendManifestJson (json) {}
       // extendPWACustomSWConf (esbuildConf) {}
-    },
-
-    // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-cordova-apps/configuring-cordova
-    cordova: {
-      // noIosLegacyBuildFlag: true, // uncomment only if you know what you are doing
-    },
-
-    // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-capacitor-apps/configuring-capacitor
-    capacitor: {
-      hideSplashscreen: true,
-    },
-
-    // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/configuring-electron
-    electron: {
-      // extendElectronMainConf (esbuildConf)
-      // extendElectronPreloadConf (esbuildConf)
-
-      inspectPort: 5858,
-
-      bundler: 'packager', // 'packager' or 'builder'
-
-      packager: {
-        // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options
-        // OS X / Mac App Store
-        // appBundleId: '',
-        // appCategoryType: '',
-        // osxSign: '',
-        // protocol: 'myapp://path',
-        // Windows only
-        // win32metadata: { ... }
-      },
-
-      builder: {
-        // https://www.electron.build/configuration/configuration
-
-        appId: 'frontend',
-      },
-    },
-
-    // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-browser-extensions/configuring-bex
-    bex: {
-      contentScripts: ['my-content-script'],
-
-      // extendBexScriptsConf (esbuildConf) {}
-      // extendBexManifestJson (json) {}
     },
   }
 })

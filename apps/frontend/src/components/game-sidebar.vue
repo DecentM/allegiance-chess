@@ -96,6 +96,7 @@ const handleAFENCopy = () => {
 
 .highlight {
   background-color: $chess-highlight;
+  color: $chess-black;
 }
 </style>
 
