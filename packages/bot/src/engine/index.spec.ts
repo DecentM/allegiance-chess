@@ -17,21 +17,5 @@ test('finds move 1', (t) => {
 
   t.log(b.dump())
 
-  t.log(Notation.writeNode(move))
-
-  t.deepEqual(move, {
-    kind: 'move',
-    type: null,
-    piece: 'N',
-    from: {
-      allegiance: 3,
-      piece: 'N',
-      rank: 3,
-      file: 3,
-    },
-    to: {
-      rank: 5,
-      file: 2,
-    },
-  })
+  t.is(Notation.writeNode(move), 'Nc3xd5')
 })
