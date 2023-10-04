@@ -1,6 +1,15 @@
 {
   "name": "@decentm/allegiance-chess-bot",
   "version": "0.0.1",
+  "scripts": {
+    "t": "c8 ava",
+    "dev": "ts-node-dev --transpile-only --clear -r tsconfig-paths/register",
+    "clinic": "TS_NODE_PROJECT=tsconfig.spec.json clinic",
+    "flame": "yarn clinic flame --kernel-tracing -- -- node -r ts-node/register/transpile-only -r tsconfig-paths/register",
+    "doctor": "yarn clinic doctor -- -- node -r ts-node/register/transpile-only -r tsconfig-paths/register",
+    "bubbleprof": "yarn clinic bubbleprof -- -- node -r ts-node/register/transpile-only -r tsconfig-paths/register",
+    "heapprofiler": "yarn clinic heapprofiler -- -- node -r ts-node/register/transpile-only -r tsconfig-paths/register"
+  },
   "ava": {
     "extensions": [
       "ts"
@@ -13,22 +22,14 @@
       "TS_NODE_PROJECT": "tsconfig.spec.json"
     }
   },
-  "scripts": {
-    "t": "c8 ava",
-    "dev": "ts-node-dev --transpile-only --clear -r tsconfig-paths/register",
-    "clinic": "TS_NODE_PROJECT=tsconfig.spec.json clinic",
-    "flame": "yarn clinic flame --kernel-tracing -- -- node -r ts-node/register/transpile-only -r tsconfig-paths/register",
-    "doctor": "yarn clinic doctor -- -- node -r ts-node/register/transpile-only -r tsconfig-paths/register",
-    "bubbleprof": "yarn clinic bubbleprof -- -- node -r ts-node/register/transpile-only -r tsconfig-paths/register",
-    "heapprofiler": "yarn clinic heapprofiler -- -- node -r ts-node/register/transpile-only -r tsconfig-paths/register"
+  "dependencies": {
+    "@decentm/allegiance-chess-core": "0.x",
+    "seedrandom": "^3.0.5"
   },
   "devDependencies": {
     "ava": "^5.3.1",
     "clinic": "^13.0.0",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0"
-  },
-  "dependencies": {
-    "seedrandom": "^3.0.5"
   }
 }
