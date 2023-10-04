@@ -107,7 +107,7 @@ export const write = (root: RootNode): string => {
 
   return steps
     .filter(Boolean)
-    .map((step, index) => ` ${index + 1}. ${step}`)
+    .map((step, index) => `${index + 1}. ${step}`)
     .join('\n')
     .trim()
 }
