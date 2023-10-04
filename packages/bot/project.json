@@ -1,0 +1,45 @@
+{
+  "name": "@decentm/allegiance-chess-bot",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/bot/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "options": {
+        "outputPath": "dist/packages/bot",
+        "tsConfig": "packages/bot/tsconfig.lib.json",
+        "packageJson": "packages/bot/package.json",
+        "main": "packages/bot/src/index.ts",
+        "assets": [
+          "packages/bot/*.md"
+        ]
+      }
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": [
+        "{options.outputFile}"
+      ],
+      "options": {
+        "lintFilePatterns": [
+          "packages/bot/**/*.ts",
+          "packages/bot/package.json"
+        ]
+      }
+    },
+    "test": {
+      "executor": "nx:run-script",
+      "outputs": [
+        "{workspaceRoot}/{projectRoot}/coverage"
+      ],
+      "options": {
+        "script": "t"
+      }
+    }
+  },
+  "tags": []
+}

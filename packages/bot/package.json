@@ -1,7 +1,6 @@
 {
-  "name": "@decentm/allegiance-chess-core",
+  "name": "@decentm/allegiance-chess-bot",
   "version": "0.0.1",
-  "license": "MIT",
   "scripts": {
     "t": "c8 ava"
   },
@@ -18,14 +17,11 @@
     }
   },
   "devDependencies": {
-    "@types/lodash.clonedeep": "^4.5.7",
-    "@types/verror": "^1.10.6",
     "ava": "^5.3.1",
     "c8": "^8.0.1",
     "tsconfig-paths": "^4.2.0"
   },
   "dependencies": {
-    "tslib": "^2.6.2",
-    "verror": "^1.10.1"
+    "@decentm/allegiance-chess-core": "0.x"
   }
 }

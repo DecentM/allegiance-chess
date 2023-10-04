@@ -345,7 +345,7 @@ export class Board {
       this.memory.activeColour === 'white' ? 'black' : 'white'
   }
 
-  private executeNode(node: Node) {
+  public executeNode(node: Node) {
     switch (node.kind) {
       case 'move': {
         this.executeMoveNode(node)
@@ -1472,5 +1472,45 @@ export class Board {
       from,
       side: this.activeColour,
     })
+  }
+
+  public getScore() {
+    const squares = this.getSquares()
+
+    return squares.reduce((acc, cur) => {
+      if (!cur) {
+        return acc
+      }
+
+      const side = allegianceSide(cur.allegiance)
+      const isPure =
+        cur.allegiance === PieceAllegiance.Black ||
+        cur.allegiance === PieceAllegiance.White
+
+      let points = 0
+
+      switch (cur.piece) {
+        case null:
+          points = 1
+          break
+
+        case 'N':
+        case 'B':
+          points = 3
+          break
+
+        case 'R':
+          points = 5
+          break
+
+        case 'Q':
+          points = 9
+          break
+      }
+
+      const finalPoints = isPure ? points * 2 : points
+
+      return side === 'white' ? acc + finalPoints : acc - finalPoints
+    }, 0)
   }
 }
