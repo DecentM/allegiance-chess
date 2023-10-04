@@ -44,6 +44,8 @@ jobs:
           yarn --frozen-lockfile --non-interactive
 
       - run: yarn nx run-many --target=lint
+        env:
+          NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
 
   test:
     name: test
@@ -81,6 +83,8 @@ jobs:
           yarn --frozen-lockfile --non-interactive
 
       - run: yarn nx run-many --target=test
+        env:
+          NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
 
   build:
     name: build
@@ -122,9 +126,10 @@ jobs:
           yarn --frozen-lockfile --non-interactive
 
       - name: Build packages
+        run: yarn nx run-many --target=build
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: yarn nx run-many --target=build
+          NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
 
       - name: Upload build result
         uses: actions/upload-artifact@v3
