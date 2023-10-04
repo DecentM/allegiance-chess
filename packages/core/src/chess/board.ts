@@ -474,14 +474,6 @@ export class Board {
     coords: Coordinates,
     direction: Vector2
   ): Coordinates[] {
-    if (
-      Math.abs(direction.x) !== Math.abs(direction.y) &&
-      direction.x !== 0 &&
-      direction.y !== 0
-    ) {
-      throw new VError('Cannot trace in a non-continuous direction')
-    }
-
     const startSquare = this.memory.getSquare(coords)
 
     if (!startSquare) {

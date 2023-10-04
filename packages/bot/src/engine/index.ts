@@ -1,9 +1,7 @@
 import { Board } from '@decentm/allegiance-chess-core'
 
-export const MAX_DEPTH = 2
-
-export const findBestMove = (board: Board, level = 0) => {
-  if (level > MAX_DEPTH) {
+export const findBestMove = (board: Board, maxDepth: number) => {
+  if (maxDepth <= 0) {
     return null
   }
 
@@ -19,7 +17,8 @@ export const findBestMove = (board: Board, level = 0) => {
     virtualBoard.executeNode(move)
 
     let score = virtualBoard.getScore()
-    const subResult = findBestMove(virtualBoard, level + 1)
+
+    const subResult = findBestMove(virtualBoard, maxDepth - 1)
 
     if (subResult) score -= subResult.score
 

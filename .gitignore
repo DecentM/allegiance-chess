@@ -4,6 +4,7 @@
 dist
 tmp
 /out-tsc
+.clinic
 
 # dependencies
 node_modules
