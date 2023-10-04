@@ -2,6 +2,14 @@
   "root": true,
   "ignorePatterns": ["**/*"],
   "plugins": ["@nx"],
+  "rules": {
+    "@nx/dependency-checks": [
+      "error",
+      {
+        "ignoredDependencies": ["ava"]
+      }
+    ]
+  },
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],

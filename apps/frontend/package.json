@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@decentm/allegiance-chess-core": "0.x",
+    "@decentm/allegiance-chess-bot": "0.x",
     "@quasar/extras": "^1.16.4",
     "@sentry/vue": "^7.71.0",
     "peerjs": "^1.5.0",

@@ -6,7 +6,7 @@ const b = new Board()
 
 b.importAFEN(AfenPreset.VanillaDefault)
 
-const _seed = randomBytes(16).toString('hex')
+const _seed = randomBytes(8).toString('hex')
 
 // eslint-disable-next-line no-constant-condition
 while (true) {

@@ -146,6 +146,11 @@ module.exports = configure(function (/* ctx */) {
           __dirname,
           '../../packages/core/src/index.ts'
         ),
+
+        '@decentm/allegiance-chess-bot': path.resolve(
+          __dirname,
+          '../../packages/core/bot/index.ts'
+        ),
       },
 
       vueRouterMode: 'history', // available values: 'hash', 'history'

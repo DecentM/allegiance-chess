@@ -2907,10 +2907,10 @@
   resolved "https://registry.yarnpkg.com/@types/trusted-types/-/trusted-types-2.0.4.tgz#2b38784cd16957d3782e8e2b31c03bc1d13b4d65"
   integrity sha512-IDaobHimLQhjwsQ/NMwRVfa/yL7L/wriQPMhw1ZJall0KX6E1oxk29XMDeilW5qTIg5aoiqf5Udy8U/51aNoQQ==
 
-"@types/verror@^1.10.6":
-  version "1.10.6"
-  resolved "https://registry.yarnpkg.com/@types/verror/-/verror-1.10.6.tgz#3e600c62d210c5826460858f84bcbb65805460bb"
-  integrity sha512-NNm+gdePAX1VGvPcGZCDKQZKYSiAWigKhKaz5KF94hG6f2s8de9Ow5+7AbXoeKxL8gavZfk4UquSAygOF2duEQ==
+"@types/verror@^1.10.7":
+  version "1.10.7"
+  resolved "https://registry.yarnpkg.com/@types/verror/-/verror-1.10.7.tgz#7e2ee21514355a7ae354fa151d96856d18531f72"
+  integrity sha512-4c5F4T0qMSoXq1KHx7WV1FMuD2h0xdaFoJ7HSVWUfQ8w5YbqCwLOA8K7/yy1I+Txuzvm417dnPUaLmqazX1F7g==
 
 "@types/webgl-ext@0.0.30":
   version "0.0.30"
@@ -13803,7 +13803,7 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-verror@^1.10.1:
+verror@^1.10.0:
   version "1.10.1"
   resolved "https://registry.yarnpkg.com/verror/-/verror-1.10.1.tgz#4bf09eeccf4563b109ed4b3d458380c972b0cdeb"
   integrity sha512-veufcmxri4e3XSrT0xwfUR7kguIkaxBeosDg00yDWhk49wdwkSUrvvsm7nc75e1PUyvIeZj6nS8VQRYz2/S4Xg==

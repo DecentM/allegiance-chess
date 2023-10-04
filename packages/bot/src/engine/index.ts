@@ -55,7 +55,7 @@ const getBoardScore = (board: Board) => {
 export const findBestMove = (
   board: Board,
   maxDepth: number,
-  seed = randomBytes(16).toString('hex')
+  seed = randomBytes(8).toString('hex')
 ) => {
   if (maxDepth <= 0) {
     return null
