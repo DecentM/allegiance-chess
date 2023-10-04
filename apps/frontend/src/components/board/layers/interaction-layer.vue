@@ -32,7 +32,7 @@ const showPromotionPopup = ref<Notation.Coordinates | null>(null)
 const promotionAllegiance = ref<PieceAllegiance | null>(null)
 
 const emit = defineEmits<{
-  (event: 'execute-node', node: Partial<Notation.Node>): void
+  (event: 'execute-node-index', index: number): void
   (event: 'update-piece-focus', coords: Notation.Coordinates | null): void
   (
     event: 'update-highlights',
@@ -89,12 +89,16 @@ const handleCoordsClick = (coords: Notation.Coordinates, event: MouseEvent) => {
       enPassantTarget.value &&
       coordinatesEqual(enPassantTarget.value, coords)
     ) {
-      emit('execute-node', {
-        kind: 'move',
-        type: 'en-passant',
-        from: props.pieceFocus,
-        to: coords,
-      })
+      emit(
+        'execute-node-index',
+        props.board.findMoveIndex({
+          kind: 'move',
+          type: 'en-passant',
+          from: props.pieceFocus,
+          to: coords,
+        })
+      )
+
       emit('update-piece-focus', null)
     } else if (
       isPromotion(coords, props.board.activeColour) &&
@@ -111,19 +115,25 @@ const handleCoordsClick = (coords: Notation.Coordinates, event: MouseEvent) => {
       focusedSquare.value?.piece === 'K' &&
       Math.abs(props.pieceFocus.file - coords.file) > 1
     ) {
-      emit('execute-node', {
-        kind: 'move',
-        type: 'castle',
-        side: coords.file === 7 ? 'king' : 'queen',
-        from: props.pieceFocus,
-        to: coords,
-      })
+      emit(
+        'execute-node-index',
+        props.board.findMoveIndex({
+          kind: 'move',
+          type: 'castle',
+          side: coords.file === 7 ? 'king' : 'queen',
+          from: props.pieceFocus,
+          to: coords,
+        })
+      )
     } else {
-      emit('execute-node', {
-        kind: 'move',
-        from: props.pieceFocus,
-        to: coords,
-      })
+      emit(
+        'execute-node-index',
+        props.board.findMoveIndex({
+          kind: 'move',
+          from: props.pieceFocus,
+          to: coords,
+        })
+      )
     }
 
     return
@@ -148,13 +158,15 @@ const handlePromotion = (
 
   showPromotionPopup.value = null
 
-  emit('execute-node', {
+  const index = props.board.findMoveIndex({
     kind: 'move',
     type: 'promotion',
     from: props.pieceFocus,
     to: coords,
     promotionTo: piece,
   })
+
+  emit('execute-node-index', index)
 
   emit('update-piece-focus', null)
 }
@@ -173,21 +185,14 @@ const handleCaptureClick = (decision: 'capture' | 'challenge') => {
     return
   }
 
-  if (decision === 'capture') {
-    emit('execute-node', {
-      kind: 'move',
-      type: 'capture',
-      from: props.pieceFocus,
-      to: captureFocus.value,
-    })
-  } else {
-    emit('execute-node', {
-      kind: 'move',
-      type: 'allegiance',
-      from: props.pieceFocus,
-      to: captureFocus.value,
-    })
-  }
+  const index = props.board.findMoveIndex({
+    kind: 'move',
+    type: decision === 'capture' ? 'capture' : 'allegiance',
+    from: props.pieceFocus,
+    to: captureFocus.value,
+  })
+
+  emit('execute-node-index', index)
 
   captureFocus.value = null
 

@@ -75,7 +75,7 @@ export class BoardMemory {
       .map((value) => value.side)
   }
 
-  private clear() {
+  public clear() {
     this.activeColour = 'white'
     this.enPassantTarget = null
     this._castlingRights = []

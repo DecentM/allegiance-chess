@@ -1,124 +1,67 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 
-import { AfenPreset, Board, Notation } from '@decentm/allegiance-chess-core'
-import { findBestMove } from '@decentm/allegiance-chess-bot'
+import { Board, AfenPreset } from '@decentm/allegiance-chess-core'
+import type { BotWorkerMessage, BotWorkerResponse } from '../../lib/bot-worker'
 
 import ChessBoard from '../../components/chess-board.vue'
 import GameSidebar from '../../components/game-sidebar.vue'
 import GameOverDialog from '../../components/game-over-dialog.vue'
 
-import { Hex } from '../../lib/hex'
-import { useBoardAudio } from '../../hooks/board-audio'
 import { useGameover } from '../../hooks/game-over'
 import { useBoardSize } from '../../hooks/board-size'
 
-const route = useRoute()
-const router = useRouter()
+import BotWorker from '../../lib/bot-worker?worker'
 
-const afen = computed(() => {
-  const hex = Array.isArray(route.params.state)
-    ? route.params.state[0]
-    : route.params.state
+const afen = ref<string>('')
+const moveHistory = ref<string>('')
+const activeColour = ref<'white' | 'black'>('white')
 
-  if (!hex) {
-    return AfenPreset.VanillaDefault
+const worker = ref(new BotWorker())
+
+const handleWorkerMessage = (messageEvent: MessageEvent<BotWorkerResponse>) => {
+  const message = messageEvent.data
+
+  switch (message.type) {
+    case 'board-update':
+      afen.value = message.afen
+      moveHistory.value = message.moveHistory
+      activeColour.value = message.activeColour
   }
 
-  return Hex.hexToUtf8(hex)
+  if (message.activeColour === 'black') {
+    worker.value.postMessage({ type: 'bot-move' } as BotWorkerMessage)
+  }
+}
+
+onMounted(() => {
+  worker.value.addEventListener('message', handleWorkerMessage)
+
+  worker.value.postMessage({ type: 'reset' } as BotWorkerMessage)
 })
 
-const moveHistory = computed(() => {
-  const hex = Array.isArray(route.params.history)
-    ? route.params.history[0]
-    : route.params.history
+onBeforeUnmount(() => {
+  worker.value.removeEventListener('message', handleWorkerMessage)
 
-  if (!hex) {
-    return ''
-  }
-
-  return Hex.hexToUtf8(hex)
+  worker.value.postMessage({ type: 'reset' } as BotWorkerMessage)
 })
 
 const board = computed(() => {
-  const b = new Board()
-
-  if (afen.value) b.importAFEN(afen.value)
-  if (moveHistory.value) b.importMoveHistory(moveHistory.value)
-
-  return b
+  return new Board(afen.value || AfenPreset.VanillaDefault, moveHistory.value)
 })
 
-const audio = useBoardAudio()
-
-const handleExecuteNode = (node: Partial<Notation.Node>) => {
-  const index = board.value.findMoveIndex(node)
-
-  if (index === -1) {
-    return
-  }
-
-  board.value.executeMoveIndex(index)
-
-  audio?.playNode(node)
-
-  router.push({
-    path: `/play/bot/${Hex.utf8ToHex(board.value.toAFEN())}/${Hex.utf8ToHex(
-      board.value.getMoveHistory()
-    )}`,
-  })
+const handleExecuteNodeIndex = (index: number) => {
+  worker.value.postMessage({
+    type: 'execute-move-index',
+    index,
+  } as BotWorkerMessage)
 }
 
 const { gameOver } = useGameover(board)
 
 const q = useQuasar()
 const size = useBoardSize()
-
-const playerSide = ref<'white' | 'black' | null>(null)
-
-const botTurn = computed(() => {
-  return board.value.activeColour !== playerSide.value
-})
-
-const makeBotMove = () => {
-  const botResult = findBestMove(board.value, 3)
-
-  if (!botResult) {
-    return
-  }
-
-  board.value.executeMoveIndex(botResult.index)
-
-  router.push({
-    path: `/play/bot/${Hex.utf8ToHex(board.value.toAFEN())}/${Hex.utf8ToHex(
-      board.value.getMoveHistory()
-    )}`,
-  })
-}
-
-watch(botTurn, (newValue) => {
-  if (!newValue) {
-    return
-  }
-
-  const timeout = setTimeout(() => {
-    makeBotMove()
-  }, 1)
-
-  return () => clearTimeout(timeout)
-})
-
-onMounted(() => {
-  if (!playerSide.value) {
-    playerSide.value = Math.random() > 0.5 ? 'white' : 'black'
-  }
-
-  if (botTurn.value) {
-    makeBotMove()
-  }
-})
 </script>
 
 <template>
@@ -132,9 +75,9 @@ onMounted(() => {
         :class="{ 'q-px-none': q.screen.lt.sm }"
       >
         <chess-board
-          @execute-node="handleExecuteNode"
+          @execute-node-index="handleExecuteNodeIndex"
           :board="board"
-          :perspective="playerSide || 'white'"
+          :perspective="'white'"
           :play-as="['white', 'black']"
           :width="size"
           :rounded-borders="q.screen.gt.xs"
@@ -144,8 +87,8 @@ onMounted(() => {
       <q-card-section class="q-mb-md full-width">
         <game-sidebar
           :move-history="board.getMoveHistoryAst()"
-          :active-colour="board.activeColour"
-          :own-colour="board.activeColour"
+          :active-colour="activeColour"
+          :own-colour="'white'"
           :afen="board.toAFEN()"
         />
       </q-card-section>

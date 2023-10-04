@@ -60,6 +60,13 @@ export class Board {
     return board
   }
 
+  public reset() {
+    this.memory.clear()
+
+    if (this.initialAfen) this.importAFEN(this.initialAfen)
+    if (this.initialMoveHistory) this.importMoveHistory(this.initialMoveHistory)
+  }
+
   public dump() {
     return this.memory.dump()
   }
@@ -69,7 +76,20 @@ export class Board {
   }
 
   public importMoveHistory(history: string) {
-    this.memory.moveHistory = Notation.parse(Notation.tokenize(history))
+    const historyAst = Notation.parse(Notation.tokenize(history))
+    const virtualBoard = new Board(AfenPreset.VanillaDefault)
+
+    historyAst.children.forEach((node) => {
+      const index = virtualBoard.findMoveIndex(node)
+
+      if (index === -1) {
+        return
+      }
+
+      const move = virtualBoard.executeMoveIndex(index)
+
+      this.memory.moveHistory.children.push(move)
+    })
   }
 
   public toAFEN(options: Afen.WriteOptions = Afen.defaultOptions) {
@@ -111,8 +131,19 @@ export class Board {
     return this.memory.moveHistory
   }
 
-  constructor() {
+  constructor(
+    private initialAfen?: string,
+    private initialMoveHistory?: string
+  ) {
     this.memory = new BoardMemory()
+
+    if (initialAfen) {
+      this.importAFEN(initialAfen)
+    }
+
+    if (initialMoveHistory) {
+      this.importMoveHistory(initialMoveHistory)
+    }
   }
 
   private getPositionHistory() {
@@ -352,6 +383,9 @@ export class Board {
 
         break
       }
+
+      default:
+        return
     }
 
     this.memory.moveHistory.children.push(node)

@@ -17,7 +17,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (event: 'execute-node', value: Partial<Notation.Node>): void
+  (event: 'execute-node-index', value: number): void
 }>()
 
 const squareSize = computed(() => {
@@ -26,8 +26,8 @@ const squareSize = computed(() => {
 
 const pieceFocus = ref<Notation.Coordinates | null>(null)
 
-const handleExcuteNode = (node: Partial<Notation.Node>) => {
-  emit('execute-node', node)
+const handleExcuteNodeIndex = (index: number) => {
+  emit('execute-node-index', index)
   pieceFocus.value = null
 }
 
@@ -71,7 +71,7 @@ const lastMove = computed(() => {
 
     <div class="absolute full-width full-height">
       <interaction-layer
-        @execute-node="handleExcuteNode"
+        @execute-node-index="handleExcuteNodeIndex"
         @update-piece-focus="(focus) => (pieceFocus = focus)"
         :piece-focus="pieceFocus"
         :board="board"

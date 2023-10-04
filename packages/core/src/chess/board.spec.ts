@@ -491,3 +491,52 @@ test('detects stalemate by black', (t) => {
     },
   ])
 })
+
+test('executes castling on 1N>3k2/8/8/1N2N2Q/p7/P3B3/4BPPP/4K2R w K - 0 32', (t) => {
+  const b = new Board()
+
+  b.importAFEN('1N>3k2/8/8/1N2N2Q/p7/P3B3/4BPPP/4K2R w K - 0 32')
+  b.importMoveHistory(`
+    1. Ng1f3 a7a5
+    2. Nb1c3 c7c5
+    3. d2d4 Qd8b6
+    4. Bc1e3 Qb6b5
+    5. d4xc5 Qb5xe2
+    6. Qd1xe2 Ra8a6
+    7. Qe2>a6 e7e6
+    8. Qe2>a6 Nb8xa6
+    9. Qe2>a6 b7b5
+    10. Nc3>b5 b5b4
+    11. Nc3b5 Bf8>c5
+    12. c2c3 b4>c3
+    13. c3xb4 Na6xb4
+    14. a2a3 Ke8e7
+    15. a3>b4 Bc8a6
+    16. Nb4xa6 Ng8h6
+    17. Ra1d1 Ke7e8
+    18. Nf3e5 Bf8xc5
+    19. Rd1xd7 Bc5f8
+    20. Na6b8 Nh6g4
+    21. Qe2xg4 f7f5
+    22. Qg4g5 Bf8xa3
+    23. b2xa3 g7g6
+    24. Ne5c6 Ke8>d7
+    25. Rd7c7 h7h5
+    26. Rc7c8 Ke8f7
+    27. Rc8xh8 e6e5
+    28. Nc6xe5 Kf7g7
+    29. Qg5xg6 Kg7xh8
+    30. Qg6xf5 Kh8g7
+    31. Qf5xh5 Kg7f8
+    32. Bf1e2 a5a4
+  `)
+
+  const moves = b.getValidMoves({ file: 5, rank: 1 })
+  const castleMove = moves.find(
+    (move) => move.kind === 'move' && move.type === 'castle'
+  )
+
+  const index = b.findMoveIndex(castleMove)
+
+  t.notThrows(() => b.executeMoveIndex(index))
+})
