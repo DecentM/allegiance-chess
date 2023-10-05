@@ -1374,10 +1374,21 @@ export class Board {
 
     // king + minor vs king + minor
     if (selfPieces <= 2 && opponentPieces <= 2) {
+      const opponentKing = squares.find(
+        (square) =>
+          allegianceSide(square.allegiance) === opponentSide &&
+          square.piece === 'K'
+      )
+
       const opponentPiece = squares.find(
         (square) =>
           allegianceSide(square.allegiance) === opponentSide &&
           square.piece !== 'K'
+      )
+
+      const selfKing = squares.find(
+        (square) =>
+          allegianceSide(square.allegiance) === selfSide && square.piece === 'K'
       )
 
       const selfPiece = squares.find(
@@ -1386,6 +1397,8 @@ export class Board {
       )
 
       if (
+        selfKing &&
+        opponentKing &&
         // yikes
         (!selfPiece || selfPiece.piece === 'N' || selfPiece.piece === 'B') &&
         (!opponentPiece ||

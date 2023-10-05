@@ -8,5 +8,9 @@ export const getCoordsForIndex = (index: number): Coordinates => {
   }
 }
 
+export const getIndexForCoords = (coords: Coordinates): number => {
+  return (9 - coords.rank - 1) * 8 + (coords.file - 1)
+}
+
 export const isPromotion = (coords: Coordinates, side: 'white' | 'black') =>
   coords.rank === (side === 'white' ? 8 : 1)

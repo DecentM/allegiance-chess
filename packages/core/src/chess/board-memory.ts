@@ -7,6 +7,7 @@ import { fileToLetter } from '../lib/notation'
 import { allegianceSide } from '../lib/allegiance'
 
 import { PieceAllegiance } from './board'
+import { getCoordsForIndex, getIndexForCoords } from '../lib/board'
 
 export type BoardSquare = {
   piece: Notation.Piece | null
@@ -14,7 +15,7 @@ export type BoardSquare = {
 }
 
 // memory[rank][file] = BoardSquare
-type Memory = (BoardSquare | null)[][]
+type Memory = (BoardSquare | null)[]
 
 type StandaloneBoardSquare = BoardSquare & Notation.Coordinates
 
@@ -39,7 +40,7 @@ export class BoardMemory {
   public clone() {
     const memory = new BoardMemory()
 
-    memory.memory = [...this.memory.map((item) => [...item])]
+    memory.memory = [...this.memory]
     memory.activeColour = this.activeColour
     memory.enPassantTarget = { ...this.enPassantTarget }
     memory._castlingRights = [...this._castlingRights]
@@ -87,15 +88,7 @@ export class BoardMemory {
       children: [],
     }
 
-    this.memory = []
-
-    for (let rank = 0; rank < 8; rank++) {
-      this.memory[rank] = []
-
-      for (let file = 0; file < 8; file++) {
-        this.memory[rank][file] = null
-      }
-    }
+    this.memory = Array.from({ length: 64 }).fill(null) as null[]
   }
 
   constructor() {
@@ -134,25 +127,16 @@ export class BoardMemory {
   }
 
   public getSquares(): StandaloneBoardSquare[] {
-    const result: StandaloneBoardSquare[] = []
+    return this.memory.map((item, index) => {
+      if (!item) {
+        return null
+      }
 
-    this.memory.forEach((files, rank) => {
-      files.forEach((square, file) => {
-        if (!square) {
-          result.push(null)
-          return
-        }
-
-        result.push({
-          allegiance: square.allegiance,
-          piece: square.piece,
-          file: (file + 1) as Notation.File,
-          rank: (rank + 1) as Notation.Rank,
-        })
-      })
+      return {
+        ...item,
+        ...getCoordsForIndex(index),
+      }
     })
-
-    return result
   }
 
   public getSquare(coords: Notation.Coordinates) {
@@ -160,11 +144,11 @@ export class BoardMemory {
       throw new VError('Attempted to get square with no coordinates')
     }
 
-    return this.memory[coords.rank - 1][coords.file - 1]
+    return this.memory[getIndexForCoords(coords)]
   }
 
   public setSquare(coords: Notation.Coordinates, square: BoardSquare | null) {
-    this.memory[coords.rank - 1][coords.file - 1] = square
+    this.memory[getIndexForCoords(coords)] = square
   }
 
   public toAFEN(
@@ -178,27 +162,26 @@ export class BoardMemory {
     let skip = 0
 
     if (options.sections.includes('positions')) {
-      for (let i = this.memory.length - 1; i >= 0; i--) {
-        const rank = this.memory[i]
-
-        for (const square of rank) {
-          if (!square) {
-            skip++
-            continue
-          }
-
+      for (let i = 0; i < this.memory.length; i++) {
+        if (!this.memory[i]) {
+          skip++
+        } else {
           if (skip) {
             ast.children.push({ kind: 'skip', value: skip })
             skip = 0
           }
 
-          ast.children.push({ kind: 'piece', value: square })
+          ast.children.push({ kind: 'piece', value: this.memory[i] })
         }
 
-        if (skip) {
+        if ((i + 1) % 8 === 0 && skip) {
           ast.children.push({ kind: 'skip', value: skip })
           skip = 0
         }
+      }
+
+      if (skip) {
+        ast.children.push({ kind: 'skip', value: skip })
       }
     }
 
@@ -263,29 +246,23 @@ export class BoardMemory {
   public fromAFEN(afen: Afen.RootNode) {
     this.clear()
 
-    let rank: Notation.Rank = 8
-    let file: Notation.File = 1
+    let index = 0
 
-    afen.children.forEach((node) => {
-      if (file > 8) {
-        rank--
-        file = 1
+    for (const node of afen.children) {
+      if (node.kind === 'skip') {
+        index += node.value
+        continue
       }
 
       if (node.kind === 'piece') {
-        this.setSquare({ file, rank }, node.value)
-        file++
-        return
-      }
-
-      if (node.kind === 'skip') {
-        file += node.value
-        return
+        this.memory[index] = node.value
+        index++
+        continue
       }
 
       if (node.kind === 'en-passant-targets') {
         this.enPassantTarget = node.value
-        return
+        continue
       }
 
       if (node.kind === 'castling-rights') {
@@ -303,22 +280,22 @@ export class BoardMemory {
           })
         })
 
-        return
+        continue
       }
 
       if (node.kind === 'active-colour') {
         this.activeColour = node.value
-        return
+        continue
       }
 
       if (node.kind === 'fullmove-number') {
         this.fullmoveNumber = node.value
-        return
+        continue
       }
 
       if (node.kind === 'halfmove-clock') {
         this.halfmoveClock = node.value
-        return
+        continue
       }
 
       throw new VError(
@@ -326,6 +303,6 @@ export class BoardMemory {
           node['kind'] ?? JSON.stringify(node, null, 2)
         }`
       )
-    })
+    }
   }
 }
