@@ -40,7 +40,7 @@ test('finds 20 moves on a starting board for white', (t) => {
 test('finds 20 moves for black after a move', (t) => {
   const b = createDefaultBoard()
 
-  const move = b.findMoveIndex({
+  const move = Board.findMoveIndex(b.getValidMoves(), {
     kind: 'move',
     to: {
       rank: 4,
@@ -58,7 +58,7 @@ test('finds 20 moves for black after a move', (t) => {
 test('executes single move', (t) => {
   const b = createDefaultBoard()
 
-  const move = b.findMoveIndex({
+  const move = Board.findMoveIndex(b.getValidMoves(), {
     kind: 'move',
     type: null,
     from: {
@@ -156,7 +156,7 @@ test('executes moves', (t) => {
   const moveNodes = parse(moveTokens)
 
   moveNodes.children.forEach((node) => {
-    const index = b.findMoveIndex(node)
+    const index = Board.findMoveIndex(b.getValidMoves(), node)
 
     b.executeMoveIndex(index)
   })
@@ -168,7 +168,7 @@ test('executes moves', (t) => {
 test('finds single node', (t) => {
   const b = createDefaultBoard()
 
-  const node = b.findMoveIndex({
+  const node = Board.findMoveIndex(b.getValidMoves(), {
     kind: 'move',
     type: null,
     to: {
@@ -183,7 +183,7 @@ test('finds single node', (t) => {
 test('infers two nodes', (t) => {
   const b = createDefaultBoard()
 
-  const node1 = b.findMoveIndex({
+  const node1 = Board.findMoveIndex(b.getValidMoves(), {
     kind: 'move',
     to: {
       file: 5,
@@ -193,7 +193,7 @@ test('infers two nodes', (t) => {
 
   b.executeMoveIndex(node1)
 
-  const node2 = b.findMoveIndex({
+  const node2 = Board.findMoveIndex(b.getValidMoves(), {
     kind: 'move',
     to: {
       file: 5,
@@ -273,7 +273,7 @@ test('makes a move with castling available', (t) => {
   )
 
   t.not(
-    b.findMoveIndex({
+    Board.findMoveIndex(b.getValidMoves(), {
       kind: 'move',
       from: {
         file: 4,
@@ -346,7 +346,7 @@ test('executes possible allegiance move', (t) => {
   b.importAFEN('8/8/8/4p3/8/5N2/8/8 w kqKQ e6 1 2')
 
   t.not(
-    b.findMoveIndex({
+    Board.findMoveIndex(b.getValidMoves(), {
       kind: 'move',
       type: 'allegiance',
       from: {
@@ -432,7 +432,7 @@ test('allows Bh6 from rnbk3r/p3n>Q2/1pp>p4/q3p1Bp/3P4/PB3N2/1P3RPP/RN4K1 w - h6 
 
   b.importAFEN('rnbk3r/p3n>Q2/1pp>p4/q3p1Bp/3P4/PB3N2/1P3RPP/RN4K1 w - h6 0 30')
 
-  const index = b.findMoveIndex({
+  const index = Board.findMoveIndex(b.getValidMoves(), {
     kind: 'move',
     type: null,
     from: {

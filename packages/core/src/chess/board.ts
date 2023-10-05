@@ -80,7 +80,8 @@ export class Board {
     const virtualBoard = new Board(AfenPreset.VanillaDefault)
 
     historyAst.children.forEach((node) => {
-      const index = virtualBoard.findMoveIndex(node)
+      const validMoves = virtualBoard.getValidMoves()
+      const index = Board.findMoveIndex(validMoves, node)
 
       if (index === -1) {
         return
@@ -415,9 +416,7 @@ export class Board {
     return this.memory.getSquare(coords)
   }
 
-  public findMoveIndex(node: Partial<Node>): number {
-    const validMoves = this.getValidMoves()
-
+  public static findMoveIndex(validMoves: Node[], node: Partial<Node>): number {
     let moves = validMoves
 
     if (node.kind === 'draw-offer') {
@@ -483,7 +482,7 @@ export class Board {
     return -1
   }
 
-  private getCoordsRelative(
+  private static getCoordsRelative(
     coords: Coordinates,
     direction: Vector2
   ): Coordinates {
@@ -525,7 +524,7 @@ export class Board {
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      currentCoords = this.getCoordsRelative(currentCoords, singleStepVector)
+      currentCoords = Board.getCoordsRelative(currentCoords, singleStepVector)
 
       if (!currentCoords) {
         break
@@ -587,12 +586,12 @@ export class Board {
     const side = allegianceSide(bySquare.allegiance)
 
     if (bySquare.piece === null) {
-      const diagLeft = this.getCoordsRelative(
+      const diagLeft = Board.getCoordsRelative(
         byCoords,
         new Vector2(side === 'white' ? -1 : 1, side === 'white' ? 1 : -1)
       )
 
-      const diagRight = this.getCoordsRelative(
+      const diagRight = Board.getCoordsRelative(
         byCoords,
         new Vector2(side === 'white' ? 1 : -1, side === 'white' ? 1 : -1)
       )
@@ -615,14 +614,14 @@ export class Board {
 
     if (bySquare.piece === 'N') {
       return [
-        this.getCoordsRelative(byCoords, new Vector2(1, 2)),
-        this.getCoordsRelative(byCoords, new Vector2(2, 1)),
-        this.getCoordsRelative(byCoords, new Vector2(2, -1)),
-        this.getCoordsRelative(byCoords, new Vector2(1, -2)),
-        this.getCoordsRelative(byCoords, new Vector2(-1, -2)),
-        this.getCoordsRelative(byCoords, new Vector2(-2, -1)),
-        this.getCoordsRelative(byCoords, new Vector2(-2, 1)),
-        this.getCoordsRelative(byCoords, new Vector2(-1, 2)),
+        Board.getCoordsRelative(byCoords, new Vector2(1, 2)),
+        Board.getCoordsRelative(byCoords, new Vector2(2, 1)),
+        Board.getCoordsRelative(byCoords, new Vector2(2, -1)),
+        Board.getCoordsRelative(byCoords, new Vector2(1, -2)),
+        Board.getCoordsRelative(byCoords, new Vector2(-1, -2)),
+        Board.getCoordsRelative(byCoords, new Vector2(-2, -1)),
+        Board.getCoordsRelative(byCoords, new Vector2(-2, 1)),
+        Board.getCoordsRelative(byCoords, new Vector2(-1, 2)),
       ].filter(Boolean)
     }
 
@@ -662,14 +661,14 @@ export class Board {
 
     if (bySquare.piece === 'K') {
       return [
-        this.getCoordsRelative(byCoords, new Vector2(0, 1)),
-        this.getCoordsRelative(byCoords, new Vector2(1, 1)),
-        this.getCoordsRelative(byCoords, new Vector2(1, 0)),
-        this.getCoordsRelative(byCoords, new Vector2(1, -1)),
-        this.getCoordsRelative(byCoords, new Vector2(0, -1)),
-        this.getCoordsRelative(byCoords, new Vector2(-1, -1)),
-        this.getCoordsRelative(byCoords, new Vector2(-1, 0)),
-        this.getCoordsRelative(byCoords, new Vector2(-1, 1)),
+        Board.getCoordsRelative(byCoords, new Vector2(0, 1)),
+        Board.getCoordsRelative(byCoords, new Vector2(1, 1)),
+        Board.getCoordsRelative(byCoords, new Vector2(1, 0)),
+        Board.getCoordsRelative(byCoords, new Vector2(1, -1)),
+        Board.getCoordsRelative(byCoords, new Vector2(0, -1)),
+        Board.getCoordsRelative(byCoords, new Vector2(-1, -1)),
+        Board.getCoordsRelative(byCoords, new Vector2(-1, 0)),
+        Board.getCoordsRelative(byCoords, new Vector2(-1, 1)),
       ].filter(Boolean)
     }
 
@@ -703,17 +702,17 @@ export class Board {
        * PAWN
        */
       if (square.piece === null) {
-        const inFront = this.getCoordsRelative(
+        const inFront = Board.getCoordsRelative(
           square,
           new Vector2(0, side === 'white' ? 1 : -1)
         )
 
-        const diagLeft = this.getCoordsRelative(
+        const diagLeft = Board.getCoordsRelative(
           square,
           new Vector2(side === 'white' ? -1 : 1, side === 'white' ? 1 : -1)
         )
 
-        const diagRight = this.getCoordsRelative(
+        const diagRight = Board.getCoordsRelative(
           square,
           new Vector2(side === 'white' ? 1 : -1, side === 'white' ? 1 : -1)
         )
@@ -838,7 +837,7 @@ export class Board {
           (square.rank === 2 && side === 'white') ||
           (square.rank === 7 && side === 'black')
         ) {
-          const inFront2 = this.getCoordsRelative(
+          const inFront2 = Board.getCoordsRelative(
             square,
             new Vector2(0, side === 'white' ? 2 : -2)
           )
@@ -916,14 +915,14 @@ export class Board {
        */
       if (square.piece === 'N') {
         const targets = [
-          this.getCoordsRelative(square, new Vector2(1, 2)),
-          this.getCoordsRelative(square, new Vector2(2, 1)),
-          this.getCoordsRelative(square, new Vector2(2, -1)),
-          this.getCoordsRelative(square, new Vector2(1, -2)),
-          this.getCoordsRelative(square, new Vector2(-1, -2)),
-          this.getCoordsRelative(square, new Vector2(-2, -1)),
-          this.getCoordsRelative(square, new Vector2(-2, 1)),
-          this.getCoordsRelative(square, new Vector2(-1, 2)),
+          Board.getCoordsRelative(square, new Vector2(1, 2)),
+          Board.getCoordsRelative(square, new Vector2(2, 1)),
+          Board.getCoordsRelative(square, new Vector2(2, -1)),
+          Board.getCoordsRelative(square, new Vector2(1, -2)),
+          Board.getCoordsRelative(square, new Vector2(-1, -2)),
+          Board.getCoordsRelative(square, new Vector2(-2, -1)),
+          Board.getCoordsRelative(square, new Vector2(-2, 1)),
+          Board.getCoordsRelative(square, new Vector2(-1, 2)),
         ].filter(Boolean)
 
         targets.forEach((target) => {
@@ -1064,14 +1063,14 @@ export class Board {
        */
       if (square.piece === 'K') {
         const possibleMoves: Coordinates[] = [
-          this.getCoordsRelative(square, new Vector2(0, 1)),
-          this.getCoordsRelative(square, new Vector2(1, 1)),
-          this.getCoordsRelative(square, new Vector2(1, 0)),
-          this.getCoordsRelative(square, new Vector2(1, -1)),
-          this.getCoordsRelative(square, new Vector2(0, -1)),
-          this.getCoordsRelative(square, new Vector2(-1, -1)),
-          this.getCoordsRelative(square, new Vector2(-1, 0)),
-          this.getCoordsRelative(square, new Vector2(-1, 1)),
+          Board.getCoordsRelative(square, new Vector2(0, 1)),
+          Board.getCoordsRelative(square, new Vector2(1, 1)),
+          Board.getCoordsRelative(square, new Vector2(1, 0)),
+          Board.getCoordsRelative(square, new Vector2(1, -1)),
+          Board.getCoordsRelative(square, new Vector2(0, -1)),
+          Board.getCoordsRelative(square, new Vector2(-1, -1)),
+          Board.getCoordsRelative(square, new Vector2(-1, 0)),
+          Board.getCoordsRelative(square, new Vector2(-1, 1)),
         ].filter(Boolean)
 
         possibleMoves.forEach((possibleMove) => {
@@ -1165,7 +1164,7 @@ export class Board {
                 kind: 'move',
                 type: 'castle',
                 from: square,
-                to: this.getCoordsRelative(square, new Vector2(2, 0)),
+                to: Board.getCoordsRelative(square, new Vector2(2, 0)),
                 piece: this.memory.getSquare(square).piece,
                 side: 'king',
               })
@@ -1188,7 +1187,7 @@ export class Board {
                 kind: 'move',
                 type: 'castle',
                 from: square,
-                to: this.getCoordsRelative(square, new Vector2(-2, 0)),
+                to: Board.getCoordsRelative(square, new Vector2(-2, 0)),
                 piece: this.memory.getSquare(square).piece,
                 side: 'queen',
               })
@@ -1258,7 +1257,7 @@ export class Board {
                 kind: 'move',
                 type: 'castle',
                 from: square,
-                to: this.getCoordsRelative(square, new Vector2(2, 0)),
+                to: Board.getCoordsRelative(square, new Vector2(2, 0)),
                 piece: this.memory.getSquare(square).piece,
                 side: 'king',
               })
@@ -1281,7 +1280,7 @@ export class Board {
                 kind: 'move',
                 type: 'castle',
                 from: square,
-                to: this.getCoordsRelative(square, new Vector2(-2, 0)),
+                to: Board.getCoordsRelative(square, new Vector2(-2, 0)),
                 piece: this.memory.getSquare(square).piece,
                 side: 'queen',
               })
