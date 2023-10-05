@@ -54,9 +54,8 @@ export const getBoardScore = (board: Board) => {
   if (board.castlingRights.black.includes('king')) finalScore -= 4
   if (board.castlingRights.black.includes('queen')) finalScore -= 5
 
-  if (board.halfmoveClock > 50) {
-    finalScore -= 10
-  }
+  if (board.activeColour === 'white') finalScore -= board.halfmoveClock / 10
+  else finalScore += board.halfmoveClock / 10
 
   return finalScore
 }
@@ -84,8 +83,8 @@ export const findBestMove = (
 
     let score = getBoardScore(virtualBoard)
 
-    // This prevents sacking
-    if (score > 0) {
+    // This prevents sacking and gambits
+    if (score !== 0) {
       const subResult = findBestMove(virtualBoard, maxDepth - 1, seed)
 
       if (subResult) score -= subResult.score
@@ -97,7 +96,8 @@ export const findBestMove = (
 
   const scoresAsc = [...scores.entries()].sort()
 
-  const [score, indexes] = scoresAsc.at(-1)
+  const [score, indexes] =
+    board.activeColour === 'white' ? scoresAsc.at(-1) : scoresAsc.at(0)
 
   const index = indexes.at(Math.floor(rng() * indexes.length))
 
