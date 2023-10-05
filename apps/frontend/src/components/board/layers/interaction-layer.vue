@@ -91,7 +91,7 @@ const handleCoordsClick = (coords: Notation.Coordinates, event: MouseEvent) => {
     ) {
       emit(
         'execute-node-index',
-        props.board.findMoveIndex({
+        Board.findMoveIndex(props.validMoves, {
           kind: 'move',
           type: 'en-passant',
           from: props.pieceFocus,
@@ -117,7 +117,7 @@ const handleCoordsClick = (coords: Notation.Coordinates, event: MouseEvent) => {
     ) {
       emit(
         'execute-node-index',
-        props.board.findMoveIndex({
+        Board.findMoveIndex(props.validMoves, {
           kind: 'move',
           type: 'castle',
           side: coords.file === 7 ? 'king' : 'queen',
@@ -128,7 +128,7 @@ const handleCoordsClick = (coords: Notation.Coordinates, event: MouseEvent) => {
     } else {
       emit(
         'execute-node-index',
-        props.board.findMoveIndex({
+        Board.findMoveIndex(props.validMoves, {
           kind: 'move',
           from: props.pieceFocus,
           to: coords,
@@ -158,7 +158,7 @@ const handlePromotion = (
 
   showPromotionPopup.value = null
 
-  const index = props.board.findMoveIndex({
+  const index = Board.findMoveIndex(props.validMoves, {
     kind: 'move',
     type: 'promotion',
     from: props.pieceFocus,
@@ -185,7 +185,7 @@ const handleCaptureClick = (decision: 'capture' | 'challenge') => {
     return
   }
 
-  const index = props.board.findMoveIndex({
+  const index = Board.findMoveIndex(props.validMoves, {
     kind: 'move',
     type: decision === 'capture' ? 'capture' : 'allegiance',
     from: props.pieceFocus,
