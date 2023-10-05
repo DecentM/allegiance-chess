@@ -9,7 +9,7 @@ export default boot(({ app, router }) => {
   Sentry.init({
     app,
     dsn: process.env.SENTRY_DSN,
-    release: process.env.GIT_FETCH_HEAD,
+    release: process.env.GITHUB_SHA || process.env.GIT_FETCH_HEAD,
     integrations: [
       new Sentry.BrowserTracing({
         routingInstrumentation: Sentry.vueRouterInstrumentation(router),
