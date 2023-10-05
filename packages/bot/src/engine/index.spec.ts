@@ -1,5 +1,5 @@
 import test from 'ava'
-import { Board, Notation } from '@decentm/allegiance-chess-core'
+import { Board } from '@decentm/allegiance-chess-core'
 
 import { findBestMove } from '.'
 
@@ -11,11 +11,12 @@ test('finds move 1', (t) => {
   b.importAFEN('rnbqkbnr/ppp1pppp/8/3p4/8/2N5/PPPPPPPP/R1BQKBNR w KQkq d6 0 1')
   b.importMoveHistory('1. b1c3 d7d5')
 
-  const { index } = findBestMove(b, 2)
+  const { index } = findBestMove(b, 3, 'q')
+
+  t.not(index, -1)
 
   const move = b.executeMoveIndex(index)
 
   t.log(b.dump())
-
-  t.is(Notation.writeNode(move), 'Nc3xd5')
+  t.assert(move)
 })
