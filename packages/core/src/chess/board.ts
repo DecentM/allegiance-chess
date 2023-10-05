@@ -858,7 +858,7 @@ export class Board {
         }
 
         // Promotions
-        if (isPromotion(inFront, side)) {
+        if (!this.getSquare(inFront) && isPromotion(inFront, side)) {
           result.push(...generatePossiblePromotionNodes(inFront))
         }
       }

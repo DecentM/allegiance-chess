@@ -540,3 +540,13 @@ test('executes castling on 1N>3k2/8/8/1N2N2Q/p7/P3B3/4BPPP/4K2R w K - 0 32', (t)
 
   t.notThrows(() => b.executeMoveIndex(index))
 })
+
+test('promoting does not cause a check', (t) => {
+  const b = new Board(
+    'rnbqkbnr/p3P>ppp/8/1p6/8/8/PPPPPPPP/R1BQKBNR b KQkq - 0 4'
+  )
+
+  const checkMoves = b.getCheckMoves()
+
+  t.deepEqual(checkMoves, [])
+})
