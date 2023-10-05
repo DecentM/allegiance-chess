@@ -1,4 +1,4 @@
-import { findBestMove } from '@decentm/allegiance-chess-bot'
+import { findBestMove, getBoardScore } from '@decentm/allegiance-chess-bot'
 import { AfenPreset, Board } from '@decentm/allegiance-chess-core'
 
 type BotMoveMessage = {
@@ -24,6 +24,7 @@ type BoardUpdateResponse = {
   afen: string
   moveHistory: string
   activeColour: 'white' | 'black'
+  boardScore: number
 }
 
 export type BotWorkerResponse = BoardUpdateResponse
@@ -55,5 +56,6 @@ onmessage = (messageEvent: MessageEvent<BotWorkerMessage>) => {
     afen: board.toAFEN(),
     moveHistory: board.getMoveHistory(),
     activeColour: board.activeColour,
+    boardScore: getBoardScore(board),
   } as BotWorkerResponse)
 }

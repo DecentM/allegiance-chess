@@ -17,6 +17,7 @@ import BotWorker from '../../lib/bot-worker?worker'
 const afen = ref<string>('')
 const moveHistory = ref<string>('')
 const activeColour = ref<'white' | 'black'>('white')
+const boardScore = ref(0)
 
 const worker = ref(new BotWorker())
 
@@ -28,6 +29,7 @@ const handleWorkerMessage = (messageEvent: MessageEvent<BotWorkerResponse>) => {
       afen.value = message.afen
       moveHistory.value = message.moveHistory
       activeColour.value = message.activeColour
+      boardScore.value = message.boardScore
   }
 
   if (message.activeColour === 'black') {
@@ -90,7 +92,18 @@ const size = useBoardSize()
           :active-colour="activeColour"
           :own-colour="'white'"
           :afen="board.toAFEN()"
-        />
+        >
+          <q-item>
+            <q-item-section class="q-mt-sm q-mb-sm">
+              <q-item-label>Evaluation</q-item-label>
+              <q-item-label caption lines="2">{{ boardScore }}</q-item-label>
+            </q-item-section>
+
+            <q-item-section side>
+              <q-icon name="exposure_plus_1" />
+            </q-item-section>
+          </q-item>
+        </game-sidebar>
       </q-card-section>
     </q-card-section>
 

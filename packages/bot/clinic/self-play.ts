@@ -2,9 +2,7 @@ import { AfenPreset, Board, Notation } from '@decentm/allegiance-chess-core'
 import { randomBytes } from 'node:crypto'
 import { findBestMove } from '../src/engine'
 
-const b = new Board()
-
-b.importAFEN(AfenPreset.VanillaDefault)
+const b = new Board(AfenPreset.VanillaDefault)
 
 const _seed = randomBytes(8).toString('hex')
 
@@ -24,11 +22,10 @@ while (true) {
 
   const { index, score, seed } = findBestMove(b, 3, _seed)
 
+  const move = b.executeMoveIndex(index)
+
   console.clear()
-  console.log(seed, Notation.writeNode(moves[index]), score, '\n')
-
-  b.executeMoveIndex(index)
-
+  console.log(seed, Notation.writeNode(move), score, '\n')
   console.log(b.toAFEN(), '\n')
   console.log(b.dump(), '\n')
   console.log(b.getMoveHistory())

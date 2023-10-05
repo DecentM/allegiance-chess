@@ -36,19 +36,29 @@ const getSquareScore = (square: BoardSquare): number => {
   return isPure ? points * 2 : points
 }
 
-const getBoardScore = (board: Board) => {
-  const squares = board.getSquares()
+export const getBoardScore = (board: Board) => {
+  const squares = board.getSquares().filter(Boolean)
 
-  return squares.reduce((acc, cur) => {
-    if (!cur) {
-      return acc
-    }
-
+  const piecesScore = squares.reduce((acc, cur) => {
     const finalPoints = getSquareScore(cur)
     const side = allegianceSide(cur.allegiance)
 
-    return side === board.activeColour ? acc + finalPoints : acc - finalPoints
+    return side === 'white' ? acc + finalPoints : acc - finalPoints
   }, 0)
+
+  let finalScore = piecesScore
+
+  if (board.castlingRights.white.includes('king')) finalScore += 4
+  if (board.castlingRights.white.includes('queen')) finalScore += 5
+
+  if (board.castlingRights.black.includes('king')) finalScore -= 4
+  if (board.castlingRights.black.includes('queen')) finalScore -= 5
+
+  if (board.halfmoveClock > 50) {
+    finalScore -= 10
+  }
+
+  return finalScore
 }
 
 export const findBestMove = (
@@ -74,33 +84,10 @@ export const findBestMove = (
 
     let score = getBoardScore(virtualBoard)
 
-    const subResult = findBestMove(virtualBoard, maxDepth - 1, seed)
+    if (score > 0) {
+      const subResult = findBestMove(virtualBoard, maxDepth - 1, seed)
 
-    if (subResult) score -= subResult.score
-
-    if (move.kind === 'game-over') {
-      if (move.outcome === 'draw') score = Number.NEGATIVE_INFINITY
-      if (move.outcome === 'white' && virtualBoard.activeColour === 'white')
-        score = Number.POSITIVE_INFINITY
-      if (move.outcome === 'black' && virtualBoard.activeColour === 'black')
-        score = Number.POSITIVE_INFINITY
-    }
-
-    if (move.kind === 'move') {
-      const toSquare = virtualBoard.getSquare(move.to)
-      const fromSquare = virtualBoard.getSquare(move.to)
-
-      if (move.type === 'allegiance' || move.type === 'capture') {
-        score += getSquareScore(toSquare)
-      }
-
-      if (move.type === 'promotion') {
-        score +=
-          getSquareScore({
-            allegiance: fromSquare.allegiance,
-            piece: move.promotionTo,
-          }) - getSquareScore(fromSquare)
-      }
+      if (subResult) score -= subResult.score
     }
 
     const existingIndexes = scores.get(score)

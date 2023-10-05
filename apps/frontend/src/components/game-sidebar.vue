@@ -122,6 +122,12 @@ const handleAFENCopy = () => {
 
     <div class="spacer col" />
 
+    <div data-testid="default-slot">
+      <q-separator />
+
+      <slot />
+    </div>
+
     <div data-testid="afen">
       <q-separator />
 
