@@ -9,8 +9,22 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
 const path = require('node:path')
+const fs = require('node:fs')
+
 const { configure } = require('quasar/wrappers')
 const { nodePolyfills } = require('vite-plugin-node-polyfills')
+
+const fetchHead = fs
+  .readFileSync(path.join(__dirname, '../../.git/FETCH_HEAD'), 'utf8')
+  .split('\n')
+  .at(0)
+  .split(' ')
+  .at(0)
+  .split('\t')
+  .at(0)
+  .trim()
+
+process.env.GIT_FETCH_HEAD = fetchHead
 
 module.exports = configure(function (/* ctx */) {
   return {
