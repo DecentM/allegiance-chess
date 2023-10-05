@@ -14,11 +14,19 @@ defineProps<{
 const q = useQuasar()
 
 const drawerOpen = ref(false)
+
+const releaseId = process.env.GITHUB_SHA || process.env.GIT_FETCH_HEAD
 </script>
 
 <style lang="scss" scoped>
 .route-title {
   z-index: 4;
+}
+
+.release-id {
+  color: #3f3f3f;
+  padding: 1rem;
+  font-size: 12px;
 }
 
 .main-layout {
@@ -45,8 +53,11 @@ const drawerOpen = ref(false)
       :side="q.screen.gt.sm ? 'left' : 'right'"
       @hide="drawerOpen = false"
       class="column"
-      :class="{ 'justify-end q-pb-xl': q.screen.lt.md }"
+      :class="{ 'justify-between q-pb-xl': q.screen.lt.md }"
     >
+      <div v-if="releaseId" class="release-id">
+        <span>{{ releaseId }}</span>
+      </div>
       <sidebar-menu />
     </q-drawer>
 
