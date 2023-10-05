@@ -10,6 +10,7 @@ const props = defineProps<{
   activeColour: 'white' | 'black'
   ownColour: 'white' | 'black'
   afen: string
+  gameOver: Notation.GameOverNode | null
 }>()
 
 const rows = computed(() => {
@@ -110,13 +111,17 @@ const handleAFENCopy = () => {
     <transition mode="out-in">
       <q-card-section
         class="bg-primary text-white q-mb-md"
-        v-if="activeColour === ownColour"
+        v-if="!gameOver && activeColour === ownColour"
       >
         <div class="text-h6">Your turn!</div>
       </q-card-section>
 
-      <q-card-section class="bg-grey text-black q-mb-md" v-else>
+      <q-card-section class="bg-grey text-black q-mb-md" v-else-if="!gameOver">
         <div class="text-h6">Waiting for opponent...</div>
+      </q-card-section>
+
+      <q-card-section class="bg-negative text-white q-mb-md" v-else>
+        <div class="text-h6">Game over!</div>
       </q-card-section>
     </transition>
 

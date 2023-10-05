@@ -1,5 +1,5 @@
 import { findBestMove, getBoardScore } from '@decentm/allegiance-chess-bot'
-import { AfenPreset, Board } from '@decentm/allegiance-chess-core'
+import { AfenPreset, Board, Notation } from '@decentm/allegiance-chess-core'
 
 type BotMoveMessage = {
   type: 'bot-move'
@@ -27,7 +27,12 @@ type BoardUpdateResponse = {
   boardScore: number
 }
 
-export type BotWorkerResponse = BoardUpdateResponse
+type NodeExecutionResponse = {
+  type: 'node-execution'
+  node: Notation.Node
+}
+
+export type BotWorkerResponse = BoardUpdateResponse | NodeExecutionResponse
 
 const board = new Board(AfenPreset.VanillaDefault)
 
@@ -39,14 +44,28 @@ onmessage = (messageEvent: MessageEvent<BotWorkerMessage>) => {
       board.reset()
       break
 
-    case 'execute-move-index':
-      board.executeMoveIndex(message.index)
+    case 'execute-move-index': {
+      const move = board.executeMoveIndex(message.index)
+
+      postMessage({
+        type: 'node-execution',
+        node: move,
+      } as BotWorkerResponse)
+
       break
+    }
 
     case 'bot-move': {
       const botResult = findBestMove(board, 3)
 
-      if (botResult) board.executeMoveIndex(botResult.index)
+      if (botResult) {
+        const move = board.executeMoveIndex(botResult.index)
+
+        postMessage({
+          type: 'node-execution',
+          node: move,
+        } as BotWorkerResponse)
+      }
       break
     }
   }

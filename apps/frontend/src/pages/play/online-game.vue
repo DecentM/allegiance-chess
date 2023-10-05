@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount } from 'vue'
-import { Board, Notation } from '@decentm/allegiance-chess-core'
+import { Board } from '@decentm/allegiance-chess-core'
 import { useQuasar } from 'quasar'
 
 import ChessBoard from '../../components/chess-board.vue'
@@ -27,13 +27,7 @@ const board = computed(() => {
   return result
 })
 
-const handleExecuteNode = (node: Partial<Notation.Node>) => {
-  const index = board.value.findMoveIndex(node)
-
-  if (index === -1) {
-    return
-  }
-
+const handleExecuteNodeIndex = (index: number) => {
   props.connection.sendMessage({
     type: 'execute-node-index',
     value: index,
@@ -69,7 +63,7 @@ const perspective = computed(() => {
         <chess-board
           :model-value="connection.boardAFEN.value"
           :width="size"
-          @execute-node="handleExecuteNode"
+          @execute-node-index="handleExecuteNodeIndex"
           :board="board"
           :perspective="perspective ?? 'white'"
           :play-as="['white', 'black']"

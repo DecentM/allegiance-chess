@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { AfenPreset, Board, Notation } from '@decentm/allegiance-chess-core'
+import { AfenPreset, Board } from '@decentm/allegiance-chess-core'
 
 import ChessBoard from '../../components/chess-board.vue'
 import GameSidebar from '../../components/game-sidebar.vue'
@@ -51,14 +51,8 @@ const board = computed(() => {
 
 const audio = useBoardAudio()
 
-const handleExecuteNode = (node: Partial<Notation.Node>) => {
-  const index = board.value.findMoveIndex(node)
-
-  if (index === -1) {
-    return
-  }
-
-  board.value.executeMoveIndex(index)
+const handleExecuteNodeIndex = (index: number) => {
+  const node = board.value.executeMoveIndex(index)
 
   audio?.playNode(node)
 
@@ -86,7 +80,7 @@ const size = useBoardSize()
         :class="{ 'q-px-none': q.screen.lt.sm }"
       >
         <chess-board
-          @execute-node="handleExecuteNode"
+          @execute-node-index="handleExecuteNodeIndex"
           :board="board"
           :perspective="board.activeColour"
           :play-as="['white', 'black']"
@@ -101,6 +95,7 @@ const size = useBoardSize()
           :active-colour="board.activeColour"
           :own-colour="board.activeColour"
           :afen="board.toAFEN()"
+          :game-over="gameOver"
         />
       </q-card-section>
     </q-card-section>

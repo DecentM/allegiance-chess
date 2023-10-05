@@ -3,7 +3,9 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 
 import { Board, AfenPreset } from '@decentm/allegiance-chess-core'
+
 import type { BotWorkerMessage, BotWorkerResponse } from '../../lib/bot-worker'
+import BotWorker from '../../lib/bot-worker?worker'
 
 import ChessBoard from '../../components/chess-board.vue'
 import GameSidebar from '../../components/game-sidebar.vue'
@@ -12,14 +14,22 @@ import GameOverDialog from '../../components/game-over-dialog.vue'
 import { useGameover } from '../../hooks/game-over'
 import { useBoardSize } from '../../hooks/board-size'
 
-import BotWorker from '../../lib/bot-worker?worker'
+import { useBoardAudio } from '../../hooks/board-audio'
 
 const afen = ref<string>('')
 const moveHistory = ref<string>('')
 const activeColour = ref<'white' | 'black'>('white')
 const boardScore = ref(0)
 
-const worker = ref(new BotWorker())
+const userSide = ref<'white' | 'black' | null>()
+const audio = useBoardAudio()
+const worker = ref<Worker | null>()
+
+const board = computed(() => {
+  return new Board(afen.value || AfenPreset.VanillaDefault, moveHistory.value)
+})
+
+const { gameOver } = useGameover(board)
 
 const handleWorkerMessage = (messageEvent: MessageEvent<BotWorkerResponse>) => {
   const message = messageEvent.data
@@ -30,37 +40,43 @@ const handleWorkerMessage = (messageEvent: MessageEvent<BotWorkerResponse>) => {
       moveHistory.value = message.moveHistory
       activeColour.value = message.activeColour
       boardScore.value = message.boardScore
+      break
+
+    case 'node-execution':
+      audio?.playNode(message.node)
+      break
   }
 
-  if (message.activeColour === 'black') {
-    worker.value.postMessage({ type: 'bot-move' } as BotWorkerMessage)
+  if (
+    message.type === 'board-update' &&
+    message.activeColour !== userSide.value &&
+    !gameOver.value
+  ) {
+    worker.value?.postMessage({ type: 'bot-move' } as BotWorkerMessage)
   }
 }
 
 onMounted(() => {
-  worker.value.addEventListener('message', handleWorkerMessage)
+  worker.value = new BotWorker()
 
+  worker.value.addEventListener('message', handleWorkerMessage)
   worker.value.postMessage({ type: 'reset' } as BotWorkerMessage)
+
+  userSide.value = Math.random() > 0.5 ? 'white' : 'black'
 })
 
 onBeforeUnmount(() => {
-  worker.value.removeEventListener('message', handleWorkerMessage)
+  worker.value?.removeEventListener('message', handleWorkerMessage)
 
-  worker.value.postMessage({ type: 'reset' } as BotWorkerMessage)
-})
-
-const board = computed(() => {
-  return new Board(afen.value || AfenPreset.VanillaDefault, moveHistory.value)
+  worker.value?.postMessage({ type: 'reset' } as BotWorkerMessage)
 })
 
 const handleExecuteNodeIndex = (index: number) => {
-  worker.value.postMessage({
+  worker.value?.postMessage({
     type: 'execute-move-index',
     index,
   } as BotWorkerMessage)
 }
-
-const { gameOver } = useGameover(board)
 
 const q = useQuasar()
 const size = useBoardSize()
@@ -69,6 +85,7 @@ const size = useBoardSize()
 <template>
   <q-card flat class="full-width">
     <q-card-section
+      v-if="userSide"
       :horizontal="q.screen.gt.sm"
       :class="{ 'q-px-none': q.screen.lt.sm }"
     >
@@ -79,7 +96,7 @@ const size = useBoardSize()
         <chess-board
           @execute-node-index="handleExecuteNodeIndex"
           :board="board"
-          :perspective="'white'"
+          :perspective="userSide"
           :play-as="['white', 'black']"
           :width="size"
           :rounded-borders="q.screen.gt.xs"
@@ -90,8 +107,9 @@ const size = useBoardSize()
         <game-sidebar
           :move-history="board.getMoveHistoryAst()"
           :active-colour="activeColour"
-          :own-colour="'white'"
+          :own-colour="userSide"
           :afen="board.toAFEN()"
+          :game-over="gameOver"
         >
           <q-item>
             <q-item-section class="q-mt-sm q-mb-sm">

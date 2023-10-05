@@ -84,6 +84,7 @@ export const findBestMove = (
 
     let score = getBoardScore(virtualBoard)
 
+    // This prevents sacking
     if (score > 0) {
       const subResult = findBestMove(virtualBoard, maxDepth - 1, seed)
 

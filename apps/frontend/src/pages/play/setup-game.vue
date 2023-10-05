@@ -107,7 +107,7 @@ onMounted(() => {
   <q-card flat>
     <q-card-section vertical>
       <div class="row items-center full-height space">
-        <div class="col-12 text-center q-pa-md">
+        <div class="col-md-6 col-sm-12 text-center q-pa-md">
           <q-card flat>
             <q-card-section>
               <h4 class="text-h4">Pen-pal mode</h4>
@@ -116,7 +116,7 @@ onMounted(() => {
 
               <span>
                 The game will run locally, but you can send the page URL to your
-                opponent to let them make a move.
+                opponent to let them make a move
               </span>
 
               <q-separator class="q-mb-md q-mt-md" />
@@ -125,6 +125,31 @@ onMounted(() => {
                 <q-btn
                   to="/play/pen-pal"
                   icon="mail"
+                  label="New game"
+                  color="primary"
+                />
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <div class="col-md-6 col-sm-12 text-center q-pa-md">
+          <q-card flat>
+            <q-card-section>
+              <h4 class="text-h4">Play against a bot</h4>
+
+              <q-separator class="q-mb-md" />
+
+              <span>
+                The game will run locally, with a (bad) bot as your opponent
+              </span>
+
+              <q-separator class="q-mb-md q-mt-md" />
+
+              <div class="row justify-end">
+                <q-btn
+                  to="/play/bot"
+                  icon="precision_manufacturing"
                   label="New game"
                   color="primary"
                 />
@@ -174,8 +199,6 @@ onMounted(() => {
           </q-card>
         </div>
 
-        <div class="col-0 divider-right" />
-
         <q-card flat class="col-md-6 col-sm-12 text-center q-pa-md">
           <q-card-section>
             <h4 class="text-h4">Host a game</h4>
@@ -185,7 +208,7 @@ onMounted(() => {
             <span>
               Send your opponent your Peer ID. Ask your opponent to visit this
               page and paste your Peer ID into the field on the left on their
-              side.
+              side
             </span>
 
             <q-separator class="q-mb-md q-mt-md" />
