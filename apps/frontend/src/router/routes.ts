@@ -30,6 +30,14 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        path: 'feedback',
+        component: () => import('pages/feedback-page.vue'),
+        meta: {
+          title: 'Feedback',
+          icon: 'reviews',
+        },
+      },
+      {
         path: 'play',
         component: () => import('pages/play-page.vue'),
         children: [

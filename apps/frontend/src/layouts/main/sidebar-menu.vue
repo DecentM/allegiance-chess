@@ -17,14 +17,19 @@ const items: Item[] = [
     label: 'Play',
   },
   {
-    to: '/privacy',
-    icon: 'shield',
-    label: 'Privacy',
+    to: '/feedback',
+    icon: 'reviews',
+    label: 'Feedback',
   },
   {
     to: '/stats',
     icon: 'analytics',
     label: 'Statistics',
+  },
+  {
+    to: '/privacy',
+    icon: 'shield',
+    label: 'Privacy',
   },
 ]
 </script>

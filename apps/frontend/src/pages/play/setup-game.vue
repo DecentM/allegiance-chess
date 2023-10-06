@@ -177,7 +177,8 @@ onMounted(() => {
                 <q-separator class="q-mb-md q-mt-md" />
 
                 <q-input
-                  standout
+                  filled
+                  color="secondary"
                   v-model="connectId"
                   label="Peer ID *"
                   hint="Paste your opponent's Peer ID here"
@@ -214,7 +215,8 @@ onMounted(() => {
             <q-separator class="q-mb-md q-mt-md" />
 
             <q-input
-              standout
+              filled
+              color="secondary"
               :model-value="connection.peerId.value"
               label="Peer ID *"
               hint="Copy this Peer ID and send it to your opponent"
