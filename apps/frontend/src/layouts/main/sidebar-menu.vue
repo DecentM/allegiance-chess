@@ -21,6 +21,11 @@ const items: Item[] = [
     icon: 'shield',
     label: 'Privacy',
   },
+  {
+    to: '/stats',
+    icon: 'analytics',
+    label: 'Statistics',
+  },
 ]
 </script>
 

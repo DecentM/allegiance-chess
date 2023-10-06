@@ -53,12 +53,15 @@ const releaseId = process.env.GITHUB_SHA || process.env.GIT_FETCH_HEAD
       :side="q.screen.gt.sm ? 'left' : 'right'"
       @hide="drawerOpen = false"
       class="column"
-      :class="{ 'justify-between q-pb-xl': q.screen.lt.md }"
+      :class="{ 'justify-between q-pb-xl reverse': q.screen.lt.md }"
     >
+      <sidebar-menu />
+
+      <q-space />
+
       <div v-if="releaseId" class="release-id">
         <span>{{ releaseId }}</span>
       </div>
-      <sidebar-menu />
     </q-drawer>
 
     <q-page-container class="column items-center">

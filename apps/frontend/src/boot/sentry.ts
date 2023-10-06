@@ -20,9 +20,9 @@ export default boot(({ app, router }) => {
       }),
     ],
     // Performance Monitoring
-    tracesSampleRate: 1.0,
+    tracesSampleRate: 0,
     // Session Replay
-    replaysSessionSampleRate: 1.0,
+    replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 1.0,
   })
 })

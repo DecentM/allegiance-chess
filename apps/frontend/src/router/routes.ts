@@ -14,6 +14,14 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        path: 'stats',
+        component: () => import('pages/stats-page.vue'),
+        meta: {
+          title: 'Statistics',
+          icon: 'analytics',
+        },
+      },
+      {
         path: 'privacy',
         component: () => import('pages/privacy-page.vue'),
         meta: {

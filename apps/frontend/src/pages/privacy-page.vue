@@ -18,43 +18,33 @@
       </div>
 
       <div class="text-body1 q-mb-md">
+        <span class="text-bold">Hosting</span><br />
+        This site is hosted on GitHub pages with Cloudflare for distributed
+        content delivery. This means that when you visit the site, your request
+        will be served by Cloudflare, and they will see whatever information
+        your browser sends. Usually this is your user agent string and your IP
+        address.
+      </div>
+
+      <div class="text-body1 q-mb-md">
+        <span class="text-bold">Site analytics</span><br />
+        I use cookie-less analytics to get a basic understanding about the
+        volume, type, and origin of the traffic to this site. Everything that's
+        collected is viewable on the Statistics page.
+        <br />
+        I'm self-hosting the receiver, so if that page is empty it means my
+        instance of Plausible Analytics has crashed. ¯\_(ツ)_/¯
+      </div>
+
+      <div class="text-body1 q-mb-md">
         <span class="text-bold">Errors and performance</span><br />
         I use Sentry to get notified about bugs and issues on this site. Some
         extensions or firewalls may block the sentry.io domain. In this case,
         errors that occur for you will remain invisible to me and could remain
-        that way, possibly preventing you from playing. If possible, please make
-        sure that Sentry is not blocked from receiving error reports &lt;3
+        that way, possibly preventing you from playing.
         <br />
-        Here are the measures set up to protect your privacy when it comes to
-        error reports:
-      </div>
-
-      <div class="text-body1 q-mb-md">
-        <ul>
-          <li>
-            Whenever an error occurs, details about the error are sent to Sentry
-            (https://sentry.io). Only data related to the error itself is sent,
-            such as stack traces, and application state history (e.g. on which
-            page the error occurred, or the sequence of clicks that lead to the
-            error). The source IP address and additional potentially personally
-            identifiable information on the error is removed before error
-            reports are generated.
-          </li>
-
-          <li>
-            In addition, somer performance metrics may be (read: not yet)
-            collected and sent to Sentry as well, such as time taken to process
-            your move on the chessboard, evaluate the board, or find a response
-            to your move when playing against a bot.
-          </li>
-
-          <li>
-            In both cases, only the minimum required data is sent and in
-            personally identifiable cases that must be sent (e.g. IP address),
-            this information is scrubbed before processing. The operator of
-            Sentry is Functional Software, Inc (https://functional.software/).
-          </li>
-        </ul>
+        If possible, please make sure that Sentry is not blocked from receiving
+        error reports &lt;3
       </div>
 
       <div class="text-body1 q-mb-md">
