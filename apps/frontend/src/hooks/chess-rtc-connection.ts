@@ -1,9 +1,7 @@
-import { ComputedRef, Ref, ref } from 'vue'
+import { Ref, ref } from 'vue'
 import * as Sentry from '@sentry/vue'
-import { AfenPreset, Board, Notation } from '@decentm/allegiance-chess-core'
 
 import { DataRtcMessage, RtcMessage, useRtcConnection } from './rtc-connection'
-import { useGameover } from './game-over'
 
 type ExecuteNodeIndexMessage = {
   type: 'execute-node-index'
@@ -26,33 +24,20 @@ export type ChessRtcConnection = {
   disconnect: () => void
 
   serverSide: Ref<'white' | 'black' | null>
-  boardAFEN: Ref<string>
-  moveHistory: Ref<string>
-  gameOver: ComputedRef<Notation.GameOverNode | null>
+  moveHistory: Ref<number[]>
 }
 
-export const useChessRtcConnection = (
-  onMovePlayed?: (node: Notation.Node) => void
-): ChessRtcConnection => {
-  const board = ref(new Board()) as Ref<Board>
-
+export const useChessRtcConnection = (): ChessRtcConnection => {
   const sendMessage = (message: ChessMessage) => {
     sendData(Buffer.from(JSON.stringify(message), 'utf8'))
   }
 
-  const boardAFEN = ref('')
-
   const serverSide: Ref<'white' | 'black'> = ref('white')
-
   const open = ref(false)
-
-  const moveHistory: Ref<string> = ref('')
+  const moveHistory = ref<number[]>([])
 
   const receiveOpenMessage = () => {
     open.value = true
-
-    board.value.importAFEN(AfenPreset.VanillaDefault)
-    boardAFEN.value = AfenPreset.VanillaDefault
   }
 
   const receiveDataMessage = (rtcMessage: DataRtcMessage) => {
@@ -82,11 +67,7 @@ export const useChessRtcConnection = (
         break
 
       case 'execute-node-index': {
-        const executedMove = board.value.executeMoveIndex(message.value)
-        boardAFEN.value = board.value.toAFEN()
-        moveHistory.value = board.value.getMoveHistory()
-
-        if (onMovePlayed) onMovePlayed(executedMove)
+        moveHistory.value = [...moveHistory.value, message.value]
 
         break
       }
@@ -106,8 +87,6 @@ export const useChessRtcConnection = (
   const { connect, mode, peerId, sendData, disconnect } =
     useRtcConnection(receiveMessage)
 
-  const { gameOver } = useGameover(board)
-
   return {
     connect,
     mode,
@@ -116,8 +95,6 @@ export const useChessRtcConnection = (
     open,
     disconnect,
     serverSide,
-    boardAFEN,
     moveHistory,
-    gameOver,
   }
 }

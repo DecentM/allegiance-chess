@@ -8,26 +8,25 @@ import {
   PieceAllegiance,
   Notation,
   allegianceSide,
+  BoardSquare,
 } from '@decentm/allegiance-chess-core'
 
 import PromotionSelector from '../../promotion-selector.vue'
 import CaptureSelector from '../../capture-selector.vue'
 
 const props = defineProps<{
-  board: Board
+  enPassantTarget: Notation.Coordinates | null
+  squares: Array<Notation.Coordinates & BoardSquare>
   squareSize: number
   ranks: number
   files: number
   perspective: 'white' | 'black'
   pieceFocus: Notation.Coordinates | null
   validMoves: Notation.Node[]
+  activeColour: 'white' | 'black'
 }>()
 
 const captureFocus = ref<Notation.Coordinates | null>(null)
-
-const enPassantTarget = computed(() => {
-  return props.board.enPassantTarget
-})
 
 const showPromotionPopup = ref<Notation.Coordinates | null>(null)
 const promotionAllegiance = ref<PieceAllegiance | null>(null)
@@ -42,8 +41,16 @@ const emit = defineEmits<{
   ): void
 }>()
 
+const getSquare = (coords: Notation.Coordinates) => {
+  return props.squares.find((square) => coordinatesEqual(square, coords))
+}
+
 const focusedSquare = computed(() => {
-  return props.pieceFocus ? props.board.getSquare(props.pieceFocus) : null
+  if (!props.pieceFocus) {
+    return null
+  }
+
+  return getSquare(props.pieceFocus)
 })
 
 const highlightSquares = computed(() => {
@@ -51,7 +58,10 @@ const highlightSquares = computed(() => {
     return []
   }
 
-  const moves = props.board.getValidMoves(props.pieceFocus)
+  const moves = props.validMoves.filter(
+    (move) =>
+      move.kind === 'move' && coordinatesEqual(props.pieceFocus, move.from)
+  )
 
   const result = moves
     .map((node) => {
@@ -67,7 +77,9 @@ const highlightSquares = computed(() => {
 })
 
 const isOpponent = (coords: Notation.Coordinates) => {
-  const square = props.board.getSquare(coords)
+  const square = props.squares.find((square) =>
+    coordinatesEqual(square, coords)
+  )
 
   if (!square) {
     return false
@@ -87,8 +99,8 @@ const handleCoordsClick = (coords: Notation.Coordinates, event: MouseEvent) => {
 
   if (isHighlighted(coords) && props.pieceFocus && focusedSquare.value) {
     if (
-      enPassantTarget.value &&
-      coordinatesEqual(enPassantTarget.value, coords)
+      props.enPassantTarget &&
+      coordinatesEqual(props.enPassantTarget, coords)
     ) {
       emit(
         'execute-node-index',
@@ -102,15 +114,15 @@ const handleCoordsClick = (coords: Notation.Coordinates, event: MouseEvent) => {
 
       emit('update-piece-focus', null)
     } else if (
-      isPromotion(coords, props.board.activeColour) &&
+      isPromotion(coords, props.activeColour) &&
       focusedSquare &&
       focusedSquare.value.piece === null
     ) {
       showPromotionPopup.value = coords
 
-      const fromSquare = props.board.getSquare(props.pieceFocus)
+      const fromSquare = getSquare(props.pieceFocus)
       promotionAllegiance.value = fromSquare?.allegiance ?? null
-    } else if (props.board.getSquare(coords)) {
+    } else if (getSquare(coords)) {
       captureFocus.value = coords
     } else if (
       focusedSquare.value?.piece === 'K' &&
@@ -144,7 +156,7 @@ const handleCoordsClick = (coords: Notation.Coordinates, event: MouseEvent) => {
     return
   }
 
-  const square = props.board.getSquare(coords)
+  const square = getSquare(coords)
 
   emit('update-piece-focus', square ? coords : null)
 }
@@ -221,7 +233,7 @@ const indexToCoords = (
 }
 
 const coordsEmpty = (coords: Notation.Coordinates) => {
-  return !props.board.getSquare(coords)
+  return !getSquare(coords)
 }
 
 const canMove = (
@@ -229,9 +241,7 @@ const canMove = (
   from: Notation.Coordinates,
   to: Notation.Coordinates
 ) => {
-  const moves = props.board.getValidMoves()
-
-  return moves.some((move) => {
+  return props.validMoves.some((move) => {
     return (
       move.kind === 'move' &&
       coordinatesEqual(move.to, to) &&

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
-import { Board, Notation } from '@decentm/allegiance-chess-core'
+import { Notation, BoardSquare } from '@decentm/allegiance-chess-core'
 
 import BackgroundLayer from './board/layers/background-layer.vue'
 import InteractionLayer from './board/layers/interaction-layer.vue'
@@ -9,12 +9,17 @@ import IndicatorsLayer from './board/layers/indicators-layer.vue'
 import PiecesLayer from './board/layers/pieces-layer.vue'
 
 const props = defineProps<{
-  board: Board
+  // board: Board
+  squares: Array<Notation.Coordinates & BoardSquare>
+  moveHistoryAst: Notation.RootNode
+  checkMoves: Notation.MoveNode[]
   width: number
   perspective: 'black' | 'white'
   playAs: Array<'black' | 'white'>
   roundedBorders?: boolean
   validMoves: Notation.Node[]
+  activeColour: 'white' | 'black'
+  enPassantTarget: Notation.Coordinates | null
 }>()
 
 const emit = defineEmits<{
@@ -33,9 +38,7 @@ const handleExcuteNodeIndex = (index: number) => {
 }
 
 const lastMove = computed(() => {
-  const ast = props.board.getMoveHistoryAst()
-
-  return ast.children.at(-1) ?? null
+  return props.moveHistoryAst.children.at(-1) ?? null
 })
 </script>
 
@@ -52,7 +55,9 @@ const lastMove = computed(() => {
 
     <div class="absolute full-width full-height">
       <indicators-layer
-        :board="board"
+        :valid-moves="validMoves"
+        :check-moves="checkMoves"
+        :squares="squares"
         :square-size="squareSize"
         :files="8"
         :ranks="8"
@@ -64,7 +69,7 @@ const lastMove = computed(() => {
 
     <div class="absolute full-width full-height">
       <pieces-layer
-        :model-value="board.getSquares()"
+        :model-value="squares"
         :perspective="props.perspective"
         :square-size="squareSize"
       />
@@ -75,7 +80,9 @@ const lastMove = computed(() => {
         @execute-node-index="handleExcuteNodeIndex"
         @update-piece-focus="(focus) => (pieceFocus = focus)"
         :piece-focus="pieceFocus"
-        :board="board"
+        :squares="squares"
+        :en-passant-target="enPassantTarget"
+        :active-colour="activeColour"
         :square-size="squareSize"
         :files="8"
         :ranks="8"

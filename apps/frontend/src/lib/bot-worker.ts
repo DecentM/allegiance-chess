@@ -1,5 +1,10 @@
 import { findBestMove, getBoardScore } from '@decentm/allegiance-chess-bot'
-import { AfenPreset, Board, Notation } from '@decentm/allegiance-chess-core'
+import {
+  AfenPreset,
+  Board,
+  BoardSquare,
+  Notation,
+} from '@decentm/allegiance-chess-core'
 
 type BotMoveMessage = {
   type: 'bot-move'
@@ -14,10 +19,22 @@ type ResetMessage = {
   type: 'reset'
 }
 
+type ImportAfenMessage = {
+  type: 'import-afen'
+  afen: string
+}
+
+type ImportMoveHistoryMessage = {
+  type: 'import-move-history'
+  history: string
+}
+
 export type BotWorkerMessage =
   | ExecuteMoveIndexMessage
   | ResetMessage
   | BotMoveMessage
+  | ImportAfenMessage
+  | ImportMoveHistoryMessage
 
 type BoardUpdateResponse = {
   type: 'board-update'
@@ -25,6 +42,12 @@ type BoardUpdateResponse = {
   moveHistory: string
   activeColour: 'white' | 'black'
   boardScore: number
+  checkMoves: Notation.MoveNode[]
+  enPassantTarget: Notation.Coordinates | null
+  moveHistoryAst: Notation.RootNode
+  squares: Array<Notation.Coordinates & BoardSquare>
+  validMoves: Notation.Node[]
+  gameOver: Notation.GameOverNode | null
 }
 
 type NodeExecutionResponse = {
@@ -32,65 +55,100 @@ type NodeExecutionResponse = {
   node: Notation.Node
 }
 
-type ValidMovesResponse = {
-  type: 'valid-moves'
-  nodes: Notation.Node[]
+type ReadyResponse = {
+  type: 'ready'
 }
 
 export type BotWorkerResponse =
   | BoardUpdateResponse
   | NodeExecutionResponse
-  | ValidMovesResponse
+  | ReadyResponse
 
 const board = new Board()
+board.importAFEN(AfenPreset.VanillaDefault)
+
+const getGameover = (validMoves: Notation.Node[]) => {
+  if (validMoves.length !== 1) {
+    return null
+  }
+
+  const move = validMoves.at(0)
+
+  if (!move || move.kind !== 'game-over') {
+    return null
+  }
+
+  return move
+}
 
 onmessage = (messageEvent: MessageEvent<BotWorkerMessage>) => {
   const message = messageEvent.data
 
   switch (message.type) {
-    case 'reset':
+    case 'import-afen': {
+      board.importAFEN(message.afen)
+      break
+    }
+
+    case 'import-move-history': {
+      board.importMoveHistory(message.history)
+      break
+    }
+
+    case 'reset': {
       board.clear()
       board.importAFEN(AfenPreset.VanillaDefault)
+
+      const response: BotWorkerResponse = {
+        type: 'ready',
+      }
+
+      postMessage(response)
       break
+    }
 
     case 'execute-move-index': {
       const move = board.executeMoveIndex(message.index)
-
-      postMessage({
+      const response: BotWorkerResponse = {
         type: 'node-execution',
         node: move,
-      } as BotWorkerResponse)
+      }
+
+      postMessage(response)
 
       break
     }
 
     case 'bot-move': {
       const botResult = findBestMove(board, 15_000, 3)
+      const move = board.executeMoveIndex(botResult.index)
 
-      if (botResult) {
-        const move = board.executeMoveIndex(botResult.index)
-
-        postMessage({
-          type: 'node-execution',
-          node: move,
-        } as BotWorkerResponse)
+      const response: BotWorkerResponse = {
+        type: 'node-execution',
+        node: move,
       }
+
+      postMessage(response)
       break
     }
   }
 
   const validMoves = board.getValidMoves()
+  const gameOver = getGameover(validMoves)
 
-  postMessage({
+  const updateResponse: BotWorkerResponse = {
     type: 'board-update',
     afen: board.toAFEN(),
     moveHistory: board.getMoveHistory(),
     activeColour: board.activeColour,
     boardScore: getBoardScore(board),
-  } as BotWorkerResponse)
+    validMoves,
+    checkMoves: board.getCheckMoves(),
+    enPassantTarget: board.enPassantTarget,
+    moveHistoryAst: board.getMoveHistoryAst(),
+    squares: board.getSquares(),
+    gameOver,
+  }
 
-  postMessage({
-    type: 'valid-moves',
-    nodes: validMoves,
-  } as BotWorkerResponse)
+  postMessage(updateResponse)
 }

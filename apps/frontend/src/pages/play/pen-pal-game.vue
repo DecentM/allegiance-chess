@@ -1,69 +1,56 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { AfenPreset, Board } from '@decentm/allegiance-chess-core'
+import { computed, onMounted, watch } from 'vue'
+import { useQuasar } from 'quasar'
 
 import ChessBoard from '../../components/chess-board.vue'
 import GameSidebar from '../../components/game-sidebar.vue'
 import GameOverDialog from '../../components/game-over-dialog.vue'
 
-import { computed } from 'vue'
 import { Hex } from '../../lib/hex'
-import { useQuasar } from 'quasar'
-import { useBoardAudio } from '../../hooks/board-audio'
-import { useGameover } from '../../hooks/game-over'
 import { useBoardSize } from '../../hooks/board-size'
+import { useBoardWorker } from '../../hooks/board-worker'
 
 const route = useRoute()
 const router = useRouter()
 
-const afen = computed(() => {
-  const hex = Array.isArray(route.params.state)
+const board = useBoardWorker({
+  autoplayFor: [],
+})
+
+const state = computed(() => {
+  const afen = Array.isArray(route.params.state)
     ? route.params.state[0]
     : route.params.state
 
-  if (!hex) {
-    return AfenPreset.VanillaDefault
-  }
-
-  return Hex.hexToUtf8(hex)
-})
-
-const moveHistory = computed(() => {
-  const hex = Array.isArray(route.params.history)
+  const history = Array.isArray(route.params.history)
     ? route.params.history[0]
     : route.params.history
 
-  if (!hex) {
-    return ''
+  return {
+    afen: Hex.hexToUtf8(afen),
+    history: Hex.hexToUtf8(history),
   }
-
-  return Hex.hexToUtf8(hex)
 })
 
-const board = computed(() => {
-  const b = new Board()
+onMounted(() => {
+  board.reset()
 
-  if (afen.value) b.importAFEN(afen.value)
-  if (moveHistory.value) b.importMoveHistory(moveHistory.value)
-
-  return b
+  if (state.value.afen) board.importAfen(state.value.afen)
+  if (state.value.history) board.importMoveHistory(state.value.history)
 })
-
-const audio = useBoardAudio()
 
 const handleExecuteNodeIndex = (index: number) => {
-  const node = board.value.executeMoveIndex(index)
-
-  audio?.playNode(node)
-
-  router.push({
-    path: `/play/pen-pal/${Hex.utf8ToHex(board.value.toAFEN())}/${Hex.utf8ToHex(
-      board.value.getMoveHistory()
-    )}`,
-  })
+  board.executeMoveIndex(index)
 }
 
-const { gameOver } = useGameover(board)
+watch(board.afen, (newAfen) => {
+  router.replace({
+    path: `/play/pen-pal/${Hex.utf8ToHex(newAfen)}/${Hex.utf8ToHex(
+      state.value.history
+    )}`,
+  })
+})
 
 const q = useQuasar()
 const size = useBoardSize()
@@ -82,7 +69,13 @@ const size = useBoardSize()
         <chess-board
           @execute-node-index="handleExecuteNodeIndex"
           :board="board"
-          :perspective="board.activeColour"
+          :perspective="board.activeColour.value"
+          :active-colour="board.activeColour.value"
+          :check-moves="board.checkMoves.value"
+          :en-passant-target="board.enPassantTarget.value"
+          :move-history-ast="board.moveHistoryAst.value"
+          :squares="board.squares.value"
+          :valid-moves="board.validMoves.value"
           :play-as="['white', 'black']"
           :width="size"
           :rounded-borders="q.screen.gt.xs"
@@ -91,15 +84,18 @@ const size = useBoardSize()
 
       <q-card-section class="q-mb-md full-width">
         <game-sidebar
-          :move-history="board.getMoveHistoryAst()"
-          :active-colour="board.activeColour"
-          :own-colour="board.activeColour"
-          :afen="board.toAFEN()"
-          :game-over="gameOver"
+          :move-history="board.moveHistoryAst.value"
+          :active-colour="board.activeColour.value"
+          :own-colour="board.activeColour.value"
+          :afen="board.afen.value"
+          :game-over="board.gameOver.value"
         />
       </q-card-section>
     </q-card-section>
 
-    <game-over-dialog v-if="gameOver" :node="gameOver" />
+    <game-over-dialog
+      v-if="board.gameOver.value"
+      :node="board.gameOver.value"
+    />
   </q-card>
 </template>
