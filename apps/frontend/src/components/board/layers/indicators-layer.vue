@@ -187,7 +187,7 @@ const getCoords = (index: number) => {
       :key="index"
       class="indicator-square move-placeholder"
       :class="{
-        even: index % 2 !== 0,
+        even: (getCoords(index).file + getCoords(index).rank) % 2 !== 0,
         focus: coordinatesEqual(pieceFocus, getCoords(index)),
         show: show(getCoords(index)),
         capture: !coordsEmpty(getCoords(index)),
