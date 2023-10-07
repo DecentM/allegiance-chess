@@ -42,7 +42,9 @@ export class BoardMemory {
 
     memory.memory = [...this.memory]
     memory.activeColour = this.activeColour
-    memory.enPassantTarget = { ...this.enPassantTarget }
+    memory.enPassantTarget = this.enPassantTarget
+      ? { ...this.enPassantTarget }
+      : null
     memory._castlingRights = [...this._castlingRights]
     memory.halfmoveClock = this.halfmoveClock
     memory.fullmoveNumber = this.fullmoveNumber

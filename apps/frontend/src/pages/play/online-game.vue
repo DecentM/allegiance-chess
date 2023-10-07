@@ -9,6 +9,7 @@ import GameOverDialog from '../../components/game-over-dialog.vue'
 
 import { ChessRtcConnection } from '../../hooks/chess-rtc-connection'
 import { useBoardSize } from '../../hooks/board-size'
+import { useGameover } from '../../hooks/game-over'
 
 const props = defineProps<{
   connection: ChessRtcConnection
@@ -36,6 +37,7 @@ const handleExecuteNodeIndex = (index: number) => {
 
 const q = useQuasar()
 const size = useBoardSize()
+const { gameOver } = useGameover(board)
 
 const perspective = computed(() => {
   if (!props.connection.serverSide.value) {
@@ -77,6 +79,7 @@ const perspective = computed(() => {
           :active-colour="board.activeColour"
           :own-colour="perspective ?? 'white'"
           :afen="connection.boardAFEN.value"
+          :game-over="gameOver"
         />
       </q-card-section>
     </q-card-section>

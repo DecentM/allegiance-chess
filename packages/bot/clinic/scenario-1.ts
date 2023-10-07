@@ -10,7 +10,7 @@ const moves = b.getValidMoves()
 
 console.log('Searching', moves.length, 'moves')
 
-const { index, score } = findBestMove(b, 3)
+const { index, score } = findBestMove(b, 5_000, 3)
 
 console.log(
   'Best move is move',

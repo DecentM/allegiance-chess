@@ -52,19 +52,14 @@ export type GetValidMovesInput = {
 export class Board {
   private memory: BoardMemory
 
-  public clone() {
-    const board = new Board()
-
-    board.memory = this.memory.clone()
-
-    return board
+  public clear() {
+    this.memory.clear()
   }
 
-  public reset() {
-    this.memory.clear()
-
-    if (this.initialAfen) this.importAFEN(this.initialAfen)
-    if (this.initialMoveHistory) this.importMoveHistory(this.initialMoveHistory)
+  public clone() {
+    const board = new Board()
+    board.memory = this.memory.clone()
+    return board
   }
 
   public dump() {
@@ -77,14 +72,18 @@ export class Board {
 
   public importMoveHistory(history: string) {
     const historyAst = Notation.parse(Notation.tokenize(history))
-    const virtualBoard = new Board(AfenPreset.VanillaDefault)
+    const virtualBoard = new Board()
+
+    virtualBoard.importAFEN(AfenPreset.VanillaDefault)
 
     historyAst.children.forEach((node) => {
       const validMoves = virtualBoard.getValidMoves()
       const index = Board.findMoveIndex(validMoves, node)
 
       if (index === -1) {
-        return
+        throw new VError(
+          `Move ${Notation.writeNode(node)} is not valid on this board`
+        )
       }
 
       const move = virtualBoard.executeMoveIndex(index)
@@ -132,22 +131,11 @@ export class Board {
     return this.memory.moveHistory
   }
 
-  constructor(
-    private initialAfen?: string,
-    private initialMoveHistory?: string
-  ) {
+  constructor() {
     this.memory = new BoardMemory()
-
-    if (initialAfen) {
-      this.importAFEN(initialAfen)
-    }
-
-    if (initialMoveHistory) {
-      this.importMoveHistory(initialMoveHistory)
-    }
   }
 
-  private getPositionHistory() {
+  private getPositionCount() {
     const moves = this.memory.moveHistory.children
     const result: Map<string, number> = new Map()
     const virtualBoard = new Board()
@@ -156,6 +144,7 @@ export class Board {
 
     for (const move of moves) {
       virtualBoard.executeNode(move)
+
       const afen = virtualBoard.toAFEN({ sections: ['positions'] })
       const count = result.get(afen)
 
@@ -358,9 +347,13 @@ export class Board {
         break
       }
 
-      case null: {
-        if (node.piece === null) this.memory.halfmoveClock = 0
-        else this.memory.halfmoveClock++
+      case null:
+      case undefined: {
+        if (!node.piece) {
+          this.memory.halfmoveClock = 0
+        } else {
+          this.memory.halfmoveClock++
+        }
 
         break
       }
@@ -1421,11 +1414,11 @@ export class Board {
       }
     }
 
-    const positionHistory = this.getPositionHistory()
+    const positionCount = this.getPositionCount()
 
     // draw by repetition
     const afen = this.toAFEN({ sections: ['positions'] })
-    const occurrenceCount = positionHistory.get(afen) || 0
+    const occurrenceCount = positionCount.get(afen) || 0
 
     if (occurrenceCount >= 3) {
       return {
@@ -1461,7 +1454,7 @@ export class Board {
     }) as MoveNode[]
   }
 
-  private getValidMovesFromList(list: Node[], input: GetValidMovesInput) {
+  public getValidMovesFromList(list: Node[], input: GetValidMovesInput) {
     const result = list.filter((moveNode) => {
       if (moveNode.kind !== 'move') {
         return true

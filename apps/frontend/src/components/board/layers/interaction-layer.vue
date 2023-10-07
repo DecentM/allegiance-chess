@@ -20,6 +20,7 @@ const props = defineProps<{
   files: number
   perspective: 'white' | 'black'
   pieceFocus: Notation.Coordinates | null
+  validMoves: Notation.Node[]
 }>()
 
 const captureFocus = ref<Notation.Coordinates | null>(null)

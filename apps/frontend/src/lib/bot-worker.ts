@@ -32,16 +32,25 @@ type NodeExecutionResponse = {
   node: Notation.Node
 }
 
-export type BotWorkerResponse = BoardUpdateResponse | NodeExecutionResponse
+type ValidMovesResponse = {
+  type: 'valid-moves'
+  nodes: Notation.Node[]
+}
 
-const board = new Board(AfenPreset.VanillaDefault)
+export type BotWorkerResponse =
+  | BoardUpdateResponse
+  | NodeExecutionResponse
+  | ValidMovesResponse
+
+const board = new Board()
 
 onmessage = (messageEvent: MessageEvent<BotWorkerMessage>) => {
   const message = messageEvent.data
 
   switch (message.type) {
     case 'reset':
-      board.reset()
+      board.clear()
+      board.importAFEN(AfenPreset.VanillaDefault)
       break
 
     case 'execute-move-index': {
@@ -56,7 +65,7 @@ onmessage = (messageEvent: MessageEvent<BotWorkerMessage>) => {
     }
 
     case 'bot-move': {
-      const botResult = findBestMove(board, 3)
+      const botResult = findBestMove(board, 15_000, 3)
 
       if (botResult) {
         const move = board.executeMoveIndex(botResult.index)
@@ -70,11 +79,18 @@ onmessage = (messageEvent: MessageEvent<BotWorkerMessage>) => {
     }
   }
 
+  const validMoves = board.getValidMoves()
+
   postMessage({
     type: 'board-update',
     afen: board.toAFEN(),
     moveHistory: board.getMoveHistory(),
     activeColour: board.activeColour,
     boardScore: getBoardScore(board),
+  } as BotWorkerResponse)
+
+  postMessage({
+    type: 'valid-moves',
+    nodes: validMoves,
   } as BotWorkerResponse)
 }
