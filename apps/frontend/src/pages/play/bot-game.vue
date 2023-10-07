@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 
-import { Board, AfenPreset } from '@decentm/allegiance-chess-core'
+import { Board, Notation } from '@decentm/allegiance-chess-core'
 
 import type { BotWorkerMessage, BotWorkerResponse } from '../../lib/bot-worker'
 import BotWorker from '../../lib/bot-worker?worker'
@@ -20,13 +20,18 @@ const afen = ref<string>('')
 const moveHistory = ref<string>('')
 const activeColour = ref<'white' | 'black'>('white')
 const boardScore = ref(0)
+const validMoves = ref<Notation.Node[]>([])
 
 const userSide = ref<'white' | 'black' | null>()
 const audio = useBoardAudio()
 const worker = ref<Worker | null>()
 
 const board = computed(() => {
-  return new Board(afen.value || AfenPreset.VanillaDefault, moveHistory.value)
+  const b = new Board()
+
+  if (moveHistory.value) b.importMoveHistory(moveHistory.value)
+
+  return b
 })
 
 const { gameOver } = useGameover(board)
@@ -36,14 +41,18 @@ const handleWorkerMessage = (messageEvent: MessageEvent<BotWorkerResponse>) => {
 
   switch (message.type) {
     case 'board-update':
-      afen.value = message.afen
       moveHistory.value = message.moveHistory
+      afen.value = message.afen
       activeColour.value = message.activeColour
       boardScore.value = message.boardScore
       break
 
     case 'node-execution':
       audio?.playNode(message.node)
+      break
+
+    case 'valid-moves':
+      validMoves.value = message.nodes
       break
   }
 
@@ -100,6 +109,7 @@ const size = useBoardSize()
           :play-as="['white', 'black']"
           :width="size"
           :rounded-borders="q.screen.gt.xs"
+          :valid-moves="validMoves"
         />
       </q-card-section>
 

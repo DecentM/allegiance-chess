@@ -14,6 +14,7 @@ const props = defineProps<{
   perspective: 'black' | 'white'
   playAs: Array<'black' | 'white'>
   roundedBorders?: boolean
+  validMoves: Notation.Node[]
 }>()
 
 const emit = defineEmits<{
@@ -78,7 +79,8 @@ const lastMove = computed(() => {
         :square-size="squareSize"
         :files="8"
         :ranks="8"
-        :perspective="props.perspective"
+        :perspective="perspective"
+        :valid-moves="validMoves"
       />
     </div>
   </div>

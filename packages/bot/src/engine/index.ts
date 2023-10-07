@@ -60,17 +60,17 @@ export const getBoardScore = (board: Board) => {
   return finalScore
 }
 
+const SCORE_PRUNE_LIMIT = -1
+
 export const findBestMove = (
   board: Board,
-  maxDepth: number,
-  seed = String(Math.random())
+  timeoutMs: number,
+  depth: number,
+  seed = String(Math.random()),
+  startTime = performance.now(),
+  rng = seedrandom(seed)
 ) => {
-  if (maxDepth <= 0) {
-    return null
-  }
-
   const moves = board.getValidMoves()
-  const rng = seedrandom(seed)
 
   // score, index
   const scores = new Map<number, number[]>()
@@ -81,13 +81,23 @@ export const findBestMove = (
 
     virtualBoard.executeNode(move)
 
-    let score = getBoardScore(virtualBoard)
+    let score = 0
+    const timeout = performance.now() - startTime > timeoutMs
+    const maxDepth = depth <= 0
 
-    // This prevents sacking and gambits
-    if (score !== 0) {
-      const subResult = findBestMove(virtualBoard, maxDepth - 1, seed)
+    if (timeout) {
+      score = -getBoardScore(virtualBoard)
+    } else if (!maxDepth) {
+      const subResult = findBestMove(
+        virtualBoard,
+        timeoutMs,
+        depth - 1,
+        seed,
+        startTime,
+        rng
+      )
 
-      if (subResult) score -= subResult.score
+      score = subResult.score
     }
 
     const existingIndexes = scores.get(score)
