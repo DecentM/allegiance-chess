@@ -4,6 +4,7 @@ import {
   BoardSquare,
   Notation,
   coordinatesEqual,
+  getCoordsForIndex,
 } from '@decentm/allegiance-chess-core'
 
 const props = defineProps<{
@@ -12,7 +13,6 @@ const props = defineProps<{
   validMoves: Notation.Node[]
   ranks: number
   files: number
-  squareSize: number
   perspective: 'white' | 'black'
   pieceFocus: Notation.Coordinates | null
   lastMove: Notation.Node | null
@@ -50,30 +50,18 @@ const coordsEmpty = (coords: Notation.Coordinates) => {
   return !props.squares.find((square) => coordinatesEqual(coords, square))
 }
 
-const indexToCoords = (
-  fileIndex: number,
-  rankIndex: number
-): Notation.Coordinates => {
-  const rawFile = fileIndex + 1
-  const rawRank = rankIndex + 1
-
-  if (props.perspective === 'white') {
-    return {
-      file: rawFile as Notation.File,
-      rank: (9 - rawRank) as Notation.Rank,
-    }
-  }
-
-  return {
-    file: (9 - rawFile) as Notation.File,
-    rank: rawRank as Notation.Rank,
-  }
-}
-
 const isChecked = (coords: Notation.Coordinates) => {
   return props.checkMoves.some(
     (move) => move.kind === 'move' && coordinatesEqual(move.to, coords)
   )
+}
+
+const getCoords = (index: number) => {
+  if (props.perspective === 'white') {
+    return getCoordsForIndex(index)
+  }
+
+  return getCoordsForIndex(63 - index)
 }
 </script>
 
@@ -183,42 +171,35 @@ const isChecked = (coords: Notation.Coordinates) => {
     }
   }
 }
+
+.indicator-square {
+  width: calc(100% / 8);
+  height: calc(100% / 8);
+}
 </style>
 
 <template>
   <div
-    class="relative-position full-width full-height column no-pointer-events indicators-layer"
+    class="relative-position full-width full-height row no-pointer-events indicators-layer"
   >
     <div
-      class="col column row full-width"
-      v-for="(_, rankIndex) in ranks"
-      :key="rankIndex"
-    >
-      <div
-        v-for="(_, fileIndex) in files"
-        :key="fileIndex"
-        class="full-height move-placeholder"
-        :class="{
-          even: rankIndex % 2 === 0 ? fileIndex % 2 === 0 : fileIndex % 2 !== 0,
-          focus: coordinatesEqual(
-            pieceFocus,
-            indexToCoords(fileIndex, rankIndex)
-          ),
-          show: show(indexToCoords(fileIndex, rankIndex)),
-          capture: !coordsEmpty(indexToCoords(fileIndex, rankIndex)),
-          target: coordsEmpty(indexToCoords(fileIndex, rankIndex)),
-          checked: isChecked(indexToCoords(fileIndex, rankIndex)),
-          'last-from':
-            lastMove?.kind === 'move' &&
-            coordinatesEqual(
-              lastMove.from,
-              indexToCoords(fileIndex, rankIndex)
-            ),
-          'last-to':
-            lastMove?.kind === 'move' &&
-            coordinatesEqual(lastMove.to, indexToCoords(fileIndex, rankIndex)),
-        }"
-      />
-    </div>
+      v-for="(_, index) in 64"
+      :key="index"
+      class="indicator-square move-placeholder"
+      :class="{
+        even: index % 2 !== 0,
+        focus: coordinatesEqual(pieceFocus, getCoords(index)),
+        show: show(getCoords(index)),
+        capture: !coordsEmpty(getCoords(index)),
+        target: coordsEmpty(getCoords(index)),
+        checked: isChecked(getCoords(index)),
+        'last-from':
+          lastMove?.kind === 'move' &&
+          coordinatesEqual(lastMove.from, getCoords(index)),
+        'last-to':
+          lastMove?.kind === 'move' &&
+          coordinatesEqual(lastMove.to, getCoords(index)),
+      }"
+    ></div>
   </div>
 </template>

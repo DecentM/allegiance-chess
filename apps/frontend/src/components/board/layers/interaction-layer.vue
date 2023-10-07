@@ -9,6 +9,7 @@ import {
   Notation,
   allegianceSide,
   BoardSquare,
+  getCoordsForIndex,
 } from '@decentm/allegiance-chess-core'
 
 import PromotionSelector from '../../promotion-selector.vue'
@@ -17,7 +18,6 @@ import CaptureSelector from '../../capture-selector.vue'
 const props = defineProps<{
   enPassantTarget: Notation.Coordinates | null
   squares: Array<Notation.Coordinates & BoardSquare>
-  squareSize: number
   ranks: number
   files: number
   perspective: 'white' | 'black'
@@ -212,26 +212,6 @@ const handleCaptureClick = (decision: 'capture' | 'challenge') => {
   emit('update-piece-focus', null)
 }
 
-const indexToCoords = (
-  fileIndex: number,
-  rankIndex: number
-): Notation.Coordinates => {
-  const rawFile = fileIndex + 1
-  const rawRank = rankIndex + 1
-
-  if (props.perspective === 'white') {
-    return {
-      file: rawFile as Notation.File,
-      rank: (9 - rawRank) as Notation.Rank,
-    }
-  }
-
-  return {
-    file: (9 - rawFile) as Notation.File,
-    rank: rawRank as Notation.Rank,
-  }
-}
-
 const coordsEmpty = (coords: Notation.Coordinates) => {
   return !getSquare(coords)
 }
@@ -268,105 +248,64 @@ const captureMoves: ComputedRef<Array<'x' | '>'>> = computed(() => {
 
   return result
 })
+
+const getCoords = (index: number) => {
+  if (props.perspective === 'white') {
+    return getCoordsForIndex(index)
+  }
+
+  return getCoordsForIndex(63 - index)
+}
 </script>
 
 <style lang="scss" scoped>
 .interaction-layer {
   z-index: 4;
 }
+
+.interaction-square {
+  width: calc(100% / 8);
+  height: calc(100% / 8);
+}
 </style>
 
 <template>
-  <div class="relative-position full-width full-height interaction-layer">
+  <div
+    class="relative-position full-width full-height interaction-layer row wrap"
+  >
     <div
-      class="col column row full-width"
-      v-for="(_, rankIndex) in ranks"
-      :key="rankIndex"
+      v-for="(_, index) in 64"
+      :key="index"
+      v-ripple="!coordsEmpty(getCoords(index)) && !isOpponent(getCoords(index))"
+      class="relative-position interaction-square"
+      @click="(event) => handleCoordsClick(getCoords(index), event)"
+      :class="{
+        'cursor-pointer':
+          !coordsEmpty(getCoords(index)) || isHighlighted(getCoords(index)),
+        'cursor-not-allowed': isOpponent(getCoords(index)) && !focusedSquare,
+      }"
     >
-      <div v-for="(_, fileIndex) in files" :key="fileIndex" class="full-height">
-        <div
-          v-ripple="
-            !coordsEmpty(indexToCoords(fileIndex, rankIndex)) &&
-            !isOpponent(indexToCoords(fileIndex, rankIndex))
-          "
-          class="absolute"
-          @click="
-            (event) =>
-              handleCoordsClick(indexToCoords(fileIndex, rankIndex), event)
-          "
-          :class="{
-            'cursor-pointer':
-              !coordsEmpty(indexToCoords(fileIndex, rankIndex)) ||
-              isHighlighted(indexToCoords(fileIndex, rankIndex)),
-            'cursor-not-allowed':
-              isOpponent(indexToCoords(fileIndex, rankIndex)) && !focusedSquare,
-          }"
-          :style="
-            perspective === 'white'
-              ? {
-                  width: `${squareSize}px`,
-                  height: `${squareSize}px`,
-                  left: `${
-                    (indexToCoords(fileIndex, rankIndex).file - 1) * squareSize
-                  }px`,
-                  bottom: `${
-                    (indexToCoords(fileIndex, rankIndex).rank - 1) * squareSize
-                  }px`,
-                }
-              : {
-                  width: `${squareSize}px`,
-                  height: `${squareSize}px`,
-                  right: `${
-                    (indexToCoords(fileIndex, rankIndex).file - 1) * squareSize
-                  }px`,
-                  top: `${
-                    (indexToCoords(fileIndex, rankIndex).rank - 1) * squareSize
-                  }px`,
-                }
-          "
-        >
-          <capture-selector
-            v-if="
-              captureFocus &&
-              coordinatesEqual(
-                captureFocus,
-                indexToCoords(fileIndex, rankIndex)
-              )
-            "
-            :moves="captureMoves"
-            :model-value="
-              coordinatesEqual(
-                captureFocus,
-                indexToCoords(fileIndex, rankIndex)
-              ) ?? false
-            "
-            :size="squareSize"
-            @click="handleCaptureClick"
-            @dismiss="handleCaptureDismiss"
-          />
+      <capture-selector
+        v-if="captureFocus && coordinatesEqual(captureFocus, getCoords(index))"
+        :moves="captureMoves"
+        :model-value="coordinatesEqual(captureFocus, getCoords(index)) ?? false"
+        @click="handleCaptureClick"
+        @dismiss="handleCaptureDismiss"
+      />
 
-          <promotion-selector
-            v-if="
-              promotionAllegiance !== null &&
-              (isPromotion(indexToCoords(fileIndex, rankIndex), 'white') ||
-                isPromotion(indexToCoords(fileIndex, rankIndex), 'black'))
-            "
-            :model-value="
-              coordinatesEqual(
-                showPromotionPopup,
-                indexToCoords(fileIndex, rankIndex)
-              ) ?? false
-            "
-            :allegiance="promotionAllegiance"
-            :size="squareSize"
-            @click="
-              (piece) =>
-                handlePromotion(indexToCoords(fileIndex, rankIndex), piece)
-            "
-            @dismiss="handlePromotionDismiss"
-          />
-        </div>
-      </div>
+      <promotion-selector
+        v-if="
+          promotionAllegiance !== null &&
+          (isPromotion(getCoords(index), 'white') ||
+            isPromotion(getCoords(index), 'black'))
+        "
+        :model-value="
+          coordinatesEqual(showPromotionPopup, getCoords(index)) ?? false
+        "
+        :allegiance="promotionAllegiance"
+        @click="(piece) => handlePromotion(getCoords(index), piece)"
+        @dismiss="handlePromotionDismiss"
+      />
     </div>
   </div>
 </template>

@@ -67,7 +67,7 @@ const releaseId = process.env.GITHUB_SHA || process.env.GIT_FETCH_HEAD
     <q-page-container class="column items-center">
       <q-page
         :class="{ 'q-pt-xl': route.meta.title }"
-        class="full-width layout-page"
+        class="full-width layout-page column"
       >
         <router-view />
 

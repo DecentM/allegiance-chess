@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Ref, computed, onMounted, ref, watch } from 'vue'
 import { Notation } from '@decentm/allegiance-chess-core'
-import { QScrollArea, useQuasar } from 'quasar'
+import { QScrollArea } from 'quasar'
 
 import ChessPiece from './chess-piece.vue'
+import { useNotify } from '../hooks/notify'
 
 const props = defineProps<{
   moveHistory: Notation.RootNode
@@ -56,7 +57,7 @@ onMounted(() => {
   )
 })
 
-const q = useQuasar()
+const { notify } = useNotify()
 
 const handleAFENCopy = () => {
   if (!props.afen) {
@@ -66,16 +67,12 @@ const handleAFENCopy = () => {
   try {
     navigator.clipboard.writeText(props.afen)
 
-    q.notify({
-      position: 'bottom-right',
-      timeout: 4000,
+    notify({
       message: 'AFEN copied to clipboard',
       icon: 'content_copy',
     })
   } catch {
-    q.notify({
-      position: 'bottom-right',
-      timeout: 4000,
+    notify({
       message: 'Could not write to clipboard',
       icon: 'close',
       iconColor: 'red',
@@ -99,39 +96,46 @@ const handleAFENCopy = () => {
   background-color: $chess-highlight;
   color: $chess-black;
 }
+
+.chip-piece {
+  height: 24px;
+}
 </style>
 
 <template>
   <q-card
     flat
-    bordered
-    class="q-ma-md full-height column justify-between"
+    square
+    class="column justify-between no-wrap full-height"
     data-testid="game-sidebar"
   >
     <transition mode="out-in">
       <q-card-section
-        class="bg-primary text-white q-mb-md"
+        class="bg-primary text-white"
         v-if="!gameOver && activeColour === ownColour"
+        data-testid="your-turn-indicator"
       >
         <div class="text-h6">Your turn!</div>
       </q-card-section>
 
-      <q-card-section class="bg-grey text-black q-mb-md" v-else-if="!gameOver">
+      <q-card-section
+        data-testid="waiting-for-opponent-indicator"
+        class="bg-grey text-black"
+        v-else-if="!gameOver"
+      >
         <div class="text-h6">Waiting for opponent...</div>
       </q-card-section>
 
-      <q-card-section class="bg-negative text-white q-mb-md" v-else>
+      <q-card-section
+        class="bg-negative text-white q-mb-md"
+        data-testid="game-over-indicator"
+        v-else
+      >
         <div class="text-h6">Game over!</div>
       </q-card-section>
     </transition>
 
-    <div class="spacer col" />
-
-    <div data-testid="default-slot">
-      <q-separator />
-
-      <slot />
-    </div>
+    <slot />
 
     <div data-testid="afen">
       <q-separator />
@@ -139,7 +143,7 @@ const handleAFENCopy = () => {
       <q-item clickable v-ripple @click="handleAFENCopy">
         <q-item-section class="q-mt-sm q-mb-sm">
           <q-item-label>AFEN</q-item-label>
-          <q-item-label caption lines="2">{{ afen }}</q-item-label>
+          <q-item-label v-if="afen" caption lines="2">{{ afen }}</q-item-label>
         </q-item-section>
 
         <q-item-section side>
@@ -148,10 +152,10 @@ const handleAFENCopy = () => {
       </q-item>
     </div>
 
-    <div data-testid="move-history">
+    <div data-testid="move-history" class="col">
       <q-separator />
 
-      <q-scroll-area style="height: 500px" ref="moveHistoryScrollArea">
+      <q-scroll-area ref="moveHistoryScrollArea" class="full-height">
         <q-card-section
           v-for="(row, index) in rows"
           :key="index"
@@ -162,7 +166,7 @@ const handleAFENCopy = () => {
             'q-pb-md': index === rows.length - 1,
           }"
         >
-          <div class="col" v-if="row[0]">
+          <div class="col-6" v-if="row[0]">
             <q-chip
               :ripple="false"
               class="white-move"
@@ -174,7 +178,7 @@ const handleAFENCopy = () => {
                 v-if="row[0].kind === 'move' && row[0].piece"
                 :piece="row[0].piece"
                 :allegiance="3"
-                :size="24"
+                class="chip-piece"
               />
 
               {{ Notation.writeNode(row[0]) }}
@@ -182,7 +186,7 @@ const handleAFENCopy = () => {
           </div>
 
           <transition mode="out-in">
-            <div class="col" v-if="row[1]">
+            <div class="col-6" v-if="row[1]">
               <q-chip
                 :ripple="false"
                 class="black-move"
@@ -194,7 +198,7 @@ const handleAFENCopy = () => {
                   v-if="row[1].kind === 'move' && row[1].piece"
                   :piece="row[1].piece"
                   :allegiance="0"
-                  :size="24"
+                  class="chip-piece"
                 />
 
                 {{ Notation.writeNode(row[1]) }}

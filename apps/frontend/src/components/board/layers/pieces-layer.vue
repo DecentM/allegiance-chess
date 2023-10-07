@@ -4,54 +4,48 @@ import { BoardSquare, Notation } from '@decentm/allegiance-chess-core'
 
 import ChessPiece from '../../chess-piece.vue'
 
-defineProps<{
+const props = defineProps<{
   modelValue: Array<Notation.Coordinates & BoardSquare>
-  squareSize: number
   perspective: 'white' | 'black'
 }>()
 
 const q = useQuasar()
+
+const getSquare = (index: number) => {
+  if (props.perspective === 'white') {
+    return props.modelValue[index]
+  }
+
+  return props.modelValue[63 - index]
+}
 </script>
 
 <style lang="scss" scoped>
 .pieces-layer {
   z-index: 3;
 }
+
+.piece-square {
+  width: calc(100% / 8);
+  height: calc(100% / 8);
+}
 </style>
 
 <template>
   <div
-    class="relative-position full-width full-height no-pointer-events pieces-layer"
+    class="relative-position full-width full-height no-pointer-events pieces-layer row wrap"
   >
-    <div v-for="(square, index) in modelValue" :key="index">
+    <div v-for="(_, index) in 64" :key="index" class="piece-square">
       <chess-piece
-        v-if="square"
+        v-if="getSquare(index)"
         data-testid="piece"
-        class="absolute"
         :class="{
           'q-pa-xs': q.screen.sm || q.screen.md,
           'q-pa-sm': q.screen.gt.sm,
         }"
-        :piece="square.piece"
-        :allegiance="square.allegiance"
-        :size="squareSize"
-        :style="
-          perspective === 'white'
-            ? {
-                left: `${(square.file - 1) * squareSize}px`,
-                bottom: `${(square.rank - 1) * squareSize}px`,
-              }
-            : {
-                right: `${(square.file - 1) * squareSize}px`,
-                top: `${(square.rank - 1) * squareSize}px`,
-              }
-        "
+        :piece="getSquare(index).piece"
+        :allegiance="getSquare(index).allegiance"
       />
-
-      <div
-        v-else
-        :style="{ width: `${squareSize}px`, height: `${squareSize}px` }"
-      ></div>
     </div>
   </div>
 </template>

@@ -39,7 +39,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'play',
-        component: () => import('pages/play-page.vue'),
+        component: () => import('layouts/play-layout.vue'),
         children: [
           {
             path: '',

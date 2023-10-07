@@ -9,14 +9,11 @@ import IndicatorsLayer from './board/layers/indicators-layer.vue'
 import PiecesLayer from './board/layers/pieces-layer.vue'
 
 const props = defineProps<{
-  // board: Board
   squares: Array<Notation.Coordinates & BoardSquare>
   moveHistoryAst: Notation.RootNode
   checkMoves: Notation.MoveNode[]
-  width: number
   perspective: 'black' | 'white'
   playAs: Array<'black' | 'white'>
-  roundedBorders?: boolean
   validMoves: Notation.Node[]
   activeColour: 'white' | 'black'
   enPassantTarget: Notation.Coordinates | null
@@ -25,10 +22,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (event: 'execute-node-index', value: number): void
 }>()
-
-const squareSize = computed(() => {
-  return props.width / 8
-})
 
 const pieceFocus = ref<Notation.Coordinates | null>(null)
 
@@ -42,13 +35,16 @@ const lastMove = computed(() => {
 })
 </script>
 
+<style lang="scss" scoped>
+.chess-board {
+  max-height: calc(100vh - 6rem);
+
+  aspect-ratio: 1 / 1;
+}
+</style>
+
 <template>
-  <div
-    data-testid="chess-board"
-    class="relative-position column"
-    :class="{ 'rounded-borders overflow-hidden': roundedBorders }"
-    :style="{ width: props.width + 'px', height: props.width + 'px' }"
-  >
+  <div data-testid="chess-board" class="relative-position column chess-board">
     <div class="absolute full-width full-height">
       <background-layer :ranks="8" :files="8" :perspective="perspective" />
     </div>
@@ -58,7 +54,6 @@ const lastMove = computed(() => {
         :valid-moves="validMoves"
         :check-moves="checkMoves"
         :squares="squares"
-        :square-size="squareSize"
         :files="8"
         :ranks="8"
         :perspective="perspective"
@@ -68,11 +63,7 @@ const lastMove = computed(() => {
     </div>
 
     <div class="absolute full-width full-height">
-      <pieces-layer
-        :model-value="squares"
-        :perspective="props.perspective"
-        :square-size="squareSize"
-      />
+      <pieces-layer :model-value="squares" :perspective="props.perspective" />
     </div>
 
     <div class="absolute full-width full-height">
@@ -83,7 +74,6 @@ const lastMove = computed(() => {
         :squares="squares"
         :en-passant-target="enPassantTarget"
         :active-colour="activeColour"
-        :square-size="squareSize"
         :files="8"
         :ranks="8"
         :perspective="perspective"

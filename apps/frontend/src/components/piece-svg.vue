@@ -8,6 +8,7 @@ defineProps<{
 
 <style lang="scss" scoped>
 svg {
+  height: 100%;
   width: 100%;
   stroke: mix($chess-black, $chess-white, 50%);
   stroke-width: 1px;
