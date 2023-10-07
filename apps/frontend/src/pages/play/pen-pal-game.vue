@@ -19,18 +19,18 @@ const board = useBoardWorker({
   autoplayFor: [],
 })
 
-const state = computed(() => {
-  const afen = Array.isArray(route.params.state)
-    ? route.params.state[0]
-    : route.params.state
+const state = computed<{ afen: string; history: string }>(() => {
+  try {
+    const result = Array.isArray(route.params.state)
+      ? route.params.state[0]
+      : route.params.state
 
-  const history = Array.isArray(route.params.history)
-    ? route.params.history[0]
-    : route.params.history
-
-  return {
-    afen: Hex.hexToUtf8(afen),
-    history: Hex.hexToUtf8(history),
+    return JSON.parse(Hex.hexToUtf8(result))
+  } catch {
+    return {
+      afen: '',
+      history: '',
+    }
   }
 })
 
@@ -45,10 +45,17 @@ const handleExecuteNodeIndex = (index: number) => {
   board.executeMoveIndex(index)
 }
 
-watch(board.afen, (newAfen) => {
+watch(board.loading, (newLoading) => {
+  if (newLoading) {
+    return
+  }
+
   router.push({
-    path: `/play/pen-pal/${Hex.utf8ToHex(newAfen)}/${Hex.utf8ToHex(
-      state.value.history
+    path: `/play/pen-pal/${Hex.utf8ToHex(
+      JSON.stringify({
+        afen: board.afen.value,
+        history: board.moveHistory.value,
+      })
     )}`,
   })
 })
@@ -71,6 +78,7 @@ const q = useQuasar()
         :valid-moves="board.validMoves.value"
         :play-as="['white', 'black']"
         :rounded-borders="q.screen.gt.xs"
+        :loading="board.loading.value"
       />
     </template>
 

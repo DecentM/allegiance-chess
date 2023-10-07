@@ -73,6 +73,7 @@ watch(props.connection.moveHistory, (newMoveHistory) => {
         :en-passant-target="board.enPassantTarget.value"
         :move-history-ast="board.moveHistoryAst.value"
         :squares="board.squares.value"
+        :loading="board.loading.value"
       />
     </template>
 

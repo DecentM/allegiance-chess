@@ -6,6 +6,7 @@ defineProps<{
   ranks: number
   files: number
   perspective: 'black' | 'white'
+  loading: boolean
 }>()
 
 const q = useQuasar()
@@ -14,6 +15,10 @@ const q = useQuasar()
 <style lang="scss" scoped>
 .background-layer {
   z-index: 1;
+
+  transition-property: filter;
+  transition-duration: 0.3s;
+  transition-timing-function: ease-in-out;
 }
 
 .rank {
@@ -45,10 +50,15 @@ const q = useQuasar()
     }
   }
 }
+
+.loading {
+  filter: grayscale(0.5);
+}
 </style>
 
 <template>
   <div
+    :class="{ loading }"
     class="row column full-width full-height no-pointer-events background-layer"
     data-testid="background"
   >

@@ -17,6 +17,7 @@ const props = defineProps<{
   validMoves: Notation.Node[]
   activeColour: 'white' | 'black'
   enPassantTarget: Notation.Coordinates | null
+  loading: boolean
 }>()
 
 const emit = defineEmits<{
@@ -46,7 +47,12 @@ const lastMove = computed(() => {
 <template>
   <div data-testid="chess-board" class="relative-position column chess-board">
     <div class="absolute full-width full-height">
-      <background-layer :ranks="8" :files="8" :perspective="perspective" />
+      <background-layer
+        :ranks="8"
+        :files="8"
+        :perspective="perspective"
+        :loading="loading"
+      />
     </div>
 
     <div class="absolute full-width full-height">

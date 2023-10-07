@@ -33,6 +33,7 @@ const q = useQuasar()
         :play-as="['white', 'black']"
         :rounded-borders="q.screen.gt.xs"
         :valid-moves="board.validMoves.value"
+        :loading="board.loading.value"
       />
     </template>
 

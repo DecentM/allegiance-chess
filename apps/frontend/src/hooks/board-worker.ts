@@ -12,6 +12,7 @@ export type UseBoardWorkerInput = {
 export const useBoardWorker = (input: UseBoardWorkerInput) => {
   const worker = ref<Worker | null>()
   const ready = ref(false)
+  const loading = ref(true)
 
   const afen = ref<string>('')
   const moveHistory = ref<string>('')
@@ -56,6 +57,8 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
         enPassantTarget.value = message.enPassantTarget
         moveHistoryAst.value = message.moveHistoryAst
         squares.value = message.squares
+
+        loading.value = false
         break
 
       case 'node-execution':
@@ -72,6 +75,7 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
       input.autoplayFor.includes(message.activeColour) &&
       !gameOver.value
     ) {
+      loading.value = true
       worker.value?.postMessage({ type: 'bot-move' } as BotWorkerMessage)
     }
   }
@@ -89,6 +93,8 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
   })
 
   const executeMoveIndex = (index: number) => {
+    loading.value = true
+
     const message: BotWorkerMessage = {
       type: 'execute-move-index',
       index,
@@ -98,6 +104,8 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
   }
 
   const importAfen = (afen: string) => {
+    loading.value = true
+
     const message: BotWorkerMessage = {
       type: 'import-afen',
       afen,
@@ -107,6 +115,8 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
   }
 
   const importMoveHistory = (history: string) => {
+    loading.value = true
+
     const message: BotWorkerMessage = {
       type: 'import-move-history',
       history,
@@ -116,6 +126,8 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
   }
 
   const reset = () => {
+    loading.value = true
+
     const message: BotWorkerMessage = {
       type: 'reset',
     }
@@ -125,6 +137,8 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
 
   return {
     ready,
+    loading,
+
     afen,
     moveHistory,
     moveHistoryAst,

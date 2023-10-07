@@ -54,7 +54,7 @@ const routes: RouteRecordRaw[] = [
             component: () => import('pages/play/online-game.vue'),
           },
           {
-            path: 'pen-pal/:state?/:history?',
+            path: 'pen-pal/:state?',
             component: () => import('pages/play/pen-pal-game.vue'),
             meta: {
               title: 'Pen-pal mode',

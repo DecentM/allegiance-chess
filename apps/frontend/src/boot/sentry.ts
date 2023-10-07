@@ -1,16 +1,15 @@
 import { boot } from 'quasar/wrappers'
 import * as Sentry from '@sentry/vue'
+import { getSentryOptions, sentryEnabled } from '../lib/sentry'
 
 export default boot(({ app, router }) => {
-  if (!process.env.SENTRY_DSN) {
+  if (!sentryEnabled) {
     return
   }
 
   Sentry.init({
+    ...getSentryOptions(),
     app,
-    dsn: process.env.SENTRY_DSN,
-    release: process.env.GITHUB_SHA || process.env.GIT_FETCH_HEAD,
-    environment: process.env.NODE_ENV,
     integrations: [
       new Sentry.BrowserTracing({
         routingInstrumentation: Sentry.vueRouterInstrumentation(router),
@@ -20,10 +19,5 @@ export default boot(({ app, router }) => {
         maskAllText: false,
       }),
     ],
-    // Performance Monitoring
-    tracesSampleRate: 0,
-    // Session Replay
-    replaysSessionSampleRate: 0,
-    replaysOnErrorSampleRate: 1.0,
   })
 })

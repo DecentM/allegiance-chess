@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue'
 import { findBestMove, getBoardScore } from '@decentm/allegiance-chess-bot'
 import {
   AfenPreset,
@@ -5,6 +6,7 @@ import {
   BoardSquare,
   Notation,
 } from '@decentm/allegiance-chess-core'
+import { getSentryOptions, sentryEnabled } from './sentry'
 
 type BotMoveMessage = {
   type: 'bot-move'
@@ -81,74 +83,90 @@ const getGameover = (validMoves: Notation.Node[]) => {
   return move
 }
 
+if (sentryEnabled) {
+  Sentry.init({
+    ...getSentryOptions(),
+  })
+}
+
 onmessage = (messageEvent: MessageEvent<BotWorkerMessage>) => {
-  const message = messageEvent.data
+  try {
+    const message = messageEvent.data
 
-  switch (message.type) {
-    case 'import-afen': {
-      board.importAFEN(message.afen)
-      break
-    }
-
-    case 'import-move-history': {
-      board.importMoveHistory(message.history)
-      break
-    }
-
-    case 'reset': {
-      board.clear()
-      board.importAFEN(AfenPreset.VanillaDefault)
-
-      const response: BotWorkerResponse = {
-        type: 'ready',
+    switch (message.type) {
+      case 'import-afen': {
+        board.importAFEN(message.afen)
+        break
       }
 
-      postMessage(response)
-      break
-    }
-
-    case 'execute-move-index': {
-      const move = board.executeMoveIndex(message.index)
-      const response: BotWorkerResponse = {
-        type: 'node-execution',
-        node: move,
+      case 'import-move-history': {
+        board.importMoveHistory(message.history)
+        break
       }
 
-      postMessage(response)
+      case 'reset': {
+        board.clear()
+        board.importAFEN(AfenPreset.VanillaDefault)
 
-      break
-    }
+        const response: BotWorkerResponse = {
+          type: 'ready',
+        }
 
-    case 'bot-move': {
-      const botResult = findBestMove(board, 15_000, 3)
-      const move = board.executeMoveIndex(botResult.index)
-
-      const response: BotWorkerResponse = {
-        type: 'node-execution',
-        node: move,
+        postMessage(response)
+        break
       }
 
-      postMessage(response)
-      break
+      case 'execute-move-index': {
+        const move = board.executeMoveIndex(message.index)
+        const response: BotWorkerResponse = {
+          type: 'node-execution',
+          node: move,
+        }
+
+        postMessage(response)
+
+        break
+      }
+
+      case 'bot-move': {
+        const botResult = findBestMove(board, 15_000, 3)
+        const move = board.executeMoveIndex(botResult.index)
+
+        const response: BotWorkerResponse = {
+          type: 'node-execution',
+          node: move,
+        }
+
+        postMessage(response)
+        break
+      }
+    }
+
+    const validMoves = board.getValidMoves()
+    const gameOver = getGameover(validMoves)
+
+    const updateResponse: BotWorkerResponse = {
+      type: 'board-update',
+      afen: board.toAFEN(),
+      moveHistory: board.getMoveHistory(),
+      activeColour: board.activeColour,
+      boardScore: getBoardScore(board),
+      validMoves,
+      checkMoves: board.getCheckMoves(),
+      enPassantTarget: board.enPassantTarget,
+      moveHistoryAst: board.getMoveHistoryAst(),
+      squares: board.getSquares(),
+      gameOver,
+    }
+
+    postMessage(updateResponse)
+  } catch (error) {
+    if (error instanceof Error) {
+      if (sentryEnabled) {
+        Sentry.captureException(error)
+      } else {
+        console.error(error)
+      }
     }
   }
-
-  const validMoves = board.getValidMoves()
-  const gameOver = getGameover(validMoves)
-
-  const updateResponse: BotWorkerResponse = {
-    type: 'board-update',
-    afen: board.toAFEN(),
-    moveHistory: board.getMoveHistory(),
-    activeColour: board.activeColour,
-    boardScore: getBoardScore(board),
-    validMoves,
-    checkMoves: board.getCheckMoves(),
-    enPassantTarget: board.enPassantTarget,
-    moveHistoryAst: board.getMoveHistoryAst(),
-    squares: board.getSquares(),
-    gameOver,
-  }
-
-  postMessage(updateResponse)
 }
