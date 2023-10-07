@@ -5,6 +5,8 @@
     "t": "c8 ava",
     "dev": "ts-node-dev --transpile-only --clear -r tsconfig-paths/register",
     "clinic": "TS_NODE_PROJECT=tsconfig.spec.json clinic",
+    "build:clinic": "tsc -p tsconfig.lib.json && sed -i 's/@decentm\\/allegiance-chess-core/..\\/..\\/core\\/src/g' ../../dist/out-tsc/packages/bot/clinic/self-play.js && sed -i 's/@decentm\\/allegiance-chess-core/..\\/..\\/..\\/core\\/src/g' ../../dist/out-tsc/packages/bot/src/engine/index.js",
+    "dev:clinic": "yarn build:clinic && node ../../dist/out-tsc/packages/bot/clinic/self-play.js",
     "flame": "yarn clinic flame --kernel-tracing -- -- node -r ts-node/register/transpile-only -r tsconfig-paths/register",
     "doctor": "yarn clinic doctor -- -- node -r ts-node/register/transpile-only -r tsconfig-paths/register",
     "bubbleprof": "yarn clinic bubbleprof -- -- node -r ts-node/register/transpile-only -r tsconfig-paths/register",

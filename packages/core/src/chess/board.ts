@@ -1481,7 +1481,7 @@ export class Board {
 
       // Filter out moves that would result in us getting checked
       return checkMoves.every((checkMove) => {
-        const toSquare = virtualBoard.memory.getSquare(checkMove.to)
+        const toSquare = virtualBoard.getSquare(checkMove.to)
 
         return allegianceSide(toSquare.allegiance) !== this.activeColour
       })

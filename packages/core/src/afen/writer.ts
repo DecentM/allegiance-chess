@@ -147,7 +147,9 @@ export const write = (
     options.sections.includes('en-passant-targets') && enPassantTargets,
     options.sections.includes('halfmove-clock') && halfmoveClock,
     options.sections.includes('fullmove-number') && fullmoveNumber,
-  ].join(' ')
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return result
 }
