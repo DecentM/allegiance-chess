@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue'
 import { Notation } from '@decentm/allegiance-chess-core'
 
 import BackwardSelection from '../assets/navigation_backward-selection-minimal.ogg'
@@ -17,29 +18,40 @@ export const useBoardAudio = () => {
   const refreshFeedAudio = new Audio(RefreshFeed)
   const tap01Audio = new Audio(Tap01)
 
-  const playNode = (node: Partial<Notation.Node>) => {
-    if (node.kind === 'game-over') {
-      return backwardSelectionAudio.play()
-    }
+  const playNode = async (node: Partial<Notation.Node>) => {
+    try {
+      if (node.kind === 'game-over') {
+        return await backwardSelectionAudio.play()
+      }
 
-    if (node.kind !== 'move') {
-      return
-    }
+      if (node.kind !== 'move') {
+        return
+      }
 
-    switch (node.type) {
-      default:
-        return tap01Audio.play()
+      switch (node.type) {
+        default:
+          return await tap01Audio.play()
 
-      case 'capture':
-      case 'en-passant':
-        return navigationCancelAudio.play()
+        case 'capture':
+        case 'en-passant':
+          return await navigationCancelAudio.play()
 
-      case 'allegiance':
-        return hoverTapAudio.play()
+        case 'allegiance':
+          return await hoverTapAudio.play()
 
-      case 'castle':
-      case 'promotion':
-        return refreshFeedAudio.play()
+        case 'castle':
+        case 'promotion':
+          return await refreshFeedAudio.play()
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        Sentry.captureEvent({
+          level: 'log',
+          extra: { ...error },
+          message: 'Cannot play audio',
+          type: 'replay_event',
+        })
+      }
     }
   }
 
