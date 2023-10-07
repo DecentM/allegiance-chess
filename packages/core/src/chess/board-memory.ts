@@ -19,17 +19,19 @@ type Memory = (BoardSquare | null)[]
 
 type StandaloneBoardSquare = BoardSquare & Notation.Coordinates
 
+type CastlingRights = Array<{
+  colour: 'white' | 'black'
+  side: 'queen' | 'king'
+}>
+
 export class BoardMemory {
-  private memory: Memory = []
+  private memory: Memory
 
   public activeColour: 'black' | 'white'
 
   public enPassantTarget: Notation.Coordinates | null
 
-  private _castlingRights: Array<{
-    colour: 'white' | 'black'
-    side: 'queen' | 'king'
-  }>
+  private _castlingRights: CastlingRights
 
   public halfmoveClock: number
 
@@ -124,6 +126,11 @@ export class BoardMemory {
     result += `  ${ranks[0]
       .map((_, fileIndex) => fileToLetter((fileIndex + 1) as Notation.File))
       .join(' ')}`
+
+    result += `\n${this.activeColour} ${
+      this.enPassantTarget &&
+      `${fileToLetter(this.enPassantTarget.file)}${this.enPassantTarget.rank}`
+    } ${this.halfmoveClock} ${this.fullmoveNumber}`
 
     return result
   }

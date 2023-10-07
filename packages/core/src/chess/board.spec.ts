@@ -1,18 +1,25 @@
 import test from 'ava'
 
 import { Vector2 } from '../lib/vector2'
-import { tokenize } from '../notation/tokenizer'
-import { parse } from '../notation/parser'
+
+import { coordinatesEqual } from '../lib/coordinate'
+
+import { AfenPreset, Notation } from '..'
 
 import { Board, PROMOTION_PIECES, PieceAllegiance } from './board'
-import { coordinatesEqual } from '../lib/coordinate'
 
 const createDefaultBoard = () => {
   const b = new Board()
 
-  b.importAFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0')
+  b.importAFEN(AfenPreset.VanillaDefault)
 
   return b
+}
+
+const move = (board: Board, input: string) => {
+  const node = Notation.parse(Notation.tokenize(input)).children[0]
+  board.executeNode(node)
+  return node
 }
 
 test('board', (t) => {
@@ -135,7 +142,7 @@ test('traces capture for a bishop', (t) => {
 
 test('executes moves', (t) => {
   const b = createDefaultBoard()
-  const moveTokens = tokenize(
+  const moveTokens = Notation.tokenize(
     `
       1.e4 e5
       2.Nf3 Nc6
@@ -153,7 +160,7 @@ test('executes moves', (t) => {
     `
   )
 
-  const moveNodes = parse(moveTokens)
+  const moveNodes = Notation.parse(moveTokens)
 
   moveNodes.children.forEach((node) => {
     const index = Board.findMoveIndex(b.getValidMoves(), node)
@@ -492,61 +499,71 @@ test('detects stalemate by black', (t) => {
   ])
 })
 
+test('gets square on D1', (t) => {
+  const b = new Board()
+
+  b.importAFEN('1N>3k2/8/8/1N2N2Q/p7/P3B3/4BPPP/4K2R w K - 0 32')
+
+  t.log(b.dump())
+
+  t.assert(b.getSquare({ file: 5, rank: 1 }))
+})
+
 test('executes castling on 1N>3k2/8/8/1N2N2Q/p7/P3B3/4BPPP/4K2R w K - 0 32', (t) => {
   const b = new Board()
 
   b.importAFEN('1N>3k2/8/8/1N2N2Q/p7/P3B3/4BPPP/4K2R w K - 0 32')
-  b.importMoveHistory(`
-    1. Ng1f3 a7a5
-    2. Nb1c3 c7c5
-    3. d2d4 Qd8b6
-    4. Bc1e3 Qb6b5
-    5. d4xc5 Qb5xe2
-    6. Qd1xe2 Ra8a6
-    7. Qe2>a6 e7e6
-    8. Qe2>a6 Nb8xa6
-    9. Qe2>a6 b7b5
-    10. Nc3>b5 b5b4
-    11. Nc3b5 Bf8>c5
-    12. c2c3 b4>c3
-    13. c3xb4 Na6xb4
-    14. a2a3 Ke8e7
-    15. a3>b4 Bc8a6
-    16. Nb4xa6 Ng8h6
-    17. Ra1d1 Ke7e8
-    18. Nf3e5 Bf8xc5
-    19. Rd1xd7 Bc5f8
-    20. Na6b8 Nh6g4
-    21. Qe2xg4 f7f5
-    22. Qg4g5 Bf8xa3
-    23. b2xa3 g7g6
-    24. Ne5c6 Ke8>d7
-    25. Rd7c7 h7h5
-    26. Rc7c8 Ke8f7
-    27. Rc8xh8 e6e5
-    28. Nc6xe5 Kf7g7
-    29. Qg5xg6 Kg7xh8
-    30. Qg6xf5 Kh8g7
-    31. Qf5xh5 Kg7f8
-    32. Bf1e2 a5a4
-  `)
+
+  t.is(b.activeColour, 'white')
 
   const moves = b.getValidMoves({ file: 5, rank: 1 })
+
   const castleMove = moves.find(
     (move) => move.kind === 'move' && move.type === 'castle'
   )
 
-  const index = b.findMoveIndex(castleMove)
+  const index = Board.findMoveIndex(b.getValidMoves(), castleMove)
 
   t.notThrows(() => b.executeMoveIndex(index))
 })
 
 test('promoting does not cause a check', (t) => {
-  const b = new Board(
-    'rnbqkbnr/p3P>ppp/8/1p6/8/8/PPPPPPPP/R1BQKBNR b KQkq - 0 4'
-  )
+  const b = new Board()
+
+  b.importAFEN('rnbqkbnr/p3P>ppp/8/1p6/8/8/PPPPPPPP/R1BQKBNR b KQkq - 0 4')
 
   const checkMoves = b.getCheckMoves()
 
   t.deepEqual(checkMoves, [])
+})
+
+test('counts moves correctly', (t) => {
+  const b = new Board()
+
+  b.importAFEN(AfenPreset.VanillaDefault)
+
+  move(b, 'd2d4')
+
+  t.is(b.halfmoveClock, 0)
+  t.is(b.fullmoveNumber, 0)
+
+  move(b, 'c7c5')
+
+  t.is(b.halfmoveClock, 0)
+  t.is(b.fullmoveNumber, 1)
+
+  move(b, 'd4xc5')
+
+  t.is(b.halfmoveClock, 0)
+  t.is(b.fullmoveNumber, 1)
+
+  move(b, 'b7b6')
+
+  t.is(b.halfmoveClock, 0)
+  t.is(b.fullmoveNumber, 2)
+
+  move(b, 'Ng1f3')
+
+  t.is(b.halfmoveClock, 1)
+  t.is(b.fullmoveNumber, 2)
 })

@@ -33,7 +33,7 @@ const getSquareScore = (square: BoardSquare): number => {
       break
   }
 
-  return isPure ? points * 2 : points
+  return isPure ? points : points / 2
 }
 
 export const getBoardScore = (board: Board) => {
