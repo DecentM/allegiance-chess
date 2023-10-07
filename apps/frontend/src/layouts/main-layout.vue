@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 
 import SidebarMenu from './main/sidebar-menu.vue'
+import logo from '../assets/icon-192x192.png'
 
 const route = useRoute()
 
@@ -42,6 +43,9 @@ const releaseId = process.env.GITHUB_SHA || process.env.GIT_FETCH_HEAD
   <q-layout view="lhh LpR lff" container class="main-layout">
     <q-header reveal class="bg-primary">
       <q-toolbar>
+        <q-avatar square>
+          <q-img :src="logo" />
+        </q-avatar>
         <q-toolbar-title>Allegiance Chess</q-toolbar-title>
       </q-toolbar>
     </q-header>
