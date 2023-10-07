@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import {
-  Board,
+  BoardSquare,
   Notation,
   coordinatesEqual,
 } from '@decentm/allegiance-chess-core'
 
 const props = defineProps<{
-  board: Board
+  squares: Array<Notation.Coordinates & BoardSquare>
+  checkMoves: Notation.MoveNode[]
+  validMoves: Notation.Node[]
   ranks: number
   files: number
   squareSize: number
@@ -21,7 +23,10 @@ const highlightSquares = computed(() => {
     return []
   }
 
-  const moves = props.board.getValidMoves(props.pieceFocus)
+  const moves = props.validMoves.filter(
+    (move) =>
+      move.kind === 'move' && coordinatesEqual(props.pieceFocus, move.from)
+  )
 
   const result = moves
     .map((node) => {
@@ -42,7 +47,7 @@ const show = (coords: Notation.Coordinates) =>
   )
 
 const coordsEmpty = (coords: Notation.Coordinates) => {
-  return !props.board.getSquare(coords)
+  return !props.squares.find((square) => coordinatesEqual(coords, square))
 }
 
 const indexToCoords = (
@@ -65,12 +70,8 @@ const indexToCoords = (
   }
 }
 
-const checkMoves = computed(() => {
-  return props.board.getCheckMoves()
-})
-
 const isChecked = (coords: Notation.Coordinates) => {
-  return checkMoves.value.some(
+  return props.checkMoves.some(
     (move) => move.kind === 'move' && coordinatesEqual(move.to, coords)
   )
 }
