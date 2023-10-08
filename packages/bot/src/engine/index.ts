@@ -10,10 +10,6 @@ import seedrandom from 'seedrandom'
 import * as Opening from './openings'
 
 const getSquareScore = (square: BoardSquare): number => {
-  const isPure =
-    square.allegiance === PieceAllegiance.Black ||
-    square.allegiance === PieceAllegiance.White
-
   let points = 0
 
   switch (square.piece) {
@@ -35,7 +31,7 @@ const getSquareScore = (square: BoardSquare): number => {
       break
   }
 
-  return isPure ? points * 1.5 : points
+  return points
 }
 
 export const getBoardScore = (board: Board) => {
@@ -71,7 +67,6 @@ export const findBestMove = (
   board: Board,
   depth: number,
   seed = String(Math.random()),
-  startTime = performance.now(),
   rng = seedrandom(seed),
   maxDepth = depth
 ) => {
@@ -79,6 +74,8 @@ export const findBestMove = (
 
   // score, [index, path]
   const scores = new Map<number, [number, string]>()
+
+  let skipped = 0
 
   for (let i = 0; i < moves.length; i++) {
     const move = moves[i]
@@ -92,7 +89,6 @@ export const findBestMove = (
     virtualBoard.executeNode(move)
 
     let score = rng() - 0.5
-
     let path = Notation.writeNode(move)
 
     if (depth === maxDepth) {
@@ -111,7 +107,6 @@ export const findBestMove = (
       }
     }
 
-    // const timeout = performance.now() - startTime > timeoutMs
     const reachedMaxDepth = depth <= 0
 
     if (reachedMaxDepth) {
@@ -121,32 +116,21 @@ export const findBestMove = (
         virtualBoard,
         depth - 1,
         seed,
-        startTime,
         rng,
         maxDepth
       )
 
-      score -= subResult.score
-      path = `${path} > ${subResult.path}`
+      if (subResult.index !== -1) {
+        score -= subResult.score
+        path = `${path} > ${subResult.path}`
+        skipped += subResult.skipped
+      }
     }
 
     scores.set(score, [i, path])
   }
 
   const scoresAsc = [...scores].sort((a, b) => a[0] - b[0])
-
-  if (depth === 3) {
-    console.clear()
-    console.log(
-      scoresAsc
-        .map(([score, [index, path]]) => {
-          const move = moves[index]
-
-          return `${Notation.writeNode(move)} ${score.toPrecision(4)} - ${path}`
-        })
-        .join('\n')
-    )
-  }
 
   if (scoresAsc.length === 0) {
     return {
@@ -166,5 +150,6 @@ export const findBestMove = (
     index,
     seed,
     path,
+    skipped,
   }
 }

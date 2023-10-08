@@ -24,7 +24,7 @@ while (true) {
     }
   }
 
-  const { index, score, seed } = findBestMove(b, 5_000, 3, _seed)
+  const { index, score, seed } = findBestMove(b, 3, _seed)
 
   if (index === -1) {
     console.log('No moves!')

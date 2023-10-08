@@ -11,6 +11,7 @@ import {
   Notation,
 } from '@decentm/allegiance-chess-core'
 import { getSentryOptions, sentryEnabled } from './sentry'
+import { delay } from './delay'
 
 type BotMoveMessage = {
   type: 'bot-move'
@@ -94,7 +95,9 @@ if (sentryEnabled) {
   })
 }
 
-onmessage = (messageEvent: MessageEvent<BotWorkerMessage>) => {
+onmessage = async (messageEvent: MessageEvent<BotWorkerMessage>) => {
+  const start = performance.now()
+
   try {
     const message = messageEvent.data
 
@@ -134,12 +137,18 @@ onmessage = (messageEvent: MessageEvent<BotWorkerMessage>) => {
       }
 
       case 'bot-move': {
-        const botResult = findBestMove(board, 15_000, 3)
+        const botResult = findBestMove(board, 3)
         const move = board.executeMoveIndex(botResult.index)
 
         const response: BotWorkerResponse = {
           type: 'node-execution',
           node: move,
+        }
+
+        // Feels a bit jarring to have the bot respond instantly in case it
+        // knows the opening, so we delay quick responses by a second
+        if (performance.now() - start < 1_000) {
+          await delay(1_000)
         }
 
         postMessage(response)

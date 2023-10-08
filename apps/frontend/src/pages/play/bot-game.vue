@@ -68,9 +68,9 @@ const q = useQuasar()
 
         <q-item>
           <q-item-section class="q-mt-sm q-mb-sm">
-            <q-item-label>Evaluation</q-item-label>
+            <q-item-label>Board value</q-item-label>
             <q-item-label caption lines="2">
-              {{ board.boardScore.value.toPrecision(4) }}
+              {{ board.boardScore.value.toPrecision(3) }}
             </q-item-label>
           </q-item-section>
 
