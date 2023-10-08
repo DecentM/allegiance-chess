@@ -1,5 +1,9 @@
 import * as Sentry from '@sentry/vue'
-import { findBestMove, getBoardScore } from '@decentm/allegiance-chess-bot'
+import {
+  findBestMove,
+  getBoardScore,
+  Openings,
+} from '@decentm/allegiance-chess-bot'
 import {
   AfenPreset,
   Board,
@@ -50,6 +54,7 @@ type BoardUpdateResponse = {
   squares: Array<Notation.Coordinates & BoardSquare>
   validMoves: Notation.Node[]
   gameOver: Notation.GameOverNode | null
+  openingName: string | null
 }
 
 type NodeExecutionResponse = {
@@ -145,6 +150,10 @@ onmessage = (messageEvent: MessageEvent<BotWorkerMessage>) => {
     const validMoves = board.getValidMoves()
     const gameOver = getGameover(validMoves)
 
+    const openings = Openings.getNamesByFen(
+      board.toAFEN({ sections: ['positions'] })
+    )
+
     const updateResponse: BotWorkerResponse = {
       type: 'board-update',
       afen: board.toAFEN(),
@@ -157,6 +166,7 @@ onmessage = (messageEvent: MessageEvent<BotWorkerMessage>) => {
       moveHistoryAst: board.getMoveHistoryAst(),
       squares: board.getSquares(),
       gameOver,
+      openingName: openings.length === 1 ? openings[0] : null,
     }
 
     postMessage(updateResponse)

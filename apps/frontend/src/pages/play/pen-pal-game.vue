@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 
 import GameLayout from '../../components/game-layout.vue'
@@ -14,9 +14,10 @@ import { useBoardWorker } from '../../hooks/board-worker'
 
 const route = useRoute()
 const router = useRouter()
+const autoplayFor = ref([])
 
 const board = useBoardWorker({
-  autoplayFor: [],
+  autoplayFor,
 })
 
 const state = computed<{ afen: string; history: string }>(() => {
@@ -89,7 +90,20 @@ const q = useQuasar()
         :own-colour="board.activeColour.value"
         :afen="board.afen.value"
         :game-over="board.gameOver.value"
-      />
+      >
+        <q-item>
+          <q-item-section class="q-mt-sm q-mb-sm">
+            <q-item-label>Opening</q-item-label>
+            <q-item-label caption lines="2">
+              {{ board.opening.value || 'unknown' }}
+            </q-item-label>
+          </q-item-section>
+
+          <q-item-section side>
+            <q-icon name="book" />
+          </q-item-section>
+        </q-item>
+      </game-sidebar>
     </template>
 
     <template #default>

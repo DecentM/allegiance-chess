@@ -1,6 +1,8 @@
 import { AfenPreset, Board, Notation } from '@decentm/allegiance-chess-core'
 import { randomBytes } from 'node:crypto'
+
 import { findBestMove } from '../src/engine'
+import * as Openings from '../src/engine/openings'
 
 const b = new Board()
 
@@ -18,16 +20,28 @@ while (true) {
 
     if (move.kind === 'game-over') {
       console.log('Game over!', move.outcome, move.reason)
+      break
     }
   }
 
   const { index, score, seed } = findBestMove(b, 5_000, 3, _seed)
 
+  if (index === -1) {
+    console.log('No moves!')
+    break
+  }
+
   const move = b.executeMoveIndex(index)
+  const openings = Openings.getNamesByFen(b.toAFEN({ sections: ['positions'] }))
 
   console.clear()
   console.log(seed, Notation.writeNode(move), score, '\n')
   console.log(b.toAFEN(), '\n')
+  console.log(
+    'openings:',
+    openings.length < 10 ? openings.join(', ') : openings.length,
+    '\n'
+  )
   console.log(b.dump(), '\n')
   console.log(b.getMoveHistory())
 }

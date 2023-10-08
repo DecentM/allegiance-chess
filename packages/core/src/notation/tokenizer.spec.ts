@@ -108,3 +108,155 @@ test('tokenizes white queenside castling', (t) => {
     },
   ])
 })
+
+test('tokenizes promotions', (t) => {
+  const tokens = tokenize('b8=Q')
+
+  t.deepEqual(tokens, [
+    {
+      kind: 'file',
+      source: {
+        column: 1,
+        length: 1,
+        row: 1,
+      },
+      value: 2,
+    },
+    {
+      kind: 'rank',
+      source: {
+        column: 2,
+        length: 1,
+        row: 1,
+      },
+      value: 8,
+    },
+    {
+      kind: 'promotion',
+      source: {
+        column: 3,
+        length: 1,
+        row: 1,
+      },
+    },
+    {
+      kind: 'piece',
+      source: {
+        column: 4,
+        length: 1,
+        row: 1,
+      },
+      value: 'Q',
+    },
+  ])
+})
+
+test('tokenizes comments', (t) => {
+  const tokens = tokenize('{ [%eval 0.12] }')
+
+  t.deepEqual(tokens, [
+    {
+      kind: 'comment',
+      value: '[%eval 0.12]',
+      source: {
+        column: 1,
+        length: 16,
+        row: 1,
+      },
+    },
+  ])
+})
+
+test('tokenizes halfmove marker', (t) => {
+  const tokens = tokenize('1. d4 1... Nf6')
+
+  t.deepEqual(tokens, [
+    {
+      kind: 'step-number',
+      source: {
+        column: 1,
+        length: 2,
+        row: 1,
+      },
+      value: 1,
+    },
+    {
+      kind: 'move-separator',
+      source: {
+        column: 3,
+        length: 1,
+        row: 1,
+      },
+    },
+    {
+      kind: 'file',
+      source: {
+        column: 4,
+        length: 1,
+        row: 1,
+      },
+      value: 4,
+    },
+    {
+      kind: 'rank',
+      source: {
+        column: 5,
+        length: 1,
+        row: 1,
+      },
+      value: 4,
+    },
+    {
+      kind: 'move-separator',
+      source: {
+        column: 6,
+        length: 1,
+        row: 1,
+      },
+    },
+    {
+      kind: 'step-number',
+      source: {
+        column: 7,
+        length: 4,
+        row: 1,
+      },
+      value: 1,
+    },
+    {
+      kind: 'move-separator',
+      source: {
+        column: 11,
+        length: 1,
+        row: 1,
+      },
+    },
+    {
+      kind: 'piece',
+      source: {
+        column: 12,
+        length: 1,
+        row: 1,
+      },
+      value: 'N',
+    },
+    {
+      kind: 'file',
+      source: {
+        column: 13,
+        length: 1,
+        row: 1,
+      },
+      value: 6,
+    },
+    {
+      kind: 'rank',
+      source: {
+        column: 14,
+        length: 1,
+        row: 1,
+      },
+      value: 6,
+    },
+  ])
+})

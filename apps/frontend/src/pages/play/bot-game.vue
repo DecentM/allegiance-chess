@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuasar } from 'quasar'
-import { onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 import GameLayout from '../../components/game-layout.vue'
 
@@ -10,8 +10,14 @@ import GameOverDialog from '../../components/game-over-dialog.vue'
 
 import { useBoardWorker } from '../../hooks/board-worker'
 
+const perspective = ref<'white' | 'black'>('white')
+
+const autoplayFor = computed<Array<'white' | 'black'>>(() => {
+  return [perspective.value === 'white' ? 'black' : 'white']
+})
+
 const board = useBoardWorker({
-  autoplayFor: ['black'],
+  autoplayFor,
 })
 
 onMounted(() => board.reset())
@@ -47,9 +53,24 @@ const q = useQuasar()
       >
         <q-item>
           <q-item-section class="q-mt-sm q-mb-sm">
+            <q-item-label>Opening</q-item-label>
+            <q-item-label caption lines="2">
+              {{ board.opening.value || 'unknown' }}
+            </q-item-label>
+          </q-item-section>
+
+          <q-item-section side>
+            <q-icon name="book" />
+          </q-item-section>
+        </q-item>
+
+        <q-separator />
+
+        <q-item>
+          <q-item-section class="q-mt-sm q-mb-sm">
             <q-item-label>Evaluation</q-item-label>
             <q-item-label caption lines="2">
-              {{ board.boardScore.value }}
+              {{ board.boardScore.value.toPrecision(4) }}
             </q-item-label>
           </q-item-section>
 

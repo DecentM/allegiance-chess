@@ -69,6 +69,29 @@ type MoveSeparatorToken = {
   kind: 'move-separator'
 }
 
+type CommentToken = {
+  kind: 'comment'
+  value: string
+}
+
+// https://en.wikipedia.org/wiki/Chess_annotation_symbols
+export const AnnotationSymbol = {
+  Blunder: '??',
+  Mistake: '?',
+  Dubious: '?!',
+  Interesting: '!?',
+  Good: '!',
+  Brilliant: '!!',
+} as const
+
+export type AnnotationSymbol =
+  (typeof AnnotationSymbol)[keyof typeof AnnotationSymbol]
+
+type AnnotationSymbolToken = {
+  kind: 'annotation-symbol'
+  value: AnnotationSymbol
+}
+
 export type Token = {
   source?: {
     column: number
@@ -91,6 +114,8 @@ export type Token = {
   | StepNumberToken
   | AllegianceToken
   | MoveSeparatorToken
+  | CommentToken
+  | AnnotationSymbolToken
 )
 
 export const tokenize = (rawInput: string): Token[] => {
@@ -150,6 +175,64 @@ export const tokenize = (rawInput: string): Token[] => {
     if (current === '\r') {
       column = 1
       cursor++
+      continue
+    }
+
+    if (current === '{') {
+      const comment = consumeUntil((char) => char === '}')
+
+      token(comment.length + 1, {
+        kind: 'comment',
+        value: comment.substring(1).trim(),
+      })
+      continue
+    }
+
+    if (findWord('??')) {
+      token(2, {
+        kind: 'annotation-symbol',
+        value: AnnotationSymbol.Blunder,
+      })
+      continue
+    }
+
+    if (findWord('?!')) {
+      token(2, {
+        kind: 'annotation-symbol',
+        value: AnnotationSymbol.Dubious,
+      })
+      continue
+    }
+
+    if (findWord('!?')) {
+      token(2, {
+        kind: 'annotation-symbol',
+        value: AnnotationSymbol.Interesting,
+      })
+      continue
+    }
+
+    if (findWord('!!')) {
+      token(2, {
+        kind: 'annotation-symbol',
+        value: AnnotationSymbol.Brilliant,
+      })
+      continue
+    }
+
+    if (findWord('!')) {
+      token(1, {
+        kind: 'annotation-symbol',
+        value: AnnotationSymbol.Good,
+      })
+      continue
+    }
+
+    if (findWord('?')) {
+      token(1, {
+        kind: 'annotation-symbol',
+        value: AnnotationSymbol.Mistake,
+      })
       continue
     }
 
@@ -298,13 +381,13 @@ export const tokenize = (rawInput: string): Token[] => {
     }
 
     if (/[\d]/gu.test(current)) {
-      const fullNumber = consumeUntil((char) => !/[\d]/gu.test(char))
-      const isStepNumber = input[cursor + fullNumber.length] === '.'
+      const fullNumber = consumeUntil((char) => !/[.\d]/gu.test(char))
+      const isStepNumber = fullNumber.at(-1) === '.'
 
       if (isStepNumber) {
-        token(fullNumber.length + 1, {
+        token(fullNumber.length, {
           kind: 'step-number',
-          value: Number.parseInt(fullNumber, 10),
+          value: Number.parseInt(fullNumber.replace(/[.]/gu, ''), 10),
         })
         continue
       }

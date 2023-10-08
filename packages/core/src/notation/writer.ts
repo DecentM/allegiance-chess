@@ -46,17 +46,25 @@ export const writeNode = (node: Node): string => {
           result += `${node.from.rank}`
         }
 
+        if (node.type === 'promotion' && node.to.file) {
+          result += `${fileToLetter(node.to.file)}`
+        }
+
+        if (node.type === 'promotion' && node.to.rank) {
+          result += `${node.to.rank}`
+        }
+
         result += action
 
         if (node.type === 'promotion' && node.promotionTo) {
           result += `${node.promotionTo}`
         }
 
-        if (node.to.file) {
+        if (node.type !== 'promotion' && node.to.file) {
           result += `${fileToLetter(node.to.file)}`
         }
 
-        if (node.to.rank) {
+        if (node.type !== 'promotion' && node.to.rank) {
           result += `${node.to.rank}`
         }
 

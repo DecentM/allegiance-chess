@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 
 import GameLayout from '../../components/game-layout.vue'
@@ -33,8 +33,10 @@ const perspective = computed(() => {
   return props.connection.serverSide.value === 'white' ? 'black' : 'white'
 })
 
+const autoplayFor = ref([])
+
 const board = useBoardWorker({
-  autoplayFor: [],
+  autoplayFor,
 })
 
 onMounted(() => board.reset())
@@ -84,7 +86,20 @@ watch(props.connection.moveHistory, (newMoveHistory) => {
         :own-colour="perspective ?? 'white'"
         :afen="board.afen.value"
         :game-over="board.gameOver.value"
-      />
+      >
+        <q-item>
+          <q-item-section class="q-mt-sm q-mb-sm">
+            <q-item-label>Opening</q-item-label>
+            <q-item-label caption lines="2">
+              {{ board.opening.value || 'unknown' }}
+            </q-item-label>
+          </q-item-section>
+
+          <q-item-section side>
+            <q-icon name="book" />
+          </q-item-section>
+        </q-item>
+      </game-sidebar>
     </template>
 
     <template #default>

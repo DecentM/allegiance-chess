@@ -207,6 +207,9 @@ export const parse = (tokens: Token[]): RootNode => {
   const expect = (...tokens: Token['kind'][]) => {
     expectedTokens.clear()
     tokens.forEach((token) => expectedTokens.add(token))
+
+    expectedTokens.add('comment')
+    expectedTokens.add('annotation-symbol')
   }
 
   while (cursor < tokens.length) {
@@ -244,7 +247,7 @@ export const parse = (tokens: Token[]): RootNode => {
       case 'double-check':
       case 'check':
       case 'en-passant':
-        expect(...moveBeginning)
+        expect(...moveBeginning, 'check')
         break
 
       case 'checkmate':
@@ -286,7 +289,9 @@ export const parse = (tokens: Token[]): RootNode => {
           'file',
           'double-check',
           'en-passant',
-          'promotion'
+          'promotion',
+          'move-separator',
+          'rank'
         )
         break
     }
@@ -312,8 +317,12 @@ export const parse = (tokens: Token[]): RootNode => {
     wipNode = new WipNode()
   }
 
+  const nextToken = () => {
+    return tokens[cursor + 1]
+  }
+
   const nextTokenKind = () => {
-    return tokens[cursor + 1]?.kind
+    return nextToken()?.kind
   }
 
   while (cursor < tokens.length) {
@@ -324,10 +333,10 @@ export const parse = (tokens: Token[]): RootNode => {
     }
 
     switch (current.kind) {
-      case 'move-separator':
+      case 'move-separator': {
         if (nextTokenKind() !== 'en-passant') newNode()
-
         break
+      }
 
       case 'piece':
         wipNode.pieces.push(current.value)
@@ -398,6 +407,10 @@ export const parse = (tokens: Token[]): RootNode => {
     }
 
     cursor++
+  }
+
+  if (wipNode.moveType) {
+    newNode()
   }
 
   return result

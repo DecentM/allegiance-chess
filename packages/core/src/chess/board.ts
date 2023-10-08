@@ -86,10 +86,30 @@ export class Board {
         )
       }
 
-      const move = virtualBoard.executeMoveIndex(index)
+      const move = virtualBoard.executeMoveIndexFromList(index, validMoves)
 
       this.memory.moveHistory.children.push(move)
     })
+  }
+
+  public executeMoveHistory(history: string) {
+    const historyAst = Notation.parse(Notation.tokenize(history))
+
+    historyAst.children.forEach((node) => {
+      const validMoves = this.getValidMoves()
+      const index = Board.findMoveIndex(validMoves, node)
+
+      if (index === -1) {
+        console.log(this.dump())
+        throw new VError(
+          `Move ${Notation.writeNode(node)} is not valid on this board`
+        )
+      }
+
+      this.executeMoveIndexFromList(index, validMoves)
+    })
+
+    this.importMoveHistory(history)
   }
 
   public toAFEN(options: Afen.WriteOptions = Afen.defaultOptions) {
@@ -138,8 +158,8 @@ export class Board {
   private getPositionCount() {
     const moves = this.memory.moveHistory.children
     const result: Map<string, number> = new Map()
-    const virtualBoard = new Board()
 
+    const virtualBoard = new Board()
     virtualBoard.importAFEN(AfenPreset.VanillaDefault)
 
     for (const move of moves) {
@@ -255,6 +275,7 @@ export class Board {
     const to = this.memory.getSquare(node.to)
 
     if (!from) {
+      console.log(this.dump())
       throw new VError(
         `There is no piece on file ${node.from.file} rank ${node.from.rank}`
       )
@@ -389,12 +410,17 @@ export class Board {
    * @returns The executed move
    */
   public executeMoveIndex(moveIndex: number) {
+    const moves = this.getValidMoves()
+
+    return this.executeMoveIndexFromList(moveIndex, moves)
+  }
+
+  private executeMoveIndexFromList(moveIndex: number, validMoves: Node[]) {
     if (moveIndex < 0) {
       throw new VError(`Move index must be positive, got ${moveIndex}`)
     }
 
-    const moves = this.getValidMoves()
-    const move = moves.at(moveIndex)
+    const move = validMoves.at(moveIndex)
 
     if (!move) {
       throw new VError(`Move with index ${moveIndex} does not exist`)
@@ -423,24 +449,49 @@ export class Board {
     }
 
     if (node.kind === 'move') {
-      if (node.to && Object.keys(node.to).length === 2) {
+      if (node.to && node.to.file) {
         moves = moves.filter(
           (validMove) =>
-            validMove.kind === 'move' && coordinatesEqual(validMove.to, node.to)
+            validMove.kind === 'move' && validMove.to.file === node.to.file
         )
       }
 
-      if (node.from && Object.keys(node.from).length === 2) {
+      if (node.to && node.to.rank) {
         moves = moves.filter(
           (validMove) =>
-            validMove.kind === 'move' &&
-            coordinatesEqual(validMove.from, node.from)
+            validMove.kind === 'move' && validMove.to.rank === node.to.rank
         )
       }
 
-      if (node.type) {
+      if (node.from && node.from.file) {
+        moves = moves.filter(
+          (validMove) =>
+            validMove.kind === 'move' && validMove.from.file === node.from.file
+        )
+      }
+
+      if (node.from && node.from.rank) {
+        moves = moves.filter(
+          (validMove) =>
+            validMove.kind === 'move' && validMove.from.rank === node.from.rank
+        )
+      }
+
+      if (node.type && node.type !== 'capture') {
         moves = moves.filter(
           (move) => 'type' in move && move.type === node.type
+        )
+      } else if (node.type) {
+        moves = moves.filter(
+          (move) =>
+            'type' in move &&
+            (move.type === 'capture' || move.type === 'en-passant')
+        )
+      }
+
+      if (node.type === 'castle') {
+        moves = moves.filter(
+          (move) => 'side' in move && move.side === node.side
         )
       }
 
@@ -449,7 +500,7 @@ export class Board {
           (validMove) =>
             validMove.kind === 'move' && validMove.piece === node.piece
         )
-      } else if (moves.length > 1 && !node.piece) {
+      } else if (node.type !== 'castle' && moves.length > 1 && !node.piece) {
         // If there are multiple valid moves for this node but the node has no
         // piece defined, we can assume it's a pawn
         moves = moves.filter(
@@ -462,8 +513,7 @@ export class Board {
           (validMove) =>
             'promotionTo' in validMove &&
             validMove.promotionTo === node.promotionTo &&
-            coordinatesEqual(validMove.to, node.to) &&
-            coordinatesEqual(validMove.from, node.from)
+            coordinatesEqual(validMove.to, node.to)
         )
       }
     }
@@ -471,7 +521,6 @@ export class Board {
     if (moves.length === 1) {
       return validMoves.indexOf(moves[0])
     }
-
     return -1
   }
 
@@ -1492,6 +1541,23 @@ export class Board {
     if (gameOver) {
       return [gameOver]
     }
+
+    // The active colour can always resign if the game isn't over
+    result.push(
+      {
+        kind: 'draw-offer',
+      },
+      {
+        kind: 'game-over',
+        outcome: 'white',
+        reason: 'Resignation',
+      },
+      {
+        kind: 'game-over',
+        outcome: 'black',
+        reason: 'Resignation',
+      }
+    )
 
     return result
   }

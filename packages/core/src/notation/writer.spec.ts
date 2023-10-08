@@ -56,11 +56,11 @@ test('writes promotions correctly', (t) => {
     promotionTo: 'Q',
   })
 
-  t.is(result, 'c7=Qc8')
+  t.is(result, 'c7c8=Q')
 })
 
 test('writes promotions identically to correct input', (t) => {
-  const input = '1. b7=Qb8'
+  const input = '1. b8=Q'
   const result = write(parse(tokenize(input)))
 
   t.is(result, input)

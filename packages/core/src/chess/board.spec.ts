@@ -41,7 +41,8 @@ test('finds 20 moves on a starting board for white', (t) => {
 
   const moves = b.getValidMoves()
 
-  t.is(moves.length, 20)
+  // +3 are draw offer and resignations
+  t.is(moves.length, 23)
 })
 
 test('finds 20 moves for black after a move', (t) => {
@@ -59,7 +60,8 @@ test('finds 20 moves for black after a move', (t) => {
 
   const moves = b.getValidMoves()
 
-  t.is(moves.length, 20)
+  // +3 are draw offer and resignations
+  t.is(moves.length, 23)
 })
 
 test('executes single move', (t) => {

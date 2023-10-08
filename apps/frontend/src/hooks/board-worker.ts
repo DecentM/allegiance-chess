@@ -1,12 +1,12 @@
 import { BoardSquare, Notation } from '@decentm/allegiance-chess-core'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { Ref, computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import { BotWorkerMessage, BotWorkerResponse } from '../lib/bot-worker'
 import BotWorker from '../lib/bot-worker?worker'
 import { useBoardAudio } from './board-audio'
 
 export type UseBoardWorkerInput = {
-  autoplayFor: Array<'white' | 'black'>
+  autoplayFor: Ref<Array<'white' | 'black'>>
 }
 
 export const useBoardWorker = (input: UseBoardWorkerInput) => {
@@ -24,6 +24,7 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
   const enPassantTarget = ref<Notation.Coordinates | null>(null)
   const moveHistoryAst = ref<Notation.RootNode>({ kind: 'root', children: [] })
   const squares = ref<Array<Notation.Coordinates & BoardSquare>>([])
+  const opening = ref<string | null>(null)
 
   const audio = useBoardAudio()
 
@@ -57,6 +58,7 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
         enPassantTarget.value = message.enPassantTarget
         moveHistoryAst.value = message.moveHistoryAst
         squares.value = message.squares
+        if (!opening.value) opening.value = message.openingName
 
         loading.value = false
         break
@@ -72,7 +74,7 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
 
     if (
       message.type === 'board-update' &&
-      input.autoplayFor.includes(message.activeColour) &&
+      input.autoplayFor.value.includes(message.activeColour) &&
       !gameOver.value
     ) {
       loading.value = true
@@ -154,5 +156,6 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
     importAfen,
     importMoveHistory,
     reset,
+    opening,
   }
 }

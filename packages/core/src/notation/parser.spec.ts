@@ -36,3 +36,137 @@ test('parses Nf3', (t) => {
     },
   ])
 })
+
+test('parses promotions', (t) => {
+  const ast = parse(tokenize('b8=Q'))
+
+  t.deepEqual(ast, {
+    kind: 'root',
+    children: [
+      {
+        from: {},
+        kind: 'move',
+        piece: null,
+        promotionTo: 'Q',
+        to: {
+          file: 2,
+          rank: 8,
+        },
+        type: 'promotion',
+        sources: [
+          {
+            kind: 'file',
+            source: {
+              column: 1,
+              length: 1,
+              row: 1,
+            },
+            value: 2,
+          },
+          {
+            kind: 'rank',
+            source: {
+              column: 2,
+              length: 1,
+              row: 1,
+            },
+            value: 8,
+          },
+          {
+            kind: 'promotion',
+            source: {
+              column: 3,
+              length: 1,
+              row: 1,
+            },
+          },
+          {
+            kind: 'piece',
+            source: {
+              column: 4,
+              length: 1,
+              row: 1,
+            },
+            value: 'Q',
+          },
+        ],
+      },
+    ],
+  })
+})
+
+test('parses halfmove marker', (t) => {
+  const ast = parse(tokenize('1. d4 1... Nf6'))
+
+  t.deepEqual(ast, {
+    children: [
+      {
+        from: {},
+        kind: 'move',
+        sources: [
+          {
+            kind: 'file',
+            source: {
+              column: 4,
+              length: 1,
+              row: 1,
+            },
+            value: 4,
+          },
+          {
+            kind: 'rank',
+            source: {
+              column: 5,
+              length: 1,
+              row: 1,
+            },
+            value: 4,
+          },
+        ],
+        to: {
+          file: 4,
+          rank: 4,
+        },
+      },
+      {
+        from: {},
+        kind: 'move',
+        piece: 'N',
+        sources: [
+          {
+            kind: 'piece',
+            source: {
+              column: 12,
+              length: 1,
+              row: 1,
+            },
+            value: 'N',
+          },
+          {
+            kind: 'file',
+            source: {
+              column: 13,
+              length: 1,
+              row: 1,
+            },
+            value: 6,
+          },
+          {
+            kind: 'rank',
+            source: {
+              column: 14,
+              length: 1,
+              row: 1,
+            },
+            value: 6,
+          },
+        ],
+        to: {
+          file: 6,
+          rank: 6,
+        },
+      },
+    ],
+    kind: 'root',
+  })
+})
