@@ -54,7 +54,7 @@ type BoardUpdateResponse = {
   squares: Array<Notation.Coordinates & BoardSquare>
   validMoves: Notation.Node[]
   gameOver: Notation.GameOverNode | null
-  openingName: string | null
+  openings: string[]
 }
 
 type NodeExecutionResponse = {
@@ -166,7 +166,7 @@ onmessage = (messageEvent: MessageEvent<BotWorkerMessage>) => {
       moveHistoryAst: board.getMoveHistoryAst(),
       squares: board.getSquares(),
       gameOver,
-      openingName: openings.length === 1 ? openings[0] : null,
+      openings,
     }
 
     postMessage(updateResponse)

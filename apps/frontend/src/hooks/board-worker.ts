@@ -58,7 +58,10 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
         enPassantTarget.value = message.enPassantTarget
         moveHistoryAst.value = message.moveHistoryAst
         squares.value = message.squares
-        if (!opening.value) opening.value = message.openingName
+
+        if (message.openings.length === 1 && !opening.value) {
+          opening.value = message.openings[0]
+        }
 
         loading.value = false
         break

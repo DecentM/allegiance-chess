@@ -1,8 +1,8 @@
 import {
   Board,
   BoardSquare,
+  Notation,
   PieceAllegiance,
-  allegianceSide,
 } from '@decentm/allegiance-chess-core'
 
 import seedrandom from 'seedrandom'
@@ -35,7 +35,7 @@ const getSquareScore = (square: BoardSquare): number => {
       break
   }
 
-  return isPure ? points : points / 1.5
+  return isPure ? points * 1.5 : points
 }
 
 export const getBoardScore = (board: Board) => {
@@ -44,22 +44,15 @@ export const getBoardScore = (board: Board) => {
 
   score += squares.reduce((acc, cur) => {
     const squareMaterial = getSquareScore(cur)
-    const side = allegianceSide(cur.allegiance)
 
-    return side === 'white' ? acc + squareMaterial : acc - squareMaterial
-  }, 0)
+    let offset = 0
 
-  score += squares.reduce((acc, cur) => {
-    const isCentered =
-      cur.file > 2 && cur.file < 7 && cur.rank > 2 && cur.rank < 7
+    if (cur.allegiance === PieceAllegiance.Black) offset -= 1.5
+    if (cur.allegiance === PieceAllegiance.DarkGrey) offset -= 1
+    if (cur.allegiance === PieceAllegiance.LightGrey) offset += 1
+    if (cur.allegiance === PieceAllegiance.White) offset += 1.5
 
-    if (!isCentered) {
-      return acc
-    }
-
-    const side = allegianceSide(cur.allegiance)
-
-    return side === 'white' ? acc + 1 : acc - 1
+    return acc + squareMaterial * offset
   }, 0)
 
   if (board.castlingRights.white.includes('king')) score += 4
@@ -71,36 +64,21 @@ export const getBoardScore = (board: Board) => {
   if (board.activeColour === 'white') score -= board.halfmoveClock / 10
   else score += board.halfmoveClock / 10
 
-  // Kings should prefer to be on their initial rank
-  const whiteKing = squares.find(
-    (square) =>
-      square.piece === 'K' && allegianceSide(square.allegiance) === 'white'
-  )
-  const blackKing = squares.find(
-    (square) =>
-      square.piece === 'K' && allegianceSide(square.allegiance) === 'black'
-  )
-
-  if (whiteKing && whiteKing.rank === 1) score += 15
-  if (blackKing && blackKing.rank === 1) score -= 15
-
   return score
 }
 
-const SCORE_PRUNE_LIMIT = -1
-
 export const findBestMove = (
   board: Board,
-  timeoutMs: number,
   depth: number,
   seed = String(Math.random()),
   startTime = performance.now(),
-  rng = seedrandom(seed)
+  rng = seedrandom(seed),
+  maxDepth = depth
 ) => {
   const moves = board.getValidMoves()
 
-  // score, index
-  const scores = new Map<number, number[]>()
+  // score, [index, path]
+  const scores = new Map<number, [number, string]>()
 
   for (let i = 0; i < moves.length; i++) {
     const move = moves[i]
@@ -113,52 +91,62 @@ export const findBestMove = (
 
     virtualBoard.executeNode(move)
 
-    let score = 0
+    let score = rng() - 0.5
 
-    const isOpening = Opening.fenExists(
-      virtualBoard.toAFEN({ sections: ['positions'] })
-    )
+    let path = Notation.writeNode(move)
 
-    if (isOpening) {
-      score =
-        virtualBoard.activeColour === 'white'
-          ? Number.NEGATIVE_INFINITY
-          : Number.POSITIVE_INFINITY
+    if (depth === maxDepth) {
+      const openings = Opening.getNamesByFen(
+        virtualBoard.toAFEN({ sections: ['positions'] })
+      )
 
-      const existingIndexes = scores.get(score)
-      scores.set(score, existingIndexes ? [...existingIndexes, i] : [i])
-      break
+      if (openings.length > 0) {
+        score -=
+          (virtualBoard.activeColour === 'white'
+            ? openings.length
+            : -openings.length) * 25
+
+        scores.set(score, [i, path])
+        break
+      }
     }
 
-    const timeout = performance.now() - startTime > timeoutMs
-    const maxDepth = depth <= 0
+    // const timeout = performance.now() - startTime > timeoutMs
+    const reachedMaxDepth = depth <= 0
 
-    if (maxDepth && !timeout) {
-      score =
-        virtualBoard.activeColour === 'white'
-          ? -getBoardScore(virtualBoard)
-          : getBoardScore(virtualBoard)
-    } else if (!timeout) {
+    if (reachedMaxDepth) {
+      score -= getBoardScore(virtualBoard)
+    } else {
       const subResult = findBestMove(
         virtualBoard,
-        timeoutMs,
         depth - 1,
         seed,
         startTime,
-        rng
+        rng,
+        maxDepth
       )
 
-      score =
-        virtualBoard.activeColour === 'white'
-          ? score + subResult.score
-          : score - subResult.score
+      score -= subResult.score
+      path = `${path} > ${subResult.path}`
     }
 
-    const existingIndexes = scores.get(score)
-    scores.set(score, existingIndexes ? [...existingIndexes, i] : [i])
+    scores.set(score, [i, path])
   }
 
-  const scoresAsc = [...scores.entries()].sort()
+  const scoresAsc = [...scores].sort((a, b) => a[0] - b[0])
+
+  if (depth === 3) {
+    console.clear()
+    console.log(
+      scoresAsc
+        .map(([score, [index, path]]) => {
+          const move = moves[index]
+
+          return `${Notation.writeNode(move)} ${score.toPrecision(4)} - ${path}`
+        })
+        .join('\n')
+    )
+  }
 
   if (scoresAsc.length === 0) {
     return {
@@ -171,16 +159,12 @@ export const findBestMove = (
     }
   }
 
-  const [score, indexes] =
-    board.activeColour === 'white'
-      ? scoresAsc[scoresAsc.length - 1]
-      : scoresAsc[0]
-
-  const index = indexes[Math.floor(rng() * indexes.length)]
+  const [score, [index, path]] = scoresAsc[0]
 
   return {
     score,
     index,
     seed,
+    path,
   }
 }
