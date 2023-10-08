@@ -26,7 +26,7 @@ const perspective = computed(() => {
     return null
   }
 
-  if (props.connection.mode.value === 'server') {
+  if (props.connection.isHost.value) {
     return props.connection.serverSide.value
   }
 

@@ -38,10 +38,11 @@
 
       <div class="text-body1 q-mb-md">
         <span class="text-bold">Errors and performance</span><br />
-        I use Sentry to get notified about bugs and issues on this site. Some
-        extensions or firewalls may block the sentry.io domain. In this case,
-        errors that occur for you will remain invisible to me and could remain
-        that way, possibly preventing you from playing.
+        I use Sentry to get notified about bugs and issues on this site,
+        including when you submit the feedback form. Some extensions or
+        firewalls may block the sentry.io domain. In this case, errors that
+        occur for you will remain invisible to me and could remain that way,
+        possibly preventing you from playing.
         <br />
         If possible, please make sure that Sentry is not blocked from receiving
         error reports &lt;3

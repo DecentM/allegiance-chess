@@ -221,6 +221,7 @@ onMounted(() => {
               label="Peer ID *"
               hint="Copy this Peer ID and send it to your opponent"
               readonly
+              :loading="!connection.peerId.value"
             />
 
             <div class="row justify-end">

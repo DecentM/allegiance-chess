@@ -41,8 +41,13 @@ import ChessPiece from '../components/chess-piece.vue'
       </div>
 
       <div class="text-body1 q-mb-md">
-        <q-icon size="xl" class="col-2" name="arrow_left" />
-        Click "Play" on the left sidebar to begin, or read on for more.
+        <q-btn
+          class="full-width"
+          color="primary"
+          icon="sports_esports"
+          label="Click here to play, or read on for more"
+          to="/play"
+        />
       </div>
     </q-card-section>
   </q-card>
