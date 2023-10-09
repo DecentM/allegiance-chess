@@ -173,6 +173,26 @@ import ChessPiece from '../components/chess-piece.vue'
             </q-item-label>
           </q-item-section>
         </q-item>
+
+        <q-item
+          clickable
+          href="https://database.lichess.org/"
+          target="_blank"
+          rel="noopener"
+        >
+          <q-item-section avatar>
+            <q-avatar rounded>
+              <q-icon name="book" />
+            </q-avatar>
+          </q-item-section>
+
+          <q-item-section>
+            <q-item-label> Opening moves </q-item-label>
+            <q-item-label caption :lines="2">
+              <span>Lichess</span>
+            </q-item-label>
+          </q-item-section>
+        </q-item>
       </q-list>
     </q-card-section>
   </q-card>
