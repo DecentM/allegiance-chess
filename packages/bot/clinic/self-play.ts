@@ -15,8 +15,7 @@ while (true) {
   const moves = b.getValidMoves()
 
   if (moves.length === 1) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const move = moves.at(0)!
+    const move = moves[0]
 
     if (move.kind === 'game-over') {
       console.log('Game over!', move.outcome, move.reason)

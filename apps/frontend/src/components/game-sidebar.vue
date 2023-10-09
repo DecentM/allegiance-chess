@@ -18,7 +18,7 @@ const rows = computed(() => {
   const result: Notation.Node[][] = []
 
   props.moveHistory.children.forEach((node) => {
-    const lastRow = result.at(-1)
+    const lastRow = result[result.length - 1]
 
     if (!lastRow || lastRow.length !== 1) {
       result.push([node])

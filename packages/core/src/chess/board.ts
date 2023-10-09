@@ -420,7 +420,7 @@ export class Board {
       throw new VError(`Move index must be positive, got ${moveIndex}`)
     }
 
-    const move = validMoves.at(moveIndex)
+    const move = validMoves[moveIndex]
 
     if (!move) {
       throw new VError(`Move with index ${moveIndex} does not exist`)

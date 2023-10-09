@@ -32,7 +32,10 @@ const handleExcuteNodeIndex = (index: number) => {
 }
 
 const lastMove = computed(() => {
-  return props.moveHistoryAst.children.at(-1) ?? null
+  return (
+    props.moveHistoryAst.children[props.moveHistoryAst.children.length - 1] ??
+    null
+  )
 })
 </script>
 

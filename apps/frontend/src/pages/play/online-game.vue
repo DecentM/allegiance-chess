@@ -49,7 +49,7 @@ const handleExecuteNodeIndex = (index: number) => {
 }
 
 watch(props.connection.moveHistory, (newMoveHistory) => {
-  const lastMoveIndex = newMoveHistory.at(-1)
+  const lastMoveIndex = newMoveHistory[newMoveHistory.length - 1]
 
   if (typeof lastMoveIndex !== 'number') {
     return

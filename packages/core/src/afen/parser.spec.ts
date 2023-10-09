@@ -20,12 +20,12 @@ test('parses last character with no metadata', (t) => {
   const tokens = tokenize('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR')
   const ast = parse(tokens)
 
-  t.is((ast.children.at(-1) as PieceNode).value.piece, 'R')
+  t.is((ast.children[ast.children.length - 1] as PieceNode).value.piece, 'R')
 })
 
 test('parses last character with allegiance with no metadata', (t) => {
   const tokens = tokenize('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR>')
   const ast = parse(tokens)
 
-  t.is((ast.children.at(-1) as PieceNode).value.piece, 'R')
+  t.is((ast.children[ast.children.length - 1] as PieceNode).value.piece, 'R')
 })

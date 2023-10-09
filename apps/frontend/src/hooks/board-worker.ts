@@ -33,7 +33,7 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
       return null
     }
 
-    const move = validMoves.value.at(0)
+    const move = validMoves.value[0]
 
     if (!move || move.kind !== 'game-over') {
       return null

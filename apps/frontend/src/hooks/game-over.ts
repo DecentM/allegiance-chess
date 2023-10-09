@@ -9,7 +9,7 @@ export const useGameover = (board: Ref<Board>) => {
       return null
     }
 
-    const move = validMoves.at(0)
+    const move = validMoves[0]
 
     if (!move || move.kind !== 'game-over') {
       return null

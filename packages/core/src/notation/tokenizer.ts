@@ -382,7 +382,7 @@ export const tokenize = (rawInput: string): Token[] => {
 
     if (/[\d]/gu.test(current)) {
       const fullNumber = consumeUntil((char) => !/[.\d]/gu.test(char))
-      const isStepNumber = fullNumber.at(-1) === '.'
+      const isStepNumber = fullNumber[fullNumber.length - 1] === '.'
 
       if (isStepNumber) {
         token(fullNumber.length, {
