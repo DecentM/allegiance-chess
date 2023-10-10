@@ -1,10 +1,10 @@
 export enum Type {
-  King = 0b001,
-  Pawn = 0b010,
-  Knight = 0b11,
-  Bishop = 0b100,
-  Rook = 0b101,
-  Queen = 0b110,
+  King = 0b00_001,
+  Pawn = 0b00_010,
+  Knight = 0b00_011,
+  Bishop = 0b00_100,
+  Rook = 0b00_101,
+  Queen = 0b00_110,
 }
 
 export enum Allegiance {
