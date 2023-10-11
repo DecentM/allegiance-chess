@@ -1,8 +1,13 @@
 import VError from 'verror'
 import { Token } from './tokenizer'
-import { File, Piece, Rank } from '../notation/declarations'
-import { PieceAllegiance } from '../chess/board'
-import { CastleSide, Coordinates } from '../notation/parser'
+import {
+  Allegiance,
+  Coordinates,
+  File,
+  Piece,
+  Rank,
+} from '../notation/declarations'
+import { CastleSide } from '../notation/parser'
 import {
   isFile,
   isLowerPiece,
@@ -15,7 +20,7 @@ export type PieceNode = {
   kind: 'piece'
   value: {
     piece: Piece
-    allegiance: PieceAllegiance
+    allegiance: Allegiance
   }
 }
 
@@ -208,8 +213,8 @@ class WipNode {
           kind: 'piece',
           value: {
             allegiance: this.allegianceMark
-              ? PieceAllegiance.LightGrey
-              : PieceAllegiance.White,
+              ? Allegiance.LightGrey
+              : Allegiance.White,
             piece: this.piece ? (this.piece.toUpperCase() as Piece) : null,
           },
         }
@@ -219,8 +224,8 @@ class WipNode {
         kind: 'piece',
         value: {
           allegiance: this.allegianceMark
-            ? PieceAllegiance.DarkGrey
-            : PieceAllegiance.Black,
+            ? Allegiance.DarkGrey
+            : Allegiance.Black,
           piece: this.piece ? (this.piece.toUpperCase() as Piece) : null,
         },
       }

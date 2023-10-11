@@ -1,12 +1,7 @@
 import VError from 'verror'
 
 import { Token } from './tokenizer'
-import { File, GameOutcome, Piece, Rank } from './declarations'
-
-export type Coordinates = {
-  file: File
-  rank: Rank
-}
+import { Coordinates, File, GameOutcome, Piece, Rank } from './declarations'
 
 export type MoveNode<T = void> = {
   kind: 'move'

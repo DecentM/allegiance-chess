@@ -1,10 +1,7 @@
-import { PieceAllegiance } from "../chess/board";
+import { Allegiance } from '../notation'
 
-export const allegianceSide = (
-  allegiance: PieceAllegiance
-): "white" | "black" => {
-  return allegiance === PieceAllegiance.Black ||
-    allegiance == PieceAllegiance.DarkGrey
-    ? "black"
-    : "white";
-};
+export const allegianceSide = (allegiance: Allegiance): 'white' | 'black' => {
+  return allegiance === Allegiance.Black || allegiance == Allegiance.DarkGrey
+    ? 'black'
+    : 'white'
+}

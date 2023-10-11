@@ -1,3 +1,4 @@
+import { AfenIO } from './afen-io'
 import { MoveExecutor } from './move-executor'
 import { MoveGenerator } from './move-generator'
 import * as Piece from './piece'
@@ -20,6 +21,13 @@ export enum CastlingRight {
   BlackKing = 0b0010,
   WhiteQueen = 0b0100,
   WhiteKing = 0b1000,
+}
+
+export class NeoBoardMemoryAccess {
+  constructor(
+    public getMemory: () => number[],
+    public setMemory: (newMemory: number[]) => void
+  ) {}
 }
 
 export class NeoBoard {
@@ -90,6 +98,8 @@ export class NeoBoard {
 
   public moveGenerator: MoveGenerator
 
+  public afen: AfenIO
+
   constructor(public readonly options: NeoBoardOptions) {
     this.memory = Array.from<Square>({
       length: options.width * options.height,
@@ -97,6 +107,13 @@ export class NeoBoard {
 
     this.executor = new MoveExecutor(this)
     this.moveGenerator = new MoveGenerator(this)
+    this.afen = new AfenIO(
+      this,
+      new NeoBoardMemoryAccess(
+        () => this.memory,
+        (newMemory) => (this.memory = newMemory)
+      )
+    )
   }
 
   public getSquare(index: number): Square {

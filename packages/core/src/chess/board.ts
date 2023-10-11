@@ -5,7 +5,6 @@ import {
   AnyMoveNode,
   CaptureNode,
   CastleNode,
-  Coordinates,
   DefaultNode,
   EnPassantNode,
   MoveNode,
@@ -24,16 +23,6 @@ import * as Afen from '../afen'
 import { BoardMemory, BoardSquare } from './board-memory'
 import { AfenPreset } from '../lib/afen-preset'
 
-export const PieceAllegiance = {
-  Black: 0,
-  DarkGrey: 1,
-  LightGrey: 2,
-  White: 3,
-} as const
-
-export type PieceAllegiance =
-  (typeof PieceAllegiance)[keyof typeof PieceAllegiance]
-
 type ExecuteMoveTypeInput<NodeType extends MoveNode<string | void>> = {
   node: NodeType
   from: BoardSquare
@@ -45,7 +34,7 @@ type ExecuteMoveTypeInput<NodeType extends MoveNode<string | void>> = {
 export const PROMOTION_PIECES: Notation.Piece[] = ['B', 'N', 'Q', 'R']
 
 export type GetValidMovesInput = {
-  from?: Coordinates | null
+  from?: Notation.Coordinates | null
   side: 'white' | 'black'
 }
 
@@ -184,7 +173,7 @@ export class Board {
     this.memory.setSquare(input.node.to, {
       allegiance: (input.fromSide === 'white'
         ? input.to.allegiance + 1
-        : input.to.allegiance - 1) as PieceAllegiance,
+        : input.to.allegiance - 1) as Notation.Allegiance,
       piece: input.to.piece,
     })
   }
@@ -211,9 +200,9 @@ export class Board {
     this.memory.setSquare(kingFrom, null)
 
     const rank: Notation.Rank = input.fromSide === 'white' ? 1 : 8
-    const rookFrom: Coordinates =
+    const rookFrom: Notation.Coordinates =
       input.node.side === 'king' ? { file: 8, rank } : { file: 1, rank }
-    const rookTo: Coordinates =
+    const rookTo: Notation.Coordinates =
       input.node.side === 'king' ? { file: 6, rank } : { file: 4, rank }
 
     this.memory.setSquare(rookTo, this.memory.getSquare(rookFrom))
@@ -431,7 +420,7 @@ export class Board {
     return move
   }
 
-  public getSquare(coords: Coordinates) {
+  public getSquare(coords: Notation.Coordinates) {
     return this.memory.getSquare(coords)
   }
 
@@ -525,9 +514,9 @@ export class Board {
   }
 
   private static getCoordsRelative(
-    coords: Coordinates,
+    coords: Notation.Coordinates,
     direction: Vector2
-  ): Coordinates {
+  ): Notation.Coordinates {
     // Not typed as Coords because we don't know if it's valid yet
     const newCoords = {
       file: coords.file + direction.x,
@@ -542,13 +531,13 @@ export class Board {
       return null
     }
 
-    return newCoords as Coordinates
+    return newCoords as Notation.Coordinates
   }
 
   public traceCaptureSteps(
-    coords: Coordinates,
+    coords: Notation.Coordinates,
     direction: Vector2
-  ): Coordinates[] {
+  ): Notation.Coordinates[] {
     const startSquare = this.memory.getSquare(coords)
 
     if (!startSquare) {
@@ -556,7 +545,7 @@ export class Board {
       return []
     }
 
-    const steps: Coordinates[] = []
+    const steps: Notation.Coordinates[] = []
     const singleStepVector = new Vector2(
       Math.sign(direction.x),
       Math.sign(direction.y)
@@ -608,7 +597,7 @@ export class Board {
       return square && allegianceSide(square.allegiance) === bySide
     })
 
-    const result: Coordinates[] = []
+    const result: Notation.Coordinates[] = []
 
     pieces.forEach((piece) => {
       result.push(...this.getAttackedCoordsByCoords(piece))
@@ -617,8 +606,10 @@ export class Board {
     return result
   }
 
-  private getAttackedCoordsByCoords(byCoords: Coordinates): Coordinates[] {
-    const result: Coordinates[] = []
+  private getAttackedCoordsByCoords(
+    byCoords: Notation.Coordinates
+  ): Notation.Coordinates[] {
+    const result: Notation.Coordinates[] = []
     const bySquare = this.memory.getSquare(byCoords)
 
     if (!bySquare) {
@@ -759,7 +750,9 @@ export class Board {
           new Vector2(side === 'white' ? 1 : -1, side === 'white' ? 1 : -1)
         )
 
-        const generatePossiblePromotionNodes = (to: Coordinates): Node[] => {
+        const generatePossiblePromotionNodes = (
+          to: Notation.Coordinates
+        ): Node[] => {
           return PROMOTION_PIECES.map((piece) => ({
             kind: 'move',
             type: 'promotion',
@@ -908,7 +901,7 @@ export class Board {
        * ROOK
        */
       if (square.piece === 'R') {
-        const steps: Coordinates[] = [
+        const steps: Notation.Coordinates[] = [
           // X pos
           ...this.traceCaptureSteps(square, new Vector2(1, 0)),
           // X neg
@@ -1001,7 +994,7 @@ export class Board {
        * BISHOP
        */
       if (square.piece === 'B') {
-        const steps: Coordinates[] = [
+        const steps: Notation.Coordinates[] = [
           // NE
           ...this.traceCaptureSteps(square, new Vector2(1, 1)),
           // SE
@@ -1049,7 +1042,7 @@ export class Board {
        * QUEEN
        */
       if (square.piece === 'Q') {
-        const steps: Coordinates[] = [
+        const steps: Notation.Coordinates[] = [
           // X pos
           ...this.traceCaptureSteps(square, new Vector2(1, 0)),
           // X neg
@@ -1104,7 +1097,7 @@ export class Board {
        * KING
        */
       if (square.piece === 'K') {
-        const possibleMoves: Coordinates[] = [
+        const possibleMoves: Notation.Coordinates[] = [
           Board.getCoordsRelative(square, new Vector2(0, 1)),
           Board.getCoordsRelative(square, new Vector2(1, 1)),
           Board.getCoordsRelative(square, new Vector2(1, 0)),
@@ -1562,7 +1555,7 @@ export class Board {
     return result
   }
 
-  public getValidMoves(from?: Coordinates): Node[] {
+  public getValidMoves(from?: Notation.Coordinates): Node[] {
     const possibleMoves = this.getPossibleMoves()
 
     return this.getValidMovesFromList(possibleMoves, {

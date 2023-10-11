@@ -1,12 +1,120 @@
-import { NeoBoard } from './neo-board'
+import VError from 'verror'
+
+import {
+  CastlingRight,
+  Colour,
+  NeoBoard,
+  NeoBoardMemoryAccess,
+} from './neo-board'
+
+import * as Piece from './piece'
 import * as Afen from '../afen'
 
 export class AfenIO {
-  constructor(private board: NeoBoard) {}
+  private static typeToAfenPiece(type: Piece.Type): Afen.Piece {
+    switch (type) {
+      case Piece.Type.Bishop:
+        return 'B'
 
-  public export(
-    options: Afen.WriteOptions = Afen.defaultOptions
-  ): Afen.RootNode {
+      case Piece.Type.King:
+        return 'K'
+
+      case Piece.Type.Knight:
+        return 'N'
+
+      case Piece.Type.Pawn:
+        return null
+
+      case Piece.Type.Queen:
+        return 'Q'
+
+      case Piece.Type.Rook:
+        return 'R'
+    }
+  }
+
+  private static afenPieceToType(value: Afen.Piece): Piece.Type {
+    switch (value) {
+      case 'B':
+        return Piece.Type.Bishop
+
+      case 'K':
+        return Piece.Type.King
+
+      case 'N':
+        return Piece.Type.Knight
+
+      case null:
+        return Piece.Type.Pawn
+
+      case 'Q':
+        return Piece.Type.Queen
+
+      case 'R':
+        return Piece.Type.Rook
+    }
+  }
+
+  private static allegianceToAfenAllegiance(
+    allegiance: Piece.Allegiance
+  ): Afen.Allegiance {
+    switch (allegiance) {
+      case Piece.Allegiance.Black:
+        return Afen.Allegiance.Black
+
+      case Piece.Allegiance.DarkGrey:
+        return Afen.Allegiance.DarkGrey
+
+      case Piece.Allegiance.LightGrey:
+        return Afen.Allegiance.LightGrey
+
+      case Piece.Allegiance.White:
+        return Afen.Allegiance.White
+    }
+  }
+
+  private static afenAllegianceToAllegiance(
+    afenAllegiance: Afen.Allegiance
+  ): Piece.Allegiance {
+    switch (afenAllegiance) {
+      case Afen.Allegiance.Black:
+        return Piece.Allegiance.Black
+
+      case Afen.Allegiance.DarkGrey:
+        return Piece.Allegiance.DarkGrey
+
+      case Afen.Allegiance.LightGrey:
+        return Piece.Allegiance.LightGrey
+
+      case Afen.Allegiance.White:
+        return Piece.Allegiance.White
+    }
+  }
+
+  private static coordsFromIndex(
+    index: number,
+    width: number
+  ): Afen.Coordinates {
+    return {
+      file: ((index % width) + 1) as Afen.File,
+      rank: (Math.floor(index / width) + 1) as Afen.Rank,
+    }
+  }
+
+  private static indexFromCoords(
+    coords: Afen.Coordinates,
+    width: number
+  ): number {
+    return coords.file - 1 + (coords.rank - 1) * width
+  }
+
+  constructor(
+    private board: NeoBoard,
+    private memoryAccess: NeoBoardMemoryAccess
+  ) {}
+
+  public export(): Afen.RootNode {
+    const memory = this.memoryAccess.getMemory()
     const ast: Afen.RootNode = {
       kind: 'ast',
       children: [],
@@ -14,90 +122,91 @@ export class AfenIO {
 
     let skip = 0
 
-    if (options.sections.includes('positions')) {
-      for (let i = 0; i < this.memory.length; i++) {
-        if (!this.memory[i]) {
-          skip++
-        } else {
-          if (skip) {
-            ast.children.push({ kind: 'skip', value: skip })
-            skip = 0
-          }
-
-          ast.children.push({ kind: 'piece', value: this.memory[i] })
-        }
-
-        if ((i + 1) % 8 === 0 && skip) {
+    for (let i = 0; i < memory.length; i++) {
+      if (memory[i]) {
+        if (skip) {
           ast.children.push({ kind: 'skip', value: skip })
           skip = 0
         }
+
+        ast.children.push({
+          kind: 'piece',
+          value: {
+            piece: AfenIO.typeToAfenPiece(NeoBoard.getType(memory[i])),
+            allegiance: AfenIO.allegianceToAfenAllegiance(
+              NeoBoard.getAllegiance(memory[i])
+            ),
+          },
+        })
+      } else {
+        skip++
       }
 
-      if (skip) {
+      if ((i + 1) % 8 === 0 && skip) {
         ast.children.push({ kind: 'skip', value: skip })
+        skip = 0
       }
     }
 
-    if (options.sections.includes('active-colour')) {
-      ast.children.push({
-        kind: 'active-colour',
-        value: this.board.activeColour,
-      })
+    if (skip) {
+      ast.children.push({ kind: 'skip', value: skip })
     }
 
-    if (options.sections.includes('castlig-rights')) {
-      const castlingNode: Afen.CastlingRightsNode = {
-        kind: 'castling-rights',
-        value: { black: [], white: [] },
-      }
+    ast.children.push({
+      kind: 'active-colour',
+      value: this.board.activeColour === Colour.White ? 'white' : 'black',
+    })
 
-      const whiteCastling = this.castlingRights('white')
-      const blackCastling = this.castlingRights('black')
-
-      if (whiteCastling.includes('king')) castlingNode.value.white.push('king')
-      if (whiteCastling.includes('queen'))
-        castlingNode.value.white.push('queen')
-      if (blackCastling.includes('king')) castlingNode.value.black.push('king')
-      if (blackCastling.includes('queen'))
-        castlingNode.value.black.push('queen')
-
-      if (
-        castlingNode.value.white.length > 0 ||
-        castlingNode.value.black.length > 0
-      ) {
-        ast.children.push(castlingNode)
-      }
+    const castlingNode: Afen.CastlingRightsNode = {
+      kind: 'castling-rights',
+      value: { black: [], white: [] },
     }
+
+    if (this.board.hasCastlingRight(CastlingRight.WhiteKing))
+      castlingNode.value.white.push('king')
+
+    if (this.board.hasCastlingRight(CastlingRight.WhiteQueen))
+      castlingNode.value.white.push('queen')
+
+    if (this.board.hasCastlingRight(CastlingRight.BlackKing))
+      castlingNode.value.black.push('king')
+
+    if (this.board.hasCastlingRight(CastlingRight.BlackQueen))
+      castlingNode.value.black.push('queen')
 
     if (
-      options.sections.includes('en-passant-targets') &&
-      this.board.enPassantTarget !== -1
+      castlingNode.value.white.length > 0 ||
+      castlingNode.value.black.length > 0
     ) {
+      ast.children.push(castlingNode)
+    }
+
+    if (this.board.enPassantTarget !== -1) {
       ast.children.push({
         kind: 'en-passant-targets',
-        value: this.board.enPassantTarget,
+        value: AfenIO.coordsFromIndex(
+          this.board.enPassantTarget,
+          this.board.options.width
+        ),
       })
     }
 
-    if (options.sections.includes('halfmove-clock')) {
-      ast.children.push({
-        kind: 'halfmove-clock',
-        value: this.board.halfmoveClock,
-      })
-    }
+    ast.children.push({
+      kind: 'halfmove-clock',
+      value: this.board.halfmoveClock,
+    })
 
-    if (options.sections.includes('fullmove-number')) {
-      ast.children.push({
-        kind: 'fullmove-number',
-        value: this.board.fullmoveNumber,
-      })
-    }
+    ast.children.push({
+      kind: 'fullmove-number',
+      value: this.board.fullmoveNumber,
+    })
 
     return ast
   }
 
   public import(afen: Afen.RootNode) {
     let index = 0
+    const memory = this.memoryAccess.getMemory()
 
     for (const node of afen.children) {
       if (node.kind === 'skip') {
@@ -106,46 +215,54 @@ export class AfenIO {
       }
 
       if (node.kind === 'piece') {
-        this.memory[index] = node.value
+        memory[index] =
+          AfenIO.afenPieceToType(node.value.piece) |
+          AfenIO.afenAllegianceToAllegiance(node.value.allegiance)
         index++
         continue
       }
 
       if (node.kind === 'en-passant-targets') {
-        this.enPassantTarget = node.value
+        this.board.enPassantTarget = AfenIO.indexFromCoords(
+          node.value,
+          this.board.options.width
+        )
         continue
       }
 
       if (node.kind === 'castling-rights') {
         node.value.black.forEach((value) => {
-          this._castlingRights.push({
-            colour: 'black',
-            side: value,
-          })
+          this.board.addCastlingRight(
+            value === 'king'
+              ? CastlingRight.BlackKing
+              : CastlingRight.BlackQueen
+          )
         })
 
         node.value.white.forEach((value) => {
-          this._castlingRights.push({
-            colour: 'white',
-            side: value,
-          })
+          this.board.addCastlingRight(
+            value === 'king'
+              ? CastlingRight.WhiteKing
+              : CastlingRight.WhiteQueen
+          )
         })
 
         continue
       }
 
       if (node.kind === 'active-colour') {
-        this.activeColour = node.value
+        this.board.activeColour =
+          node.value === 'white' ? Colour.White : Colour.Black
         continue
       }
 
       if (node.kind === 'fullmove-number') {
-        this.fullmoveNumber = node.value
+        this.board.fullmoveNumber = node.value
         continue
       }
 
       if (node.kind === 'halfmove-clock') {
-        this.halfmoveClock = node.value
+        this.board.halfmoveClock = node.value
         continue
       }
 

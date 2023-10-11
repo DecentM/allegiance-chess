@@ -1,5 +1,4 @@
 import { allegianceSide } from '../lib/allegiance'
-import { PieceAllegiance } from '../chess/board'
 
 import {
   ActiveColourNode,
@@ -10,6 +9,7 @@ import {
   RootNode,
 } from './parser'
 import { coordinatesToNotation } from '../lib/coordinate'
+import { Allegiance } from '../notation'
 
 export type WriteOptions = {
   sections: Array<
@@ -55,8 +55,8 @@ export const write = (
           side === 'white' ? piece.toUpperCase() : piece.toLowerCase()
 
         if (
-          node.value.allegiance === PieceAllegiance.DarkGrey ||
-          node.value.allegiance === PieceAllegiance.LightGrey
+          node.value.allegiance === Allegiance.DarkGrey ||
+          node.value.allegiance === Allegiance.LightGrey
         ) {
           positions += '>'
         }

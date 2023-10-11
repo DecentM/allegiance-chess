@@ -14,3 +14,17 @@ export const GameOutcome = {
 } as const
 
 export type GameOutcome = (typeof GameOutcome)[keyof typeof GameOutcome]
+
+export const Allegiance = {
+  Black: 0,
+  DarkGrey: 1,
+  LightGrey: 2,
+  White: 3,
+} as const
+
+export type Allegiance = (typeof Allegiance)[keyof typeof Allegiance]
+
+export type Coordinates = {
+  file: File
+  rank: Rank
+}
