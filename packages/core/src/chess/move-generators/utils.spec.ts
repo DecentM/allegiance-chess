@@ -1,9 +1,18 @@
 import test from 'ava'
-import { Move, MoveGenerator } from './utils'
+import { Move, MoveFlag, MoveGeneratorUtilities } from './utils'
 import { Vector2 } from '../../lib/vector2'
-import { NeoBoard } from '../neo-board'
+import { Board } from '../board'
 
-class TestMoveGenerator extends MoveGenerator {
+class TestMoveGenerator {
+  private utils: MoveGeneratorUtilities
+
+  private board: Board
+
+  constructor() {
+    this.board = new Board({ width: 8, height: 8 })
+    this.utils = new MoveGeneratorUtilities(this.board)
+  }
+
   public generateMoves(): Move[] {
     return []
   }
@@ -11,17 +20,22 @@ class TestMoveGenerator extends MoveGenerator {
   public getVector(index: number, v: Vector2) {
     const result: Move[] = []
 
-    this.generateWithOffset(index, this.board.getSquare(index), v, result)
+    this.utils.generateWithOffset(index, this.board.getSquare(index), v, result)
 
     return result
   }
 }
 
 test('gets single step directions', (t) => {
-  const b = new NeoBoard({ width: 8, height: 8 })
-  const g = new TestMoveGenerator(b)
+  const g = new TestMoveGenerator()
 
-  t.deepEqual(g.getVector(20, new Vector2(0, 1)), { from: 20, to: 28 })
-  t.deepEqual(g.getVector(20, new Vector2(2, 1)), { from: 20, to: 30 })
-  t.deepEqual(g.getVector(20, new Vector2(-1, -2)), { from: 20, to: 3 })
+  t.deepEqual(g.getVector(20, new Vector2(0, 1)), [
+    { flags: MoveFlag.None, from: 20, to: 28 },
+  ])
+  t.deepEqual(g.getVector(20, new Vector2(2, 1)), [
+    { flags: MoveFlag.None, from: 20, to: 30 },
+  ])
+  t.deepEqual(g.getVector(20, new Vector2(-1, -2)), [
+    { flags: MoveFlag.None, from: 20, to: 3 },
+  ])
 })

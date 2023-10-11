@@ -1,4 +1,4 @@
-import { NeoBoard } from './neo-board'
+import { Board } from './board'
 
 type Move = {
   fromIndex: number
@@ -6,7 +6,7 @@ type Move = {
 }
 
 export class MoveExecutor {
-  constructor(private board: NeoBoard) {}
+  constructor(private board: Board) {}
 
   public executeMove(move: Move) {
     const piece = this.board.getSquare(move.fromIndex)

@@ -1,6 +1,6 @@
 import { Vector2 } from '../../lib/vector2'
 import { PieceMoveGenerator } from '../move-generator'
-import { Square } from '../neo-board'
+import { Square } from '../board'
 import { Move, MoveGeneratorUtilities } from './utils'
 
 export class KnightMoveGenerator implements PieceMoveGenerator {

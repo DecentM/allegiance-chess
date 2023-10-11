@@ -1,6 +1,6 @@
 import { Vector2 } from '../../lib/vector2'
 import { PieceMoveGenerator } from '../move-generator'
-import { Colour, NeoBoard, Square } from '../neo-board'
+import { Colour, Board, Square } from '../board'
 import { Move, MoveFlag, MoveGeneratorUtilities } from './utils'
 
 export class PawnMoveGenerator implements PieceMoveGenerator {
@@ -9,7 +9,7 @@ export class PawnMoveGenerator implements PieceMoveGenerator {
   public generateMoves(fromIndex: number, fromSquare: Square): Move[] {
     const rankIndex = Math.floor(fromIndex / this.utils.board.options.width)
     const square = this.utils.board.getSquare(fromIndex)
-    const colour = NeoBoard.getColour(NeoBoard.getAllegiance(square))
+    const colour = Board.getColour(Board.getAllegiance(square))
     const isStartPosition =
       colour === Colour.White
         ? rankIndex === 1
@@ -54,9 +54,7 @@ export class PawnMoveGenerator implements PieceMoveGenerator {
     )
 
     if (diagLeft) {
-      const diagLeftColour = NeoBoard.getColour(
-        NeoBoard.getAllegiance(diagLeft)
-      )
+      const diagLeftColour = Board.getColour(Board.getAllegiance(diagLeft))
 
       if (diagLeftColour !== colour) {
         this.utils.generateWithOffset(
@@ -75,9 +73,7 @@ export class PawnMoveGenerator implements PieceMoveGenerator {
     )
 
     if (diagRight) {
-      const diagRightColour = NeoBoard.getColour(
-        NeoBoard.getAllegiance(diagRight)
-      )
+      const diagRightColour = Board.getColour(Board.getAllegiance(diagRight))
 
       if (diagRightColour !== colour) {
         this.utils.generateWithOffset(

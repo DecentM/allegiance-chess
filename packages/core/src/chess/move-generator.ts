@@ -6,7 +6,7 @@ import { KnightMoveGenerator } from './move-generators/knight'
 import { PawnMoveGenerator } from './move-generators/pawn'
 import { QueenMoveGenerator } from './move-generators/queen'
 import { RookMoveGenerator } from './move-generators/rook'
-import { NeoBoard, Square } from './neo-board'
+import { Board, Square } from './board'
 import { Move, MoveGeneratorUtilities } from './move-generators/utils'
 
 export interface PieceMoveGenerator {
@@ -26,7 +26,7 @@ export class MoveGenerator {
 
   private rook: RookMoveGenerator
 
-  constructor(private board: NeoBoard) {
+  constructor(private board: Board) {
     const utils = new MoveGeneratorUtilities(board)
 
     this.pawn = new PawnMoveGenerator(utils)
@@ -40,7 +40,7 @@ export class MoveGenerator {
   public generateMoves(fromIndex: number): Move[] {
     const square = this.board.getSquare(fromIndex)
 
-    switch (NeoBoard.getType(square)) {
+    switch (Board.getType(square)) {
       case Piece.Type.King:
         return this.king.generateMoves(fromIndex, square)
 

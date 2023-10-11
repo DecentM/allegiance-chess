@@ -1,4 +1,4 @@
-import { Square } from '../neo-board'
+import { Square } from '../board'
 import { PieceMoveGenerator } from '../move-generator'
 
 import { DirectionIndex, Move, MoveGeneratorUtilities } from './utils'

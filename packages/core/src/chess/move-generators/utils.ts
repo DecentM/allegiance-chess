@@ -1,5 +1,5 @@
 import { Vector2 } from '../../lib/vector2'
-import { NeoBoard, Square } from '../neo-board'
+import { Board, Square } from '../board'
 
 export const DirectionIndex = {
   North: 0,
@@ -70,7 +70,7 @@ export class MoveGeneratorUtilities {
 
   protected directionOffsets: Octuple
 
-  constructor(public board: NeoBoard) {
+  constructor(public board: Board) {
     this.distanceLookup = MoveGeneratorUtilities.generateDistanceLookup(
       board.options.width,
       board.options.height
@@ -92,12 +92,12 @@ export class MoveGeneratorUtilities {
   ): Move[] {
     const result: Move[] = []
 
-    const fromSide = NeoBoard.getColour(NeoBoard.getAllegiance(fromSquare))
+    const fromSide = Board.getColour(Board.getAllegiance(fromSquare))
 
     for (let i = 0; i < this.distanceLookup[fromIndex][direction]; i++) {
       const targetIndex = fromIndex + this.directionOffsets[direction] * (i + 1)
       const targetPiece = this.board.getSquare(targetIndex)
-      const targetSide = NeoBoard.getColour(NeoBoard.getAllegiance(targetPiece))
+      const targetSide = Board.getColour(Board.getAllegiance(targetPiece))
 
       if (targetPiece && targetSide === fromSide) {
         break
@@ -150,7 +150,7 @@ export class MoveGeneratorUtilities {
     result: Move[]
   ) {
     const targetIndex = this.getIndexRelative(fromIndex, offset)
-    const fromSide = NeoBoard.getColour(NeoBoard.getAllegiance(fromSquare))
+    const fromSide = Board.getColour(Board.getAllegiance(fromSquare))
 
     if (targetIndex === -1) {
       return
@@ -159,7 +159,7 @@ export class MoveGeneratorUtilities {
     const targetPiece = this.board.getSquare(targetIndex)
 
     if (targetPiece) {
-      const targetSide = NeoBoard.getColour(NeoBoard.getAllegiance(targetPiece))
+      const targetSide = Board.getColour(Board.getAllegiance(targetPiece))
 
       if (targetSide === fromSide) {
         return

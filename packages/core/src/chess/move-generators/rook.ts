@@ -1,5 +1,5 @@
 import { PieceMoveGenerator } from '../move-generator'
-import { Square } from '../neo-board'
+import { Square } from '../board'
 import { DirectionIndex, Move, MoveGeneratorUtilities } from './utils'
 
 export class RookMoveGenerator implements PieceMoveGenerator {

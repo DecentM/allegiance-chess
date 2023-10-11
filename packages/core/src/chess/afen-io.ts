@@ -1,11 +1,6 @@
 import VError from 'verror'
 
-import {
-  CastlingRight,
-  Colour,
-  NeoBoard,
-  NeoBoardMemoryAccess,
-} from './neo-board'
+import { CastlingRight, Colour, Board, BoardMemoryAccess } from './board'
 
 import * as Piece from './piece'
 import * as Afen from '../afen'
@@ -108,10 +103,7 @@ export class AfenIO {
     return coords.file - 1 + (coords.rank - 1) * width
   }
 
-  constructor(
-    private board: NeoBoard,
-    private memoryAccess: NeoBoardMemoryAccess
-  ) {}
+  constructor(private board: Board, private memoryAccess: BoardMemoryAccess) {}
 
   public export(): Afen.RootNode {
     const memory = this.memoryAccess.getMemory()
@@ -132,9 +124,9 @@ export class AfenIO {
         ast.children.push({
           kind: 'piece',
           value: {
-            piece: AfenIO.typeToAfenPiece(NeoBoard.getType(memory[i])),
+            piece: AfenIO.typeToAfenPiece(Board.getType(memory[i])),
             allegiance: AfenIO.allegianceToAfenAllegiance(
-              NeoBoard.getAllegiance(memory[i])
+              Board.getAllegiance(memory[i])
             ),
           },
         })
