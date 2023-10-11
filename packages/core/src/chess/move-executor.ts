@@ -1,17 +1,13 @@
 import { Board } from './board'
-
-type Move = {
-  fromIndex: number
-  toIndex: number
-}
+import { Move } from './move-generators/utils'
 
 export class MoveExecutor {
   constructor(private board: Board) {}
 
   public executeMove(move: Move) {
-    const piece = this.board.getSquare(move.fromIndex)
+    const piece = this.board.getSquare(move.from)
 
-    this.board.setSquare(move.fromIndex, null)
-    this.board.setSquare(move.toIndex, piece)
+    this.board.setSquare(move.from, null)
+    this.board.setSquare(move.to, piece)
   }
 }

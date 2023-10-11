@@ -49,9 +49,8 @@ export class PawnMoveGenerator implements PieceMoveGenerator {
 
     const diagLeftVector =
       colour === Colour.White ? new Vector2(-1, 1) : new Vector2(1, -1)
-    const diagLeft = this.utils.board.getSquare(
-      this.utils.getIndexRelative(fromIndex, diagLeftVector)
-    )
+    const diagLeftIndex = this.utils.getIndexRelative(fromIndex, diagLeftVector)
+    const diagLeft = this.utils.board.getSquare(diagLeftIndex)
 
     if (diagLeft) {
       const diagLeftColour = Board.getColour(Board.getAllegiance(diagLeft))
@@ -68,9 +67,11 @@ export class PawnMoveGenerator implements PieceMoveGenerator {
 
     const diagRightVector =
       colour === Colour.White ? new Vector2(1, 1) : new Vector2(-1, -1)
-    const diagRight = this.utils.board.getSquare(
-      this.utils.getIndexRelative(fromIndex, diagRightVector)
+    const diagRightIndex = this.utils.getIndexRelative(
+      fromIndex,
+      diagRightVector
     )
+    const diagRight = this.utils.board.getSquare(diagRightIndex)
 
     if (diagRight) {
       const diagRightColour = Board.getColour(Board.getAllegiance(diagRight))
@@ -101,7 +102,45 @@ export class PawnMoveGenerator implements PieceMoveGenerator {
       result[result.length - 1].flags |= MoveFlag.IsPromotion
     }
 
-    // TODO: En passant
+    // En passant
+
+    if (diagRightIndex === this.utils.board.enPassantTarget) {
+      const rightVector =
+        colour === Colour.White ? new Vector2(1, 0) : new Vector2(-1, 0)
+      const rightIndex = this.utils.getIndexRelative(fromIndex, rightVector)
+      const right = this.utils.board.getSquare(rightIndex)
+
+      result.push({
+        flags: MoveFlag.IsCapture | MoveFlag.IsEnPassant,
+        from: fromIndex,
+        to: diagRightIndex,
+        undo: {
+          captures: {
+            index: rightIndex,
+            square: right,
+          },
+        },
+      })
+    }
+
+    if (diagLeftIndex === this.utils.board.enPassantTarget) {
+      const leftVector =
+        colour === Colour.White ? new Vector2(-1, 0) : new Vector2(1, 0)
+      const leftIndex = this.utils.getIndexRelative(fromIndex, leftVector)
+      const left = this.utils.board.getSquare(leftIndex)
+
+      result.push({
+        flags: MoveFlag.IsCapture | MoveFlag.IsEnPassant,
+        from: fromIndex,
+        to: diagLeftIndex,
+        undo: {
+          captures: {
+            index: leftIndex,
+            square: left,
+          },
+        },
+      })
+    }
 
     return result
   }

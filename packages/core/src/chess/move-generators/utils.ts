@@ -29,6 +29,13 @@ export type Move = {
   to: number
 
   flags: number
+
+  undo: null | {
+    captures: {
+      index: number
+      square: Square
+    }
+  }
 }
 
 export class MoveGeneratorUtilities {
@@ -107,6 +114,9 @@ export class MoveGeneratorUtilities {
         from: fromIndex,
         to: targetIndex,
         flags: targetPiece ? MoveFlag.IsCapture : MoveFlag.None,
+        undo: targetPiece
+          ? { captures: { index: targetIndex, square: targetPiece } }
+          : null,
       })
 
       if (targetPiece) {
@@ -170,6 +180,9 @@ export class MoveGeneratorUtilities {
       from: fromIndex,
       to: this.getIndexRelative(fromIndex, offset),
       flags: targetPiece ? MoveFlag.IsCapture : MoveFlag.None,
+      undo: targetPiece
+        ? { captures: { index: targetIndex, square: targetPiece } }
+        : null,
     })
   }
 }
