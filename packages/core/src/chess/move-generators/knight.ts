@@ -6,6 +6,10 @@ import { Move, MoveGeneratorUtilities } from './utils'
 export class KnightMoveGenerator implements PieceMoveGenerator {
   constructor(private utils: MoveGeneratorUtilities) {}
 
+  public generateAttackedIndexes(fromIndex: number, square: Square): number[] {
+    return this.generateMoves(fromIndex, square).map((move) => move.to)
+  }
+
   public generateMoves(fromIndex: number, fromSquare: Square): Move[] {
     const result: Move[] = []
 

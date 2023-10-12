@@ -10,4 +10,15 @@ export class MoveExecutor {
     this.board.setSquare(move.from, null)
     this.board.setSquare(move.to, piece)
   }
+
+  public undoMove(move: Move) {
+    const piece = this.board.getSquare(move.to)
+
+    this.board.setSquare(move.to, null)
+    this.board.setSquare(move.from, piece)
+
+    if (move.undo) {
+      this.board.setSquare(move.undo.captures.index, move.undo.captures.square)
+    }
+  }
 }

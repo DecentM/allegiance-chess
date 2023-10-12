@@ -30,4 +30,8 @@ export class BishopMoveGenerator implements PieceMoveGenerator {
       ),
     ]
   }
+
+  public generateAttackedIndexes(fromIndex: number, square: Square): number[] {
+    return this.generateMoves(fromIndex, square).map((move) => move.to)
+  }
 }

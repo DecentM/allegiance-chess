@@ -23,14 +23,14 @@ test('generates moves in the center', (t) => {
   const moves = g.generateMoves(36, square)
 
   t.deepEqual(moves, [
-    { flags: MoveFlag.None, from: 36, to: 53 },
-    { flags: MoveFlag.None, from: 36, to: 46 },
-    { flags: MoveFlag.None, from: 36, to: 30 },
-    { flags: MoveFlag.None, from: 36, to: 21 },
-    { flags: MoveFlag.None, from: 36, to: 19 },
-    { flags: MoveFlag.None, from: 36, to: 26 },
-    { flags: MoveFlag.None, from: 36, to: 42 },
-    { flags: MoveFlag.None, from: 36, to: 51 },
+    { flags: MoveFlag.None, from: 36, to: 53, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 36, to: 46, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 36, to: 30, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 36, to: 21, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 36, to: 19, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 36, to: 26, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 36, to: 42, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 36, to: 51, undo: null, promotion: null },
   ])
 })
 
@@ -44,10 +44,10 @@ test('generates moves on the left side', (t) => {
   const moves = g.generateMoves(32, square)
 
   t.deepEqual(moves, [
-    { flags: MoveFlag.None, from: 32, to: 49 },
-    { flags: MoveFlag.None, from: 32, to: 42 },
-    { flags: MoveFlag.None, from: 32, to: 26 },
-    { flags: MoveFlag.None, from: 32, to: 17 },
+    { flags: MoveFlag.None, from: 32, to: 49, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 32, to: 42, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 32, to: 26, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 32, to: 17, undo: null, promotion: null },
   ])
 })
 
@@ -60,10 +60,10 @@ test('generates moves on the right side', (t) => {
   const moves = g.generateMoves(31, square)
 
   t.deepEqual(moves, [
-    { flags: MoveFlag.None, from: 31, to: 14 },
-    { flags: MoveFlag.None, from: 31, to: 21 },
-    { flags: MoveFlag.None, from: 31, to: 37 },
-    { flags: MoveFlag.None, from: 31, to: 46 },
+    { flags: MoveFlag.None, from: 31, to: 14, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 31, to: 21, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 31, to: 37, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 31, to: 46, undo: null, promotion: null },
   ])
 })
 
@@ -76,10 +76,10 @@ test('generates moves on the bottom', (t) => {
   const moves = g.generateMoves(4, square)
 
   t.deepEqual(moves, [
-    { flags: MoveFlag.None, from: 4, to: 21 },
-    { flags: MoveFlag.None, from: 4, to: 14 },
-    { flags: MoveFlag.None, from: 4, to: 10 },
-    { flags: MoveFlag.None, from: 4, to: 19 },
+    { flags: MoveFlag.None, from: 4, to: 21, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 4, to: 14, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 4, to: 10, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 4, to: 19, undo: null, promotion: null },
   ])
 })
 
@@ -92,10 +92,10 @@ test('generates moves on the top', (t) => {
   const moves = g.generateMoves(60, square)
 
   t.deepEqual(moves, [
-    { flags: MoveFlag.None, from: 60, to: 54 },
-    { flags: MoveFlag.None, from: 60, to: 45 },
-    { flags: MoveFlag.None, from: 60, to: 43 },
-    { flags: MoveFlag.None, from: 60, to: 50 },
+    { flags: MoveFlag.None, from: 60, to: 54, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 60, to: 45, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 60, to: 43, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 60, to: 50, undo: null, promotion: null },
   ])
 })
 
@@ -108,8 +108,8 @@ test('generates moves in a corner', (t) => {
   const moves = g.generateMoves(63, square)
 
   t.deepEqual(moves, [
-    { flags: MoveFlag.None, from: 63, to: 46 },
-    { flags: MoveFlag.None, from: 63, to: 53 },
+    { flags: MoveFlag.None, from: 63, to: 46, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 63, to: 53, undo: null, promotion: null },
   ])
 })
 
@@ -123,5 +123,18 @@ test('generates moves that capture opposing pieces but not own ones', (t) => {
   const g = new TestKnightMoveGenerator(b)
   const moves = g.generateMoves(63, Piece.Type.Knight | Piece.Allegiance.Black)
 
-  t.deepEqual(moves, [{ flags: MoveFlag.IsCapture, from: 63, to: 53 }])
+  t.deepEqual(moves, [
+    {
+      flags: MoveFlag.IsCapture,
+      from: 63,
+      to: 53,
+      promotion: null,
+      undo: {
+        captures: {
+          index: 53,
+          square: Piece.Type.Pawn | Piece.Allegiance.LightGrey,
+        },
+      },
+    },
+  ])
 })

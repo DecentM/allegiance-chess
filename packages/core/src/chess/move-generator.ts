@@ -11,6 +11,7 @@ import { Move, MoveGeneratorUtilities } from './move-generators/utils'
 
 export interface PieceMoveGenerator {
   generateMoves(fromIndex: number, square: Square): Move[]
+  generateAttackedIndexes(fromIndex: number, square: Square): number[]
 }
 
 export class MoveGenerator {

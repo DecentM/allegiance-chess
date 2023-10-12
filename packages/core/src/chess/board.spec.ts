@@ -29,20 +29,31 @@ test('generates moves', (t) => {
   const moves = b.moveGenerator.generateMoves(0)
 
   t.deepEqual(moves, [
-    { flags: MoveFlag.None, from: 0, to: 8 },
-    { flags: MoveFlag.None, from: 0, to: 16 },
-    { flags: MoveFlag.None, from: 0, to: 24 },
-    { flags: MoveFlag.None, from: 0, to: 32 },
-    { flags: MoveFlag.None, from: 0, to: 40 },
-    { flags: MoveFlag.None, from: 0, to: 48 },
-    { flags: MoveFlag.None, from: 0, to: 56 },
-    { flags: MoveFlag.IsCapture, from: 0, to: 9 },
-    { flags: MoveFlag.None, from: 0, to: 1 },
-    { flags: MoveFlag.None, from: 0, to: 2 },
-    { flags: MoveFlag.None, from: 0, to: 3 },
-    { flags: MoveFlag.None, from: 0, to: 4 },
-    { flags: MoveFlag.None, from: 0, to: 5 },
-    { flags: MoveFlag.None, from: 0, to: 6 },
-    { flags: MoveFlag.None, from: 0, to: 7 },
+    { flags: MoveFlag.None, from: 0, to: 8, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 0, to: 16, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 0, to: 24, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 0, to: 32, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 0, to: 40, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 0, to: 48, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 0, to: 56, undo: null, promotion: null },
+    {
+      flags: MoveFlag.IsCapture,
+      from: 0,
+      to: 9,
+      undo: {
+        captures: {
+          index: 9,
+          square: Piece.Type.Queen | Piece.Allegiance.Black,
+        },
+      },
+      promotion: null,
+    },
+    { flags: MoveFlag.None, from: 0, to: 1, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 0, to: 2, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 0, to: 3, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 0, to: 4, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 0, to: 5, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 0, to: 6, undo: null, promotion: null },
+    { flags: MoveFlag.None, from: 0, to: 7, undo: null, promotion: null },
   ])
 })

@@ -1,5 +1,6 @@
 import { Vector2 } from '../../lib/vector2'
 import { Board, Square } from '../board'
+import * as Piece from '../piece'
 
 export const DirectionIndex = {
   North: 0,
@@ -18,10 +19,11 @@ export type DirectionIndex =
 type Octuple = [number, number, number, number, number, number, number, number]
 
 export enum MoveFlag {
-  None = 0b000,
-  IsCapture = 0b001,
-  IsEnPassant = 0b010,
-  IsPromotion = 0b100,
+  None = 0b0000,
+  IsCapture = 0b0001,
+  IsEnPassant = 0b0010,
+  IsPromotion = 0b0100,
+  IsCastle = 0b1000,
 }
 
 export type Move = {
@@ -29,6 +31,8 @@ export type Move = {
   to: number
 
   flags: number
+
+  promotion: null | Piece.Type
 
   undo: null | {
     captures: {
@@ -114,6 +118,7 @@ export class MoveGeneratorUtilities {
         from: fromIndex,
         to: targetIndex,
         flags: targetPiece ? MoveFlag.IsCapture : MoveFlag.None,
+        promotion: null,
         undo: targetPiece
           ? { captures: { index: targetIndex, square: targetPiece } }
           : null,
@@ -180,6 +185,7 @@ export class MoveGeneratorUtilities {
       from: fromIndex,
       to: this.getIndexRelative(fromIndex, offset),
       flags: targetPiece ? MoveFlag.IsCapture : MoveFlag.None,
+      promotion: null,
       undo: targetPiece
         ? { captures: { index: targetIndex, square: targetPiece } }
         : null,

@@ -1,5 +1,4 @@
-import { File, Rank } from '../notation/declarations'
-import { Coordinates } from '../notation/parser'
+import { Coordinates, File, Rank } from '../notation/declarations'
 
 export const getCoordsForIndex = (index: number): Coordinates => {
   return {
