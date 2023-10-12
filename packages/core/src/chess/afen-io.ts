@@ -206,7 +206,6 @@ export class AfenIO {
 
   public importAst(afen: Afen.RootNode) {
     let index = 0
-    const memory = this.memoryAccess.getMemory()
 
     for (const node of afen.children) {
       if (node.kind === 'skip') {
@@ -215,11 +214,14 @@ export class AfenIO {
       }
 
       if (node.kind === 'piece') {
-        memory[
+        const squareIndex =
           this.board.options.width * this.board.options.height - index - 1
-        ] =
+
+        this.board.setSquare(
+          squareIndex,
           AfenIO.afenPieceToType(node.value.piece) |
-          AfenIO.afenAllegianceToAllegiance(node.value.allegiance)
+            AfenIO.afenAllegianceToAllegiance(node.value.allegiance)
+        )
         index++
         continue
       }

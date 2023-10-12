@@ -1,4 +1,5 @@
 import { AfenIO } from './afen-io'
+import { Bitboards } from './bitboards'
 import { MoveExecutor } from './move-executor'
 import { MoveGenerator } from './move-generator'
 import * as Piece from './piece'
@@ -97,6 +98,8 @@ export class Board {
 
   public afen: AfenIO
 
+  public bitboards: Bitboards
+
   constructor(public readonly options: BoardOptions) {
     const memoryAccess = new BoardMemoryAccess(() => this.memory)
 
@@ -107,6 +110,7 @@ export class Board {
     this.executor = new MoveExecutor(this)
     this.moveGenerator = new MoveGenerator(this, memoryAccess)
     this.afen = new AfenIO(this, memoryAccess)
+    this.bitboards = new Bitboards()
   }
 
   public getSquare(index: number): Square {
@@ -115,6 +119,7 @@ export class Board {
 
   public setSquare(index: number, square: Square): void {
     this.memory[index] = square
+    this.bitboards.updateSquare(index, square)
   }
 
   /**
