@@ -144,7 +144,10 @@ export class PawnMoveGenerator implements PieceMoveGenerator {
 
     // En passant
 
-    if (diagRightIndex === this.utils.board.enPassantTarget) {
+    if (
+      diagRightIndex === this.utils.board.enPassantTarget &&
+      diagRightIndex !== -1
+    ) {
       const rightVector =
         colour === Colour.White ? new Vector2(1, 0) : new Vector2(-1, 0)
       const rightIndex = this.utils.getIndexRelative(fromIndex, rightVector)
@@ -164,7 +167,10 @@ export class PawnMoveGenerator implements PieceMoveGenerator {
       })
     }
 
-    if (diagLeftIndex === this.utils.board.enPassantTarget) {
+    if (
+      diagLeftIndex === this.utils.board.enPassantTarget &&
+      diagLeftIndex !== -1
+    ) {
       const leftVector =
         colour === Colour.White ? new Vector2(-1, 0) : new Vector2(1, 0)
       const leftIndex = this.utils.getIndexRelative(fromIndex, leftVector)

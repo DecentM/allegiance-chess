@@ -165,7 +165,6 @@ export class MoveGeneratorUtilities {
     result: Move[]
   ) {
     const targetIndex = this.getIndexRelative(fromIndex, offset)
-    const fromSide = Board.getColour(Board.getAllegiance(fromSquare))
 
     if (targetIndex === -1) {
       return
@@ -175,6 +174,7 @@ export class MoveGeneratorUtilities {
 
     if (targetPiece) {
       const targetSide = Board.getColour(Board.getAllegiance(targetPiece))
+      const fromSide = Board.getColour(Board.getAllegiance(fromSquare))
 
       if (targetSide === fromSide) {
         return

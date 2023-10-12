@@ -24,10 +24,7 @@ export enum CastlingRight {
 }
 
 export class BoardMemoryAccess {
-  constructor(
-    public getMemory: () => number[],
-    public setMemory: (newMemory: number[]) => void
-  ) {}
+  constructor(public getMemory: () => number[]) {}
 }
 
 export class Board {
@@ -101,19 +98,15 @@ export class Board {
   public afen: AfenIO
 
   constructor(public readonly options: BoardOptions) {
+    const memoryAccess = new BoardMemoryAccess(() => this.memory)
+
     this.memory = Array.from<Square>({
       length: options.width * options.height,
     }).fill(null)
 
     this.executor = new MoveExecutor(this)
-    this.moveGenerator = new MoveGenerator(this)
-    this.afen = new AfenIO(
-      this,
-      new BoardMemoryAccess(
-        () => this.memory,
-        (newMemory) => (this.memory = newMemory)
-      )
-    )
+    this.moveGenerator = new MoveGenerator(this, memoryAccess)
+    this.afen = new AfenIO(this, memoryAccess)
   }
 
   public getSquare(index: number): Square {

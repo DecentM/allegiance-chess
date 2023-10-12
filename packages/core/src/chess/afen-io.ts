@@ -105,7 +105,11 @@ export class AfenIO {
 
   constructor(private board: Board, private memoryAccess: BoardMemoryAccess) {}
 
-  public export(): Afen.RootNode {
+  public export() {
+    return Afen.write(this.exportAst())
+  }
+
+  public exportAst(): Afen.RootNode {
     const memory = this.memoryAccess.getMemory()
     const ast: Afen.RootNode = {
       kind: 'ast',
@@ -196,7 +200,11 @@ export class AfenIO {
     return ast
   }
 
-  public import(afen: Afen.RootNode) {
+  public import(input: string) {
+    this.importAst(Afen.parse(Afen.tokenize(input)))
+  }
+
+  public importAst(afen: Afen.RootNode) {
     let index = 0
     const memory = this.memoryAccess.getMemory()
 
@@ -207,7 +215,9 @@ export class AfenIO {
       }
 
       if (node.kind === 'piece') {
-        memory[index] =
+        memory[
+          this.board.options.width * this.board.options.height - index - 1
+        ] =
           AfenIO.afenPieceToType(node.value.piece) |
           AfenIO.afenAllegianceToAllegiance(node.value.allegiance)
         index++

@@ -3,6 +3,7 @@ import test from 'ava'
 import * as Piece from './piece'
 import { Colour, Board } from './board'
 import { MoveFlag } from './move-generators/utils'
+import { AfenPreset } from '../lib/afen-preset'
 
 test('sets squares', (t) => {
   const b = new Board({ height: 8, width: 8 })
@@ -26,7 +27,10 @@ test('generates moves', (t) => {
   b.setSquare(0, Board.square(Piece.Type.Queen | Piece.Allegiance.White))
   b.setSquare(9, Board.square(Piece.Type.Queen | Piece.Allegiance.Black))
 
-  const moves = b.moveGenerator.generateMoves(0)
+  const moves = b.moveGenerator.generateMoves(
+    0,
+    Piece.Type.Queen | Piece.Allegiance.White
+  )
 
   t.deepEqual(moves, [
     { flags: MoveFlag.None, from: 0, to: 8, undo: null, promotion: null },
@@ -56,4 +60,14 @@ test('generates moves', (t) => {
     { flags: MoveFlag.None, from: 0, to: 6, undo: null, promotion: null },
     { flags: MoveFlag.None, from: 0, to: 7, undo: null, promotion: null },
   ])
+})
+
+test('generates 20 moves for white on starting position', (t) => {
+  const b = new Board({ width: 8, height: 8 })
+
+  b.afen.import(AfenPreset.VanillaDefault)
+
+  const moves = b.moveGenerator.generateMovesForColour(Colour.White)
+
+  t.is(moves.length, 20)
 })

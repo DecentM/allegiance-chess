@@ -6,7 +6,7 @@ import { KnightMoveGenerator } from './move-generators/knight'
 import { PawnMoveGenerator } from './move-generators/pawn'
 import { QueenMoveGenerator } from './move-generators/queen'
 import { RookMoveGenerator } from './move-generators/rook'
-import { Board, Square } from './board'
+import { Board, BoardMemoryAccess, Colour, Square } from './board'
 import { Move, MoveGeneratorUtilities } from './move-generators/utils'
 
 export interface PieceMoveGenerator {
@@ -27,7 +27,7 @@ export class MoveGenerator {
 
   private rook: RookMoveGenerator
 
-  constructor(private board: Board) {
+  constructor(private board: Board, private memoryAccess: BoardMemoryAccess) {
     const utils = new MoveGeneratorUtilities(board)
 
     this.pawn = new PawnMoveGenerator(utils)
@@ -38,9 +38,24 @@ export class MoveGenerator {
     this.rook = new RookMoveGenerator(utils)
   }
 
-  public generateMoves(fromIndex: number): Move[] {
-    const square = this.board.getSquare(fromIndex)
+  public generateMovesForColour(colour: Colour) {
+    const memory = this.memoryAccess.getMemory()
+    const result: Move[] = []
 
+    for (let i = 0; i < memory.length; i++) {
+      const square = memory[i]
+
+      if (!square || Board.getColour(Board.getAllegiance(square)) !== colour) {
+        continue
+      }
+
+      result.push(...this.generateMoves(i, square))
+    }
+
+    return result
+  }
+
+  public generateMoves(fromIndex: number, square: Square): Move[] {
     switch (Board.getType(square)) {
       case Piece.Type.King:
         return this.king.generateMoves(fromIndex, square)
@@ -60,5 +75,7 @@ export class MoveGenerator {
       case Piece.Type.Rook:
         return this.rook.generateMoves(fromIndex, square)
     }
+
+    return []
   }
 }
