@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { onMounted, watch } from 'vue'
 
 import { useChessRtcConnection } from '../hooks/chess-rtc-connection'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useNotify } from '../hooks/notify'
 
 const chessRtcConnection = useChessRtcConnection()
 const router = useRouter()
+const route = useRoute()
+const { notify } = useNotify()
 
-watch(chessRtcConnection.open, (newValue) => {
-  if (!newValue) {
+watch(chessRtcConnection.state, (newValue) => {
+  if (newValue !== 'connected') {
     return
   }
 
@@ -17,8 +20,22 @@ watch(chessRtcConnection.open, (newValue) => {
       type: 'side-assignment',
       value: Math.random() > 0.5 ? 'white' : 'black',
     })
-  } else {
-    router.push(`/play/online/${chessRtcConnection.peerId.value}`)
+  }
+
+  router.push('/play/online')
+})
+
+onMounted(() => {
+  if (
+    chessRtcConnection.state.value !== 'connected' &&
+    route.path === '/play/online'
+  ) {
+    router.push('/play')
+    notify({
+      type: 'warning',
+      icon: 'link_off',
+      message: 'Not connected, redirecting to game setup',
+    })
   }
 })
 </script>

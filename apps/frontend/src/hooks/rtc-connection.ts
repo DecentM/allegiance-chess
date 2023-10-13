@@ -23,7 +23,7 @@ export type ErrorRtcMessage = RtcMessageBase & {
   type: 'error'
 }
 
-type StateRtcMessage = RtcMessageBase & {
+export type StateRtcMessage = RtcMessageBase & {
   value: RTCIceConnectionState
   type: 'state'
 }
@@ -113,8 +113,6 @@ export const useRtcConnection = (onMessage: (message: RtcMessage) => void) => {
       >
     ) => {
       onMessage({ type: 'error', value: error })
-
-      connection.value?.close()
     }
 
     const handleClose = () => {

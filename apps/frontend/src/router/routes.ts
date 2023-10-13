@@ -50,7 +50,7 @@ const routes: RouteRecordRaw[] = [
             },
           },
           {
-            path: 'online/:peerId',
+            path: 'online',
             component: () => import('pages/play/online-game.vue'),
           },
           {

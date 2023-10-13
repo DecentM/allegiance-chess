@@ -5,10 +5,10 @@ import {
   DataRtcMessage,
   ErrorRtcMessage,
   RtcMessage,
+  StateRtcMessage,
   useRtcConnection,
 } from './rtc-connection'
 import { useNotify } from './notify'
-import { useRouter } from 'vue-router'
 
 type ExecuteNodeIndexMessage = {
   type: 'execute-node-index'
@@ -26,7 +26,7 @@ export type ChessRtcConnection = {
   connect: (connectId: string) => void
   peerId: Ref<string | null>
   sendMessage: (message: ChessMessage) => void
-  open: Ref<boolean>
+  state: Ref<'not-ready' | 'ready' | 'connected'>
   disconnect: () => void
 
   serverSide: Ref<'white' | 'black' | null>
@@ -36,19 +36,18 @@ export type ChessRtcConnection = {
 
 export const useChessRtcConnection = (): ChessRtcConnection => {
   const { notify } = useNotify()
-  const router = useRouter()
 
   const sendMessage = (message: ChessMessage) => {
     sendData(Buffer.from(JSON.stringify(message), 'utf8'))
   }
 
   const serverSide: Ref<'white' | 'black'> = ref('white')
-  const open = ref(false)
   const moveHistory = ref<number[]>([])
 
+  const state = ref<'not-ready' | 'ready' | 'connected'>('not-ready')
+
   const receiveOpenMessage = () => {
-    open.value = true
-    router.push(`/play/online/${peerId.value}`)
+    state.value = 'connected'
   }
 
   const receiveDataMessage = (rtcMessage: DataRtcMessage) => {
@@ -87,7 +86,23 @@ export const useChessRtcConnection = (): ChessRtcConnection => {
 
   const receiveCloseMessage = () => {
     notify({ message: 'Connection closed', icon: 'link_off' })
-    router.push('/play')
+    state.value = 'ready'
+  }
+
+  const receiveStateMessage = (rtcMessage: StateRtcMessage) => {
+    switch (rtcMessage.value) {
+      case 'closed':
+        state.value = 'ready'
+        break
+
+      case 'connected':
+        state.value = 'connected'
+        break
+
+      case 'disconnected':
+        state.value = 'ready'
+        break
+    }
   }
 
   const receiveErrorMessage = (message: ErrorRtcMessage) => {
@@ -105,6 +120,7 @@ export const useChessRtcConnection = (): ChessRtcConnection => {
       icon: 'check',
       iconColor: 'green',
     })
+    state.value = 'ready'
   }
 
   const receiveRejectedMessage = () => {
@@ -116,12 +132,14 @@ export const useChessRtcConnection = (): ChessRtcConnection => {
   }
 
   const receiveAcceptedMessage = () => {
-    notify({ message: 'Connected to peer', icon: 'link' })
-    router.push(`/play/online/${peerId.value}`)
+    notify({ message: 'Peer connection accepted', icon: 'link' })
+    state.value = 'connected'
   }
 
   const receiveClosedMessage = () => {
     notify({ message: 'WebRTC connection closed', icon: 'link_off' })
+    state.value = 'not-ready'
+    peerId.value = null
   }
 
   const receiveMessage = (rtcMessage: RtcMessage) => {
@@ -134,6 +152,9 @@ export const useChessRtcConnection = (): ChessRtcConnection => {
 
       case 'close':
         return receiveCloseMessage()
+
+      case 'state':
+        return receiveStateMessage(rtcMessage)
 
       case 'error':
         return receiveErrorMessage(rtcMessage)
@@ -159,7 +180,7 @@ export const useChessRtcConnection = (): ChessRtcConnection => {
     connect,
     peerId,
     sendMessage,
-    open,
+    state,
     disconnect,
     serverSide,
     moveHistory,
