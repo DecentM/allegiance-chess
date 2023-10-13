@@ -77,19 +77,5 @@ test('updates bitboard for starting position', (t) => {
 
   b.afen.import(AfenPreset.VanillaDefault)
 
-  t.deepEqual(
-    { ...b.bitboards },
-    {
-      bishops: 2594073385365405732n,
-      black: 18446462598732840960n,
-      darkGrey: 0n,
-      kings: 576460752303423496n,
-      knights: 4755801206503243842n,
-      lightGrey: 0n,
-      pawns: 71776119061282560n,
-      queens: 1152921504606846992n,
-      rooks: 9295429630892703873n,
-      white: 65535n,
-    }
-  )
+  t.snapshot(b.bitboards)
 })

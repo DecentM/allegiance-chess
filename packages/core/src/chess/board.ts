@@ -145,7 +145,9 @@ export class Board {
         const type = Board.getType(square)
         const allegiance = Board.getAllegiance(square)
 
-        result += ` ${Piece.Type[type][0]}${Piece.Allegiance[allegiance][0]} `
+        result += ` ${
+          AfenIO.typeToAfenPiece(type) || 'P'
+        }${AfenIO.allegianceToAfenAllegiance(allegiance)} `
       }
     }
 

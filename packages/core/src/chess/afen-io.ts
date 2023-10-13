@@ -6,7 +6,7 @@ import * as Piece from './piece'
 import * as Afen from '../afen'
 
 export class AfenIO {
-  private static typeToAfenPiece(type: Piece.Type): Afen.Piece {
+  public static typeToAfenPiece(type: Piece.Type): Afen.Piece {
     switch (type) {
       case Piece.Type.Bishop:
         return 'B'
@@ -50,7 +50,7 @@ export class AfenIO {
     }
   }
 
-  private static allegianceToAfenAllegiance(
+  public static allegianceToAfenAllegiance(
     allegiance: Piece.Allegiance
   ): Afen.Allegiance {
     switch (allegiance) {
@@ -118,29 +118,41 @@ export class AfenIO {
 
     let skip = 0
 
-    for (let i = 0; i < memory.length; i++) {
-      if (memory[i]) {
-        if (skip) {
+    for (
+      let rankIndex = this.board.options.height - 1;
+      rankIndex >= 0;
+      rankIndex--
+    ) {
+      for (
+        let fileIndex = 0;
+        fileIndex < this.board.options.width;
+        fileIndex++
+      ) {
+        const i = rankIndex * this.board.options.width + fileIndex
+
+        if (memory[i]) {
+          if (skip) {
+            ast.children.push({ kind: 'skip', value: skip })
+            skip = 0
+          }
+
+          ast.children.push({
+            kind: 'piece',
+            value: {
+              piece: AfenIO.typeToAfenPiece(Board.getType(memory[i])),
+              allegiance: AfenIO.allegianceToAfenAllegiance(
+                Board.getAllegiance(memory[i])
+              ),
+            },
+          })
+        } else {
+          skip++
+        }
+
+        if ((i + 1) % 8 === 0 && skip) {
           ast.children.push({ kind: 'skip', value: skip })
           skip = 0
         }
-
-        ast.children.push({
-          kind: 'piece',
-          value: {
-            piece: AfenIO.typeToAfenPiece(Board.getType(memory[i])),
-            allegiance: AfenIO.allegianceToAfenAllegiance(
-              Board.getAllegiance(memory[i])
-            ),
-          },
-        })
-      } else {
-        skip++
-      }
-
-      if ((i + 1) % 8 === 0 && skip) {
-        ast.children.push({ kind: 'skip', value: skip })
-        skip = 0
       }
     }
 
@@ -205,24 +217,29 @@ export class AfenIO {
   }
 
   public importAst(afen: Afen.RootNode) {
-    let index = 0
+    let rankIndex = this.board.options.height - 1
+    let fileIndex = 0
 
     for (const node of afen.children) {
+      if (fileIndex >= this.board.options.width) {
+        rankIndex--
+        fileIndex = 0
+      }
+
       if (node.kind === 'skip') {
-        index += node.value
+        fileIndex += node.value
         continue
       }
 
       if (node.kind === 'piece') {
-        const squareIndex =
-          this.board.options.width * this.board.options.height - index - 1
+        const squareIndex = rankIndex * this.board.options.width + fileIndex
 
         this.board.setSquare(
           squareIndex,
           AfenIO.afenPieceToType(node.value.piece) |
             AfenIO.afenAllegianceToAllegiance(node.value.allegiance)
         )
-        index++
+        fileIndex++
         continue
       }
 
