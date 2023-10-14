@@ -5,28 +5,38 @@ import { DirectionIndex, Move, MoveGeneratorUtilities } from './utils'
 export class RookMoveGenerator implements PieceMoveGenerator {
   constructor(private utils: MoveGeneratorUtilities) {}
 
-  public generateMoves(fromIndex: number, fromSquare: Square): Move[] {
+  public generateAttackedIndexes(fromIndex: number, square: Square): number[] {
     return [
-      ...this.utils.generateSlidingMoves(
+      ...this.utils.generateSlidingAttackedIndexes(
         fromIndex,
-        fromSquare,
+        square,
         DirectionIndex.North
       ),
-      ...this.utils.generateSlidingMoves(
+      ...this.utils.generateSlidingAttackedIndexes(
         fromIndex,
-        fromSquare,
+        square,
         DirectionIndex.East
       ),
-      ...this.utils.generateSlidingMoves(
+      ...this.utils.generateSlidingAttackedIndexes(
         fromIndex,
-        fromSquare,
+        square,
         DirectionIndex.South
       ),
-      ...this.utils.generateSlidingMoves(
+      ...this.utils.generateSlidingAttackedIndexes(
         fromIndex,
-        fromSquare,
+        square,
         DirectionIndex.West
       ),
     ]
+  }
+
+  public generateMoves(fromIndex: number, fromSquare: Square): Move[] {
+    return this.generateAttackedIndexes(fromIndex, fromSquare).map((index) => {
+      return this.utils.generateMove(
+        fromIndex,
+        index,
+        this.utils.board.getSquare(index)
+      )
+    })
   }
 }

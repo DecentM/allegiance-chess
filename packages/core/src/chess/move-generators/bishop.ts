@@ -7,31 +7,37 @@ export class BishopMoveGenerator implements PieceMoveGenerator {
   constructor(private utils: MoveGeneratorUtilities) {}
 
   public generateMoves(fromIndex: number, fromSquare: Square): Move[] {
-    return [
-      ...this.utils.generateSlidingMoves(
+    return this.generateAttackedIndexes(fromIndex, fromSquare).map((index) => {
+      return this.utils.generateMove(
         fromIndex,
-        fromSquare,
-        DirectionIndex.NorthEast
-      ),
-      ...this.utils.generateSlidingMoves(
-        fromIndex,
-        fromSquare,
-        DirectionIndex.SouthEast
-      ),
-      ...this.utils.generateSlidingMoves(
-        fromIndex,
-        fromSquare,
-        DirectionIndex.SouthWest
-      ),
-      ...this.utils.generateSlidingMoves(
-        fromIndex,
-        fromSquare,
-        DirectionIndex.NorthWest
-      ),
-    ]
+        index,
+        this.utils.board.getSquare(index)
+      )
+    })
   }
 
   public generateAttackedIndexes(fromIndex: number, square: Square): number[] {
-    return this.generateMoves(fromIndex, square).map((move) => move.to)
+    return [
+      ...this.utils.generateSlidingAttackedIndexes(
+        fromIndex,
+        square,
+        DirectionIndex.NorthEast
+      ),
+      ...this.utils.generateSlidingAttackedIndexes(
+        fromIndex,
+        square,
+        DirectionIndex.SouthEast
+      ),
+      ...this.utils.generateSlidingAttackedIndexes(
+        fromIndex,
+        square,
+        DirectionIndex.SouthWest
+      ),
+      ...this.utils.generateSlidingAttackedIndexes(
+        fromIndex,
+        square,
+        DirectionIndex.NorthWest
+      ),
+    ]
   }
 }

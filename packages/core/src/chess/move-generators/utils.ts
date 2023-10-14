@@ -96,13 +96,12 @@ export class MoveGeneratorUtilities {
     return this.distanceLookup[index][direction]
   }
 
-  public generateSlidingMoves(
+  public generateSlidingAttackedIndexes(
     fromIndex: number,
     fromSquare: Square,
     direction: DirectionIndex
-  ): Move[] {
-    const result: Move[] = []
-
+  ): number[] {
+    const result: number[] = []
     const fromSide = Board.getColour(Board.getAllegiance(fromSquare))
 
     for (let i = 0; i < this.distanceLookup[fromIndex][direction]; i++) {
@@ -114,15 +113,7 @@ export class MoveGeneratorUtilities {
         break
       }
 
-      result.push({
-        from: fromIndex,
-        to: targetIndex,
-        flags: targetPiece ? MoveFlag.IsCapture : MoveFlag.None,
-        promotion: null,
-        undo: targetPiece
-          ? { captures: { index: targetIndex, square: targetPiece } }
-          : null,
-      })
+      result.push(targetIndex)
 
       if (targetPiece) {
         break
@@ -130,6 +121,22 @@ export class MoveGeneratorUtilities {
     }
 
     return result
+  }
+
+  public generateMove(
+    fromIndex: number,
+    toIndex: number,
+    toSquare: Square
+  ): Move {
+    return {
+      from: fromIndex,
+      to: toIndex,
+      flags: toSquare ? MoveFlag.IsCapture : MoveFlag.None,
+      promotion: null,
+      undo: toSquare
+        ? { captures: { index: toIndex, square: toSquare } }
+        : null,
+    }
   }
 
   public getIndexRelative(fromIndex: number, offset: Vector2) {
@@ -158,16 +165,15 @@ export class MoveGeneratorUtilities {
     return fromIndex + yOffset + xOffset
   }
 
-  public generateWithOffset(
+  public generateIndexWithOffset(
     fromIndex: number,
     fromSquare: Square,
-    offset: Vector2,
-    result: Move[]
-  ) {
+    offset: Vector2
+  ): number {
     const targetIndex = this.getIndexRelative(fromIndex, offset)
 
     if (targetIndex === -1) {
-      return
+      return -1
     }
 
     const targetPiece = this.board.getSquare(targetIndex)
@@ -177,18 +183,10 @@ export class MoveGeneratorUtilities {
       const fromSide = Board.getColour(Board.getAllegiance(fromSquare))
 
       if (targetSide === fromSide) {
-        return
+        return -1
       }
     }
 
-    result.push({
-      from: fromIndex,
-      to: this.getIndexRelative(fromIndex, offset),
-      flags: targetPiece ? MoveFlag.IsCapture : MoveFlag.None,
-      promotion: null,
-      undo: targetPiece
-        ? { captures: { index: targetIndex, square: targetPiece } }
-        : null,
-    })
+    return targetIndex
   }
 }

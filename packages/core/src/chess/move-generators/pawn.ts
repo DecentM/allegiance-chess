@@ -80,26 +80,18 @@ export class PawnMoveGenerator implements PieceMoveGenerator {
     const inFront = this.utils.board.getSquare(inFrontIndex)
 
     if (!inFront && !isBeforeLastRank) {
-      this.utils.generateWithOffset(
-        fromIndex,
-        fromSquare,
-        inFrontVector,
-        result
-      )
+      result.push(this.utils.generateMove(fromIndex, inFrontIndex, inFront))
 
       const inFront2Vector =
         colour === Colour.White ? new Vector2(0, 2) : new Vector2(0, -2)
-      const inFront2 = this.utils.board.getSquare(
-        this.utils.getIndexRelative(fromIndex, inFront2Vector)
+      const inFront2Index = this.utils.getIndexRelative(
+        fromIndex,
+        inFront2Vector
       )
+      const inFront2 = this.utils.board.getSquare(inFront2Index)
 
       if (isStartPosition && !inFront2) {
-        this.utils.generateWithOffset(
-          fromIndex,
-          fromSquare,
-          inFront2Vector,
-          result
-        )
+        result.push(this.utils.generateMove(fromIndex, inFront2Index, inFront2))
       }
     }
 
@@ -112,12 +104,7 @@ export class PawnMoveGenerator implements PieceMoveGenerator {
       const diagLeftColour = Board.getColour(Board.getAllegiance(diagLeft))
 
       if (diagLeftColour !== colour) {
-        this.utils.generateWithOffset(
-          fromIndex,
-          fromSquare,
-          diagLeftVector,
-          result
-        )
+        result.push(this.utils.generateMove(fromIndex, diagLeftIndex, diagLeft))
       }
     }
 
@@ -133,11 +120,8 @@ export class PawnMoveGenerator implements PieceMoveGenerator {
       const diagRightColour = Board.getColour(Board.getAllegiance(diagRight))
 
       if (diagRightColour !== colour) {
-        this.utils.generateWithOffset(
-          fromIndex,
-          fromSquare,
-          diagRightVector,
-          result
+        result.push(
+          this.utils.generateMove(fromIndex, diagRightIndex, diagRight)
         )
       }
     }

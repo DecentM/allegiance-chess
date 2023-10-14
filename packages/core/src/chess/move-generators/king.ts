@@ -9,73 +9,90 @@ import * as Piece from '../piece'
 export class KingMoveGenerator implements PieceMoveGenerator {
   constructor(private utils: MoveGeneratorUtilities) {}
 
-  public generateAttackedIndexes(fromIndex: number): number[] {
+  public generateAttackedIndexes(
+    fromIndex: number,
+    fromSquare: Square
+  ): number[] {
+    const colour = Board.getColour(Board.getAllegiance(fromSquare))
+
     const result: number[] = []
 
-    result.push(this.utils.getIndexRelative(fromIndex, new Vector2(0, 1)))
-    result.push(this.utils.getIndexRelative(fromIndex, new Vector2(1, 1)))
-    result.push(this.utils.getIndexRelative(fromIndex, new Vector2(1, 0)))
-    result.push(this.utils.getIndexRelative(fromIndex, new Vector2(1, -1)))
-    result.push(this.utils.getIndexRelative(fromIndex, new Vector2(0, -1)))
-    result.push(this.utils.getIndexRelative(fromIndex, new Vector2(-1, -1)))
-    result.push(this.utils.getIndexRelative(fromIndex, new Vector2(-1, 0)))
-    result.push(this.utils.getIndexRelative(fromIndex, new Vector2(-1, 1)))
+    const n = this.utils.getIndexRelative(fromIndex, new Vector2(0, 1))
+    const ne = this.utils.getIndexRelative(fromIndex, new Vector2(1, 1))
+    const e = this.utils.getIndexRelative(fromIndex, new Vector2(1, 0))
+    const se = this.utils.getIndexRelative(fromIndex, new Vector2(1, -1))
+    const s = this.utils.getIndexRelative(fromIndex, new Vector2(0, -1))
+    const sw = this.utils.getIndexRelative(fromIndex, new Vector2(-1, -1))
+    const w = this.utils.getIndexRelative(fromIndex, new Vector2(-1, 0))
+    const nw = this.utils.getIndexRelative(fromIndex, new Vector2(-1, 1))
 
-    return result.filter((index) => index !== -1)
+    const ns = this.utils.board.getSquare(n)
+    const nes = this.utils.board.getSquare(ne)
+    const es = this.utils.board.getSquare(e)
+    const ses = this.utils.board.getSquare(se)
+    const ss = this.utils.board.getSquare(s)
+    const sws = this.utils.board.getSquare(sw)
+    const ws = this.utils.board.getSquare(w)
+    const nws = this.utils.board.getSquare(nw)
+
+    if (
+      n !== -1 &&
+      (!ns || Board.getColour(Board.getAllegiance(ns)) !== colour)
+    )
+      result.push(n)
+    if (
+      ne !== -1 &&
+      (!nes || Board.getColour(Board.getAllegiance(nes)) !== colour)
+    )
+      result.push(ne)
+    if (
+      e !== -1 &&
+      (!es || Board.getColour(Board.getAllegiance(es)) !== colour)
+    )
+      result.push(e)
+    if (
+      se !== -1 &&
+      (!ses || Board.getColour(Board.getAllegiance(ses)) !== colour)
+    )
+      result.push(se)
+    if (
+      s !== -1 &&
+      (!ss || Board.getColour(Board.getAllegiance(ss)) !== colour)
+    )
+      result.push(s)
+    if (
+      sw !== -1 &&
+      (!sws || Board.getColour(Board.getAllegiance(sws)) !== colour)
+    )
+      result.push(sw)
+    if (
+      w !== -1 &&
+      (!ws || Board.getColour(Board.getAllegiance(ws)) !== colour)
+    )
+      result.push(w)
+    if (
+      nw !== -1 &&
+      (!nws || Board.getColour(Board.getAllegiance(nws)) !== colour)
+    )
+      result.push(nw)
+
+    return result
   }
 
   public generateMoves(fromIndex: number, fromSquare: Square): Move[] {
     const result: Move[] = []
     const colour = Board.getColour(Board.getAllegiance(fromSquare))
+    const attackedIndexes = this.generateAttackedIndexes(fromIndex, fromSquare)
 
-    this.utils.generateWithOffset(
-      fromIndex,
-      fromSquare,
-      new Vector2(0, 1),
-      result
-    )
-    this.utils.generateWithOffset(
-      fromIndex,
-      fromSquare,
-      new Vector2(1, 1),
-      result
-    )
-    this.utils.generateWithOffset(
-      fromIndex,
-      fromSquare,
-      new Vector2(1, 0),
-      result
-    )
-    this.utils.generateWithOffset(
-      fromIndex,
-      fromSquare,
-      new Vector2(1, -1),
-      result
-    )
-    this.utils.generateWithOffset(
-      fromIndex,
-      fromSquare,
-      new Vector2(0, -1),
-      result
-    )
-    this.utils.generateWithOffset(
-      fromIndex,
-      fromSquare,
-      new Vector2(-1, -1),
-      result
-    )
-    this.utils.generateWithOffset(
-      fromIndex,
-      fromSquare,
-      new Vector2(-1, 0),
-      result
-    )
-    this.utils.generateWithOffset(
-      fromIndex,
-      fromSquare,
-      new Vector2(-1, 1),
-      result
-    )
+    for (const attackedIndex of attackedIndexes) {
+      result.push(
+        this.utils.generateMove(
+          fromIndex,
+          attackedIndex,
+          this.utils.board.getSquare(attackedIndex)
+        )
+      )
+    }
 
     const kingCastling = this.utils.board.hasCastlingRight(
       colour === Colour.White
