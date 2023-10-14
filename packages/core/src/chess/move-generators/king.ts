@@ -79,12 +79,18 @@ export class KingMoveGenerator implements PieceMoveGenerator {
     return result
   }
 
-  public generateMoves(fromIndex: number, fromSquare: Square): Move[] {
+  public generateMoves(
+    fromIndex: number,
+    fromSquare: Square,
+    attackedIndexesByOpponent: number[]
+  ): Move[] {
     const result: Move[] = []
     const colour = Board.getColour(Board.getAllegiance(fromSquare))
-    const attackedIndexes = this.generateAttackedIndexes(fromIndex, fromSquare)
 
-    for (const attackedIndex of attackedIndexes) {
+    for (const attackedIndex of this.generateAttackedIndexes(
+      fromIndex,
+      fromSquare
+    )) {
       result.push(
         this.utils.generateMove(
           fromIndex,
@@ -107,63 +113,63 @@ export class KingMoveGenerator implements PieceMoveGenerator {
     const homeRank =
       colour === Colour.White ? 1 : (this.utils.board.options.height as Rank)
 
-    const a = this.utils.board.getSquare(
-      getIndexForCoords({ file: 1, rank: homeRank })
-    )
-    const b = this.utils.board.getSquare(
-      getIndexForCoords({ file: 2, rank: homeRank })
-    )
-    const c = this.utils.board.getSquare(
-      getIndexForCoords({ file: 3, rank: homeRank })
-    )
-    const d = this.utils.board.getSquare(
-      getIndexForCoords({ file: 4, rank: homeRank })
-    )
-    const f = this.utils.board.getSquare(
-      getIndexForCoords({ file: 6, rank: homeRank })
-    )
-    const g = this.utils.board.getSquare(
-      getIndexForCoords({ file: 7, rank: homeRank })
-    )
-    const h = this.utils.board.getSquare(
-      getIndexForCoords({ file: 8, rank: homeRank })
-    )
+    if (kingCastling) {
+      const fIndex = getIndexForCoords({ file: 6, rank: homeRank })
+      const f = this.utils.board.getSquare(fIndex)
+      const gIndex = getIndexForCoords({ file: 7, rank: homeRank })
+      const g = this.utils.board.getSquare(gIndex)
+      const hIndex = getIndexForCoords({ file: 8, rank: homeRank })
+      const h = this.utils.board.getSquare(hIndex)
 
-    // TODO: No castling through checked indices
-
-    if (
-      kingCastling &&
-      !f &&
-      !g &&
-      h &&
-      Board.getType(h) === Piece.Type.Rook &&
-      Board.getColour(Board.getAllegiance(h)) === colour
-    ) {
-      result.push({
-        flags: MoveFlag.IsCastle,
-        promotion: null,
-        undo: null,
-        from: fromIndex,
-        to: this.utils.getIndexRelative(fromIndex, new Vector2(2, 0)),
-      })
+      if (
+        !f &&
+        !g &&
+        h &&
+        !attackedIndexesByOpponent.includes(fIndex) &&
+        !attackedIndexesByOpponent.includes(gIndex) &&
+        Board.getType(h) === Piece.Type.Rook &&
+        Board.getColour(Board.getAllegiance(h)) === colour
+      ) {
+        result.push({
+          flags: MoveFlag.IsCastle,
+          promotion: null,
+          undo: null,
+          from: fromIndex,
+          to: this.utils.getIndexRelative(fromIndex, new Vector2(2, 0)),
+        })
+      }
     }
 
-    if (
-      queenCastling &&
-      !b &&
-      !c &&
-      !d &&
-      a &&
-      Board.getType(a) === Piece.Type.Rook &&
-      Board.getColour(Board.getAllegiance(a)) === colour
-    ) {
-      result.push({
-        flags: MoveFlag.IsCastle,
-        promotion: null,
-        undo: null,
-        from: fromIndex,
-        to: this.utils.getIndexRelative(fromIndex, new Vector2(-2, 0)),
-      })
+    if (queenCastling) {
+      const a = this.utils.board.getSquare(
+        getIndexForCoords({ file: 1, rank: homeRank })
+      )
+      const bIndex = getIndexForCoords({ file: 2, rank: homeRank })
+      const b = this.utils.board.getSquare(bIndex)
+      const cIndex = getIndexForCoords({ file: 3, rank: homeRank })
+      const c = this.utils.board.getSquare(cIndex)
+      const dIndex = getIndexForCoords({ file: 4, rank: homeRank })
+      const d = this.utils.board.getSquare(dIndex)
+
+      if (
+        !b &&
+        !c &&
+        !d &&
+        a &&
+        !attackedIndexesByOpponent.includes(bIndex) &&
+        !attackedIndexesByOpponent.includes(cIndex) &&
+        !attackedIndexesByOpponent.includes(dIndex) &&
+        Board.getType(a) === Piece.Type.Rook &&
+        Board.getColour(Board.getAllegiance(a)) === colour
+      ) {
+        result.push({
+          flags: MoveFlag.IsCastle,
+          promotion: null,
+          undo: null,
+          from: fromIndex,
+          to: this.utils.getIndexRelative(fromIndex, new Vector2(-2, 0)),
+        })
+      }
     }
 
     return result
