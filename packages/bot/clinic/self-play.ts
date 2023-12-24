@@ -1,7 +1,7 @@
 import { AfenPreset, Board, Notation } from '@decentm/allegiance-chess-core'
 import { randomBytes } from 'node:crypto'
 
-import { findBestMove } from '../src/engine'
+import { TranspositionTable, findBestMove } from '../src/engine'
 import * as Openings from '../src/engine/openings'
 
 const b = new Board()
@@ -9,6 +9,8 @@ const b = new Board()
 b.importAFEN(AfenPreset.VanillaDefault)
 
 const _seed = randomBytes(8).toString('hex')
+
+const transpositionTable: TranspositionTable = new Map()
 
 // eslint-disable-next-line no-constant-condition
 while (true) {
@@ -23,7 +25,7 @@ while (true) {
     }
   }
 
-  const { index, score, seed } = findBestMove(b, 3, _seed)
+  const { index, score, seed } = findBestMove(b, 3, transpositionTable, _seed)
 
   if (index === -1) {
     console.log('No moves!')
@@ -41,6 +43,7 @@ while (true) {
     openings.length < 10 ? openings.join(', ') : openings.length,
     '\n'
   )
+  console.log('TT size:', transpositionTable.size, '\n')
   console.log(b.dump(), '\n')
   console.log(b.getMoveHistory())
 }
