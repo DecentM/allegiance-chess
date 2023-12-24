@@ -59,7 +59,7 @@ export const useBoardWorker = (input: UseBoardWorkerInput) => {
         moveHistoryAst.value = message.moveHistoryAst
         squares.value = message.squares
 
-        if (message.openings.length === 1) {
+        if (message.openings.length !== 0) {
           opening.value = message.openings[0]
         }
 
