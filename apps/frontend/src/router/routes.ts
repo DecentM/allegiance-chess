@@ -69,6 +69,14 @@ const routes: RouteRecordRaw[] = [
               icon: 'precision_manufacturing',
             },
           },
+          {
+            path: 'watch-bots',
+            component: () => import('pages/play/watch-bots.vue'),
+            meta: {
+              title: 'Watch bots play',
+              icon: 'precision_manufacturing',
+            },
+          },
         ],
       },
     ],
