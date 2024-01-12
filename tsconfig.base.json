@@ -17,8 +17,8 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@decentm/allegiance-chess-core": ["packages/core/src/index.ts"],
-      "@decentm/allegiance-chess-bot": ["packages/bot/src/index.ts"]
+      "@decentm/allegiance-chess-bot": ["packages/bot/src/index.ts"],
+      "@decentm/allegiance-chess-core": ["packages/core/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

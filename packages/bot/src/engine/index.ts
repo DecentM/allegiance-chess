@@ -67,20 +67,19 @@ export const getBoardScore = (board: Board) => {
 type SearchResult = {
   score: number
   index: number
-  seed: string
   path?: string
 }
 
 type TranspositionTable = Map<string, SearchResult>
 
-const TRANSPOSITION_TABLE_LIMIT = 10240
+const TRANSPOSITION_TABLE_LIMIT = 1024000
 
 export class Bot {
   private transpositionTable: TranspositionTable = new Map()
 
   public readonly board: Board
 
-  constructor() {
+  constructor(private seed: string = String(Math.random())) {
     this.board = new Board()
     this.board.importAFEN(AfenPreset.VanillaDefault)
   }
@@ -93,18 +92,16 @@ export class Bot {
 
   public findBestMove(
     depth: number,
-    seed = String(Math.random()),
-    rng = seedrandom(seed),
+    rng = seedrandom(this.seed),
     maxDepth = depth
   ) {
-    return this._findBestMove(this.board, depth, seed, rng, maxDepth)
+    return this._findBestMove(this.board, depth, rng, maxDepth)
   }
 
   private _findBestMove = (
     board: Board,
     depth: number,
-    seed = String(Math.random()),
-    rng = seedrandom(seed),
+    rng = seedrandom(this.seed),
     maxDepth = depth
   ): SearchResult => {
     const moves = board.getValidMoves()
@@ -145,7 +142,7 @@ export class Bot {
       virtualBoard.executeNode(move)
 
       // Default jitter to avoid playing the same moves every game
-      let score = rng() - 0.5
+      let score = (rng() - 0.5) / 5
 
       // Prefer to play known openings
       // if (depth === maxDepth) {
@@ -182,13 +179,7 @@ export class Bot {
         let subResult = this.transpositionTable.get(virtualBoardAFEN)
 
         if (!subResult) {
-          subResult = this._findBestMove(
-            virtualBoard,
-            depth - 1,
-            seed,
-            rng,
-            maxDepth
-          )
+          subResult = this._findBestMove(virtualBoard, depth - 1, rng, maxDepth)
 
           this.transpositionTable.set(virtualBoardAFEN, subResult)
         }
@@ -215,7 +206,6 @@ export class Bot {
       const result: SearchResult = {
         score,
         index,
-        seed,
         path,
       }
 
