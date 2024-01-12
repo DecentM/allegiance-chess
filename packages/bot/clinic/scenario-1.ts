@@ -1,16 +1,18 @@
-import { Board, Notation } from '@decentm/allegiance-chess-core'
-import { findBestMove } from '../src/engine'
+import { Notation } from '@decentm/allegiance-chess-core'
+import { Bot } from '../src/engine'
 
-const b = new Board()
+const bot = new Bot()
 
-b.importAFEN('rnbqkbnr/ppp1pppp/8/3p4/8/2N5/PPPPPPPP/R1BQKBNR w KQkq d6 0 1')
-b.importMoveHistory('1. b1c3 d7d5')
+bot.board.importAFEN(
+  'rnbqkbnr/ppp1pppp/8/3p4/8/2N5/PPPPPPPP/R1BQKBNR w KQkq d6 0 1'
+)
+bot.board.importMoveHistory('1. b1c3 d7d5')
 
-const moves = b.getValidMoves()
+const moves = bot.board.getValidMoves()
 
 console.log('Searching', moves.length, 'moves')
 
-const { index, score } = findBestMove(b, 3)
+const { index, score } = bot.findBestMove(3)
 
 console.log(
   'Best move is move',

@@ -1,4 +1,5 @@
 import {
+  AfenPreset,
   Board,
   BoardSquare,
   Notation,
@@ -7,7 +8,7 @@ import {
 
 import seedrandom from 'seedrandom'
 
-import * as Opening from './openings'
+// import * as Opening from './openings'
 
 const getSquareScore = (square: BoardSquare): number => {
   let points = 0
@@ -70,137 +71,168 @@ type SearchResult = {
   path?: string
 }
 
-export type TranspositionTable = Map<string, SearchResult>
-
-let transpositionTable: TranspositionTable = new Map()
+type TranspositionTable = Map<string, SearchResult>
 
 const TRANSPOSITION_TABLE_LIMIT = 10240
 
-const pruneTranspositionTable = () => {
-  transpositionTable = new Map(
-    [...transpositionTable].slice(-TRANSPOSITION_TABLE_LIMIT)
-  )
-}
+export class Bot {
+  private transpositionTable: TranspositionTable = new Map()
 
-export const findBestMove = (
-  board: Board,
-  depth: number,
-  seed = String(Math.random()),
-  rng = seedrandom(seed),
-  maxDepth = depth
-): SearchResult => {
-  const moves = board.getValidMoves()
+  public readonly board: Board
 
-  // score, [index, path]
-  const scores = new Map<number, [number, string]>()
+  constructor() {
+    this.board = new Board()
+    this.board.importAFEN(AfenPreset.VanillaDefault)
+  }
 
-  for (let i = 0; i < moves.length; i++) {
-    const move = moves[i]
+  private pruneTranspositionTable() {
+    this.transpositionTable = new Map(
+      [...this.transpositionTable].slice(-TRANSPOSITION_TABLE_LIMIT)
+    )
+  }
 
-    if (depth !== maxDepth && move.kind === 'game-over') {
-      if (move.outcome === 'black') {
-        return {
-          score: Number.NEGATIVE_INFINITY,
-          index: -1,
-          seed,
-        }
-      }
+  public findBestMove(
+    depth: number,
+    seed = String(Math.random()),
+    rng = seedrandom(seed),
+    maxDepth = depth
+  ) {
+    return this._findBestMove(this.board, depth, seed, rng, maxDepth)
+  }
 
-      if (move.outcome === 'white') {
-        return {
-          score: Number.POSITIVE_INFINITY,
-          index: -1,
-          seed,
-        }
-      }
+  private _findBestMove = (
+    board: Board,
+    depth: number,
+    seed = String(Math.random()),
+    rng = seedrandom(seed),
+    maxDepth = depth
+  ): SearchResult => {
+    const moves = board.getValidMoves()
 
-      return {
-        score:
-          board.activeColour === 'white'
-            ? Number.NEGATIVE_INFINITY
-            : Number.POSITIVE_INFINITY,
-        index: -1,
-        seed,
-      }
-    }
+    // score, [index, path]
+    const scores = new Map<number, [number, string]>()
 
-    if (move.kind !== 'move') {
-      continue
-    }
+    for (let i = 0; i < moves.length; i++) {
+      const move = moves[i]
+      let path = Notation.writeNode(move)
 
-    const virtualBoard = board.clone()
+      // if (depth !== maxDepth && move.kind === 'game-over') {
+      //   if (move.outcome === 'black') {
+      //     scores.set(Number.NEGATIVE_INFINITY, [i, path])
+      //     break
+      //   }
 
-    virtualBoard.executeNode(move)
+      //   if (move.outcome === 'white') {
+      //     scores.set(Number.POSITIVE_INFINITY, [i, path])
+      //     break
+      //   }
 
-    // Default jitter to avoid playing the same moves every game
-    let score = rng() - 0.5
-    let path = Notation.writeNode(move)
+      //   scores.set(
+      //     board.activeColour === 'white'
+      //       ? Number.NEGATIVE_INFINITY
+      //       : Number.POSITIVE_INFINITY,
+      //     [i, path]
+      //   )
+      //   break
+      // }
 
-    // Prefer to play known openings
-    if (depth === maxDepth) {
-      const openings = Opening.getNamesByFen(
-        virtualBoard.toAFEN({ sections: ['positions'] })
-      )
-
-      if (openings.length > 0) {
-        score += board.activeColour === 'white' ? score + 25 : score - 25
-
-        scores.set(score, [i, path])
-        break
-      }
-    }
-
-    const reachedMaxDepth = depth <= 0
-
-    if (reachedMaxDepth) {
-      score += getBoardScore(virtualBoard)
-    } else {
-      const virtualBoardAFEN = virtualBoard.toAFEN({ sections: ['positions'] })
-
-      let subResult = transpositionTable.get(virtualBoardAFEN)
-
-      if (!subResult) {
-        subResult = findBestMove(virtualBoard, depth - 1, seed, rng, maxDepth)
-
-        transpositionTable.set(virtualBoardAFEN, subResult)
-      }
-
-      path = `${path},${subResult.path}`
-
-      // If the score difference is large enough, we don't explore that path
-      // anymore. This prevents some gambits, but it's much faster.
-      const diff = Math.abs(score - subResult.score)
-
-      if (diff > 10) {
-        score = subResult.score
+      if (move.kind !== 'move') {
         continue
       }
 
-      score = Math.max(score, subResult.score)
+      const virtualBoard = board.clone()
+
+      virtualBoard.executeNode(move)
+
+      // Default jitter to avoid playing the same moves every game
+      let score = rng() - 0.5
+
+      // Prefer to play known openings
+      // if (depth === maxDepth) {
+      //   const openings = Opening.getNamesByFen(
+      //     virtualBoard.toAFEN({ sections: ['positions'] })
+      //   )
+
+      //   if (openings.length > 0) {
+      //     score += board.activeColour === 'white' ? score + 25 : score - 25
+
+      //     // scores.set(score, [i, path])
+
+      //     return {
+      //       score,
+      //       index: i,
+      //       seed,
+      //       path,
+      //     }
+
+      //     break
+      //   }
+      // }
+
+      const reachedMaxDepth = depth <= 0
+
+      // If we're at max depth, take the evaluation of the board as is
+      if (reachedMaxDepth) {
+        score = Math.max(score, getBoardScore(virtualBoard))
+      } else {
+        const virtualBoardAFEN = virtualBoard.toAFEN({
+          sections: ['positions'],
+        })
+
+        let subResult = this.transpositionTable.get(virtualBoardAFEN)
+
+        if (!subResult) {
+          subResult = this._findBestMove(
+            virtualBoard,
+            depth - 1,
+            seed,
+            rng,
+            maxDepth
+          )
+
+          this.transpositionTable.set(virtualBoardAFEN, subResult)
+        }
+
+        path = `${path},${subResult.path}`
+
+        score = Math.max(score, subResult.score)
+      }
+
+      scores.set(score, [i, path])
     }
 
-    scores.set(score, [i, path])
+    const scoresAsc = [...scores].sort((a, b) => a[0] - b[0])
+
+    if (scoresAsc.length === 0) {
+      throw new Error('No moves found!')
+    }
+
+    try {
+      const [score, [index, path]] = scoresAsc.at(
+        board.activeColour === 'white' ? -1 : 0
+      )
+
+      const result: SearchResult = {
+        score,
+        index,
+        seed,
+        path,
+      }
+
+      this.transpositionTable.set(
+        board.toAFEN({ sections: ['positions'] }),
+        result
+      )
+
+      if (this.transpositionTable.size > TRANSPOSITION_TABLE_LIMIT) {
+        this.pruneTranspositionTable()
+      }
+
+      return result
+    } catch (error) {
+      console.log(scoresAsc)
+      console.error(error)
+      return
+    }
   }
-
-  const scoresAsc =
-    board.activeColour === 'white'
-      ? [...scores].sort((a, b) => b[0] - a[0])
-      : [...scores].sort((a, b) => a[0] - b[0])
-
-  const [score, [index, path]] = scoresAsc[0]
-
-  const result: SearchResult = {
-    score,
-    index,
-    seed,
-    path,
-  }
-
-  transpositionTable.set(board.toAFEN({ sections: ['positions'] }), result)
-
-  if (transpositionTable.size > TRANSPOSITION_TABLE_LIMIT) {
-    pruneTranspositionTable()
-  }
-
-  return result
 }

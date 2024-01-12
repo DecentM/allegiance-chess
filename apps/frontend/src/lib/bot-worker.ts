@@ -1,9 +1,5 @@
 import * as Sentry from '@sentry/vue'
-import {
-  findBestMove,
-  getBoardScore,
-  Openings,
-} from '@decentm/allegiance-chess-bot'
+import { Bot, getBoardScore, Openings } from '@decentm/allegiance-chess-bot'
 import {
   AfenPreset,
   Board,
@@ -94,6 +90,8 @@ if (sentryEnabled) {
   })
 }
 
+const bot = new Bot()
+
 onmessage = async (messageEvent: MessageEvent<BotWorkerMessage>) => {
   try {
     const message = messageEvent.data
@@ -134,7 +132,7 @@ onmessage = async (messageEvent: MessageEvent<BotWorkerMessage>) => {
       }
 
       case 'bot-move': {
-        const botResult = findBestMove(board, 3)
+        const botResult = bot.findBestMove(3)
         const move = board.executeMoveIndex(botResult.index)
 
         const response: BotWorkerResponse = {

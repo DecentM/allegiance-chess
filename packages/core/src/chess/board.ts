@@ -1463,19 +1463,19 @@ export class Board {
       }
     }
 
-    const positionCount = this.getPositionCount()
+    // const positionCount = this.getPositionCount()
 
-    // draw by repetition
-    const afen = this.toAFEN({ sections: ['positions'] })
-    const occurrenceCount = positionCount.get(afen) || 0
+    // // draw by repetition
+    // const afen = this.toAFEN({ sections: ['positions'] })
+    // const occurrenceCount = positionCount.get(afen) || 0
 
-    if (occurrenceCount >= 3) {
-      return {
-        kind: 'game-over',
-        outcome: 'draw',
-        reason: 'Repetition',
-      }
-    }
+    // if (occurrenceCount >= 3) {
+    //   return {
+    //     kind: 'game-over',
+    //     outcome: 'draw',
+    //     reason: 'Repetition',
+    //   }
+    // }
 
     // TODO: draw by agreement?
     // TODO: timeouts?
