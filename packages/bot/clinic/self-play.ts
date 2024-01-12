@@ -8,9 +8,9 @@ const b = new Board()
 
 b.importAFEN(AfenPreset.VanillaDefault)
 
-const _seed = randomBytes(8).toString('hex')
+const seed = randomBytes(8).toString('hex')
 
-const bot = new Bot()
+const bot = new Bot(seed)
 
 // eslint-disable-next-line no-constant-condition
 while (true) {
@@ -25,7 +25,7 @@ while (true) {
     }
   }
 
-  const { index, score, seed } = bot.findBestMove(3, _seed)
+  const { index, score } = bot.findBestMove(3)
 
   if (index === -1) {
     console.log('No moves!')

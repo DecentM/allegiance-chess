@@ -1,13 +1,10 @@
 import { AfenPreset, Board } from '@decentm/allegiance-chess-core'
-import { randomBytes } from 'node:crypto'
 
 import { Bot } from '../src/engine'
 
 const b = new Board()
 
 b.importAFEN(AfenPreset.VanillaDefault)
-
-const _seed = randomBytes(8).toString('hex')
 
 console.log('Running performance benchmark...')
 const start = performance.now()
@@ -22,7 +19,7 @@ const bot = new Bot()
 while (MOVES > 0) {
   const moveStart = performance.now()
 
-  const { index, score, seed } = bot.findBestMove(3, _seed)
+  const { index, score } = bot.findBestMove(3)
 
   if (index === -1) {
     console.log('No moves!')

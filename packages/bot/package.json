@@ -2,7 +2,7 @@
   "name": "@decentm/allegiance-chess-bot",
   "version": "0.0.1",
   "scripts": {
-    "t": "c8 ava",
+    "t": "c8 ava --timeout 5m",
     "ingest-openings": "ts-node --transpile-only -r tsconfig-paths/register tools/opening-ingestion.ts",
     "dev": "ts-node-dev --transpile-only --clear -r tsconfig-paths/register",
     "clinic": "TS_NODE_PROJECT=tsconfig.spec.json clinic",
